@@ -1,0 +1,20 @@
+export default {
+  config: {
+    default: true,
+    MD013: false,
+    MD033: false,
+    MD041: false,
+    MD024: {
+      siblings_only: true
+    },
+    MD046: {
+      style: 'fenced'
+    },
+    MD060: false
+  },
+  ignores: [
+    'node_modules/**',
+    '.vitepress/dist/**',
+    '.vitepress/cache/**'
+  ]
+}
