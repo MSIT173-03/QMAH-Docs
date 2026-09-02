@@ -1,8 +1,12 @@
 # 媒體交付設定
 
-本文件定義 QMAH 的圖片路徑、檔案同步與公開交付方式。資料庫保存的是穩定的邏輯路徑，應用程式再依執行環境將邏輯路徑解析成本機網址或 CDN（內容傳遞網路）網址。這樣更換檔案來源時不需要批次改寫資料庫欄位。
+本頁說明 QMAH 的圖片路徑、檔案同步與公開交付方式。資料庫保存穩定的邏輯路徑，應用程式再依執行環境解析成本機網址或 CDN（內容傳遞網路）網址。
 
-目前版本的共用設定固定使用 `Local`，供本機開發與測試。Azure 或 Cloudflare 的設定只作為未來測試環境、預備環境與正式環境的部署設定，不應直接寫入本機預設設定檔。
+更換檔案來源時不需要批次改寫資料庫欄位。
+
+目前版本的共用設定固定使用 `Local`，供本機開發與測試。Azure 或 Cloudflare 的設定只作為未來測試環境、預備環境與正式環境的部署設定。
+
+這些設定不應直接寫入本機預設設定檔。
 
 ## 1. 路徑與責任範圍
 
@@ -31,7 +35,9 @@
 | Razor `MediaUrlTagHelper` | 將 Web 頁面中的公開 `<img src>` 與 `<source src>` 套用相同的網址解析規則 |
 | CDN／Blob／R2 | 提供檔案的公開讀取與快取；不負責修改資料庫邏輯路徑 |
 
-目前的 `Cdn` 模式只改變對外網址，不會自動把本機檔案上傳至 Azure Blob Storage 或 Cloudflare R2，也不會在 CDN 暫時無法連線時逐張圖片發出健康檢查。檔案同步與 CDN 路由必須先由部署流程完成。
+目前的 `Cdn` 模式只改變對外網址，不會自動把本機檔案上傳至 Azure Blob Storage 或 Cloudflare R2。
+
+CDN 暫時無法連線時，解析器也不會逐張圖片發出健康檢查。檔案同步與 CDN 路由必須先由部署流程完成。
 
 ### 1.3 目前 Local 模式
 
@@ -57,7 +63,9 @@
 }
 ```
 
-API 專案的共用設定使用 `../QMAH.Web/wwwroot/media`，讓 API 的受控上傳與本機 Web 媒體目錄保持一致；Web 專案使用 `wwwroot/media`。Development 設定明確寫出 `Local`，方便檢查啟動環境的實際預設值。
+API 專案的共用設定使用 `../QMAH.Web/wwwroot/media`，讓 API 的受控上傳與本機 Web 媒體目錄保持一致。Web 專案使用 `wwwroot/media`。
+
+Development 設定明確寫出 `Local`，方便檢查啟動環境的實際預設值。
 
 ## 2. 設定欄位
 
@@ -76,7 +84,9 @@ Media__PublicBaseUrl=https://assets.example.com
 Media__PublicPathPrefix=
 ```
 
-環境變數中的雙底線 `__` 代表 JSON 設定的階層分隔。`PublicBaseUrl` 是應用程式回傳給瀏覽器的網址，不是 Blob Storage 的管理端點，也不是 Cloudflare API Token。Token、SAS（共用存取簽章）與帳號密鑰不應放進版本庫或回傳給前端。
+環境變數中的雙底線 `__` 代表 JSON 設定的階層分隔。`PublicBaseUrl` 是應用程式回傳給瀏覽器的網址，不是 Blob Storage 的管理端點，也不是 Cloudflare API Token。
+
+Token、SAS（共用存取簽章）與帳號密鑰不應放進版本庫或回傳給前端。
 
 ## 3. 網址解析規則
 
@@ -102,13 +112,16 @@ Media__PublicPathPrefix=
 - Windows 反斜線會正規化為 `/`，避免資料庫歷史資料產生不一致網址。
 - 不是 `/media` 或 `/uploads` 根目錄的值不會被當成公開媒體資產處理。
 - `DeliveryMode` 不是 `Cdn`、`PublicBaseUrl` 遺漏、網址格式錯誤、含 query string 或含 fragment 時，解析器會回傳正規化後的 Local 路徑。
-- 這個設定回復只處理「設定不合法」的情況。設定合法但 CDN 在網路上中斷時，已回傳的 `https://assets.example.com/...` 不會由解析器自動改回 `/media/...`。可用的可用性方案是 CDN 的來源健康檢查、來源故障轉移或部署層級切換；不應讓每個圖片元件自行猜測第二個網址。
+- 這個設定回復只處理「設定不合法」的情況。設定合法但 CDN 在網路上中斷時，已回傳的 `https://assets.example.com/...` 不會由解析器自動改回 `/media/...`。
+  可用的可用性方案是 CDN 的來源健康檢查、來源故障轉移或部署層級切換。不應讓每個圖片元件自行猜測第二個網址。
 
 ### 3.3 公開媒體與受保護媒體
 
 文物與商城公開資產可使用 `/media/...`；已設定為公開交付的會員頭像或成就圖示可使用 `/uploads/...`。Cloudflare 或 Azure 的快取規則應只涵蓋確認可公開的路徑。
 
-社群圖片目前不是公開靜態路徑。`/api/v1/social/media/{id}/content` 會先檢查資產狀態、貼文發布狀態與擁有者，再由 API 以受控檔案串流回傳。這類內容不可直接複製到無驗證的公開 CDN 路徑。若日後需要加速，需另外設計短效簽名網址、受控邊緣轉送與刪除失效機制。
+社群圖片目前不是公開靜態路徑。`/api/v1/social/media/{id}/content` 會先檢查資產狀態、貼文發布狀態與擁有者，再由 API 以受控檔案串流回傳。
+
+這類內容不可直接複製到無驗證的公開 CDN 路徑。若日後需要加速，需另外設計短效簽名網址、受控邊緣轉送與刪除失效機制。
 
 ## 4. 未來導入 CDN 的共同準備
 
@@ -116,7 +129,8 @@ Media__PublicPathPrefix=
 
 1. 保留資料庫中的 `/media/...` 與 `/uploads/...` 邏輯路徑，不做網域批次取代。
 2. 將本機媒體目錄同步至物件儲存或 CDN 所使用的來源，並保留 `media/...`、`uploads/...` 後的相對目錄與檔名。
-3. 讓 CDN 公開 URL 的路徑與應用程式回傳值一一對應。若使用 `PublicPathPrefix=/qmah`，CDN 必須能將 `/qmah/media/...` 對應至來源的 `media/...`；也可以把 `qmah/` 一起作為物件鍵前綴，但兩端只能選一種規則。
+3. 讓 CDN 公開 URL 的路徑與應用程式回傳值一一對應。若使用 `PublicPathPrefix=/qmah`，CDN 必須能將 `/qmah/media/...` 對應至來源的 `media/...`。
+   也可以把 `qmah/` 一起作為物件鍵前綴，但兩端只能選一種規則。
 4. 確認所有圖片的 `Content-Type`（HTTP 媒體類型）正確，例如 JPEG 為 `image/jpeg`、PNG 為 `image/png`、SVG 為 `image/svg+xml`。
 5. 先在測試或預備環境切換 `Cdn`，確認 API JSON、Razor 頁面、圖片預覽、空圖片狀態與含中文檔名的網址。
 6. 生產環境切換後保留本機或來源端備份，直到完成回滾窗口與快取驗證。
@@ -130,7 +144,9 @@ Media__PublicPathPrefix=
 
 ## 5. Azure Blob Storage + Azure Front Door
 
-Azure 的建議架構是把 Blob Storage 作為來源，以 Azure Front Door 作為公開入口。Microsoft 的 [Blob Storage 搭配 Azure Front Door 說明](https://learn.microsoft.com/en-us/azure/frontdoor/scenario-storage-blobs)涵蓋 Blob 來源、網域與存取控制的配置方式。
+Azure 的建議架構是把 Blob Storage 作為來源，以 Azure Front Door 作為公開入口。
+
+Microsoft 的 [Blob Storage 搭配 Azure Front Door 說明](https://learn.microsoft.com/en-us/azure/frontdoor/scenario-storage-blobs)涵蓋 Blob 來源、網域與存取控制的配置方式。
 
 ### 5.1 物件鍵設計
 
@@ -144,7 +160,9 @@ Blob 物件鍵：  media/catalog/bronze/item/display.jpg
 Blob 物件鍵：  uploads/avatars/member-001.jpg
 ```
 
-若使用兩個容器，或 Blob 物件鍵前面還有容器專用前綴，Front Door 必須透過不同路由或 URL rewrite（網址重寫）補上／移除該前綴。應先固定一份路徑對照表，再開始同步，避免出現「API 回傳 200 但圖片永遠 404」的錯誤。
+若使用兩個容器，或 Blob 物件鍵前面還有容器專用前綴，Front Door 必須透過不同路由或 URL rewrite（網址重寫）補上／移除該前綴。
+
+應先固定一份路徑對照表，再開始同步，避免出現「API 回傳 200 但圖片永遠 404」的錯誤。
 
 ### 5.2 同步本機資產
 
@@ -162,9 +180,15 @@ azcopy sync "C:\path\to\QMAH.Web\wwwroot\uploads" `
   --delete-destination=false
 ```
 
-`--delete-destination=false` 是保守的初始設定，避免同步時刪除來源端尚未存在的物件。Microsoft 的 [AzCopy Blob 上傳說明](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-blobs-upload)與 [AzCopy sync 說明](https://learn.microsoft.com/en-us/azure/storage/common/storage-ref-azcopy-sync)提供驗證方式、遞迴同步與刪除選項的完整定義。正式流程應先在測試容器驗證物件鍵、檔案數量、檔案大小與 `Content-Type`，再決定是否啟用刪除同步。
+`--delete-destination=false` 是保守的初始設定，避免同步時刪除來源端尚未存在的物件。
 
-若容器為私有，來源存取可使用受控身分、SAS 或 Front Door Premium 的 Private Link（私有連結）。公開圖片的 Front Door URL 不應暴露 Storage Account 金鑰；若將 SAS 放進公開圖片 URL，必須同時規劃快取鍵、有效期限與到期後重新產生網址。
+Microsoft 的 [AzCopy Blob 上傳說明](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-blobs-upload)與 [AzCopy sync 說明](https://learn.microsoft.com/en-us/azure/storage/common/storage-ref-azcopy-sync)提供驗證方式、遞迴同步與刪除選項的完整定義。
+
+正式流程應先在測試容器驗證物件鍵、檔案數量、檔案大小與 `Content-Type`，再決定是否啟用刪除同步。
+
+若容器為私有，來源存取可使用受控身分、SAS 或 Front Door Premium 的 Private Link（私有連結）。公開圖片的 Front Door URL 不應暴露 Storage Account 金鑰。
+
+若將 SAS 放進公開圖片 URL，必須同時規劃快取鍵、有效期限與到期後重新產生網址。
 
 ### 5.3 Front Door 路由
 
@@ -176,9 +200,13 @@ azcopy sync "C:\path\to\QMAH.Web\wwwroot\uploads" `
 | `/uploads/*` | Blob `uploads/*` | 只有確認公開的資產可快取 |
 | `/api/*` | 應用程式 API | 不作公開靜態快取 |
 
-設定 `PublicPathPrefix=/qmah` 時，公開路由會變成 `/qmah/media/*` 與 `/qmah/uploads/*`。此時 Front Door 的路由／規則必須將 `/qmah/` 移除後再取來源，或同步時把 `qmah/` 寫入 Blob 物件鍵。應用程式本身只會加上前綴，不會替 Front Door 做路徑重寫。
+設定 `PublicPathPrefix=/qmah` 時，公開路由會變成 `/qmah/media/*` 與 `/qmah/uploads/*`。
 
-自訂網域、TLS（傳輸層安全性）與 WAF（Web 應用程式防火牆）應在 Front Door 層設定。若來源需要維持私有，使用支援 Private Link 的方案；若使用公開 Blob 來源，則需限制來源內容、容器權限與 SAS 生命週期。Azure Storage 的 [自訂網域說明](https://learn.microsoft.com/sr-cyrl-rs/azure/storage/blobs/storage-custom-domain-name)可作為網域規劃參考。
+此時 Front Door 的路由／規則必須將 `/qmah/` 移除後再取來源，或同步時把 `qmah/` 寫入 Blob 物件鍵。應用程式本身只會加上前綴，不會替 Front Door 做路徑重寫。
+
+自訂網域、TLS（傳輸層安全性）與 WAF（Web 應用程式防火牆）應在 Front Door 層設定。若來源需要維持私有，使用支援 Private Link 的方案；若使用公開 Blob 來源，則需限制來源內容、容器權限與 SAS 生命週期。
+
+Azure Storage 的[自訂網域說明](https://learn.microsoft.com/sr-cyrl-rs/azure/storage/blobs/storage-custom-domain-name)可作為網域規劃參考。
 
 ### 5.4 Azure 應用程式設定
 
@@ -194,9 +222,13 @@ Media__PublicPathPrefix=
 
 ### 5.5 Azure 快取與大型檔案
 
-圖片、CSS 與 JavaScript 適合快取；登入狀態、API 回應與含權限判斷的內容不應被公開快取。Azure Front Door 的 [快取行為說明](https://learn.microsoft.com/en-gb/azure/frontdoor/front-door-caching)涵蓋 query string、`Cache-Control`、快取清除與快取鍵設定。
+圖片、CSS 與 JavaScript 適合快取；登入狀態、API 回應與含權限判斷的內容不應被公開快取。
 
-現有資料庫檔名多為穩定路徑。覆寫相同檔名時，邊緣節點可能仍保存舊內容，因此更新後要清除受影響 URL，或未來改用版本化檔名／路徑。使用大量圖片或原始大檔的 Range request（分段讀取請求）時，需一併檢查來源壓縮與 `Accept-Encoding` 行為，避免 Front Door 與來源對分段回應的處理不一致。
+Azure Front Door 的[快取行為說明](https://learn.microsoft.com/en-gb/azure/frontdoor/front-door-caching)涵蓋 query string、`Cache-Control`、快取清除與快取鍵設定。
+
+現有資料庫檔名多為穩定路徑。覆寫相同檔名時，邊緣節點可能仍保存舊內容，因此更新後要清除受影響 URL，或未來改用版本化檔名／路徑。
+
+使用大量圖片或原始大檔的 Range request（分段讀取請求）時，需一併檢查來源壓縮與 `Accept-Encoding` 行為，避免 Front Door 與來源對分段回應的處理不一致。
 
 ## 6. Cloudflare CDN
 
@@ -225,7 +257,9 @@ Cloudflare 有兩種適合目前資料模型的做法：
 
 6. 用瀏覽器或 HTTP 工具檢查 `Content-Type`、`ETag`、`Last-Modified`、`Cache-Control` 與 `CF-Cache-Status`，並確認第二次請求可命中預期的快取規則。
 
-若使用 `/qmah` 前綴，Cloudflare Cache Rule 要匹配 `/qmah/media/*` 與 `/qmah/uploads/*`，同時以 Transform Rule 或 Worker 將 `/qmah/` 移除後再送往 QMAH Web；也可以讓來源保留 `qmah/` 目錄。這個路徑選擇必須與 `PublicPathPrefix` 和檔案實際位置完全一致。
+若使用 `/qmah` 前綴，Cloudflare Cache Rule 要匹配 `/qmah/media/*` 與 `/qmah/uploads/*`，同時以 Transform Rule 或 Worker 將 `/qmah/` 移除後再送往 QMAH Web。也可以讓來源保留 `qmah/` 目錄。
+
+這個路徑選擇必須與 `PublicPathPrefix` 和檔案實際位置完全一致。
 
 ### 6.2 Cloudflare R2：物件儲存來源
 
@@ -239,9 +273,13 @@ uploads/avatars/member-001.jpg
 部署步驟如下：
 
 1. 建立 R2 bucket，將本機 `wwwroot/media` 與 `wwwroot/uploads` 同步到 `media/` 與 `uploads/` 物件鍵前綴。
-2. 在 R2 綁定自訂網域，例如 `assets.example.com`。Cloudflare 的 [R2 公開 bucket 與自訂網域說明](https://developers.cloudflare.com/r2/buckets/public-buckets/)指出，`r2.dev` 適合開發用途，不應作為正式流量入口；自訂網域才能使用 Cloudflare 快取、WAF 與相關存取控制。
+2. 在 R2 綁定自訂網域，例如 `assets.example.com`。Cloudflare 的 [R2 公開 bucket 與自訂網域說明](https://developers.cloudflare.com/r2/buckets/public-buckets/)指出，`r2.dev` 適合開發用途，不應作為正式流量入口。
+
+   自訂網域才能使用 Cloudflare 快取、WAF 與相關存取控制。
 3. 若資產可公開，使用自訂網域對應公開物件；若資產需要權限，保留 bucket 私有，改用 Worker、短效簽名 URL 或 Access 控制，不可只靠 `Media:DeliveryMode=Cdn` 使私有物件安全。
-4. 建立只涵蓋公開媒體路徑的 Cache Rule。Cloudflare [R2 快取說明](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)指出，預設快取範圍不是所有檔案類型都相同；需要時應明確設定靜態圖片路徑的快取規則。
+4. 建立只涵蓋公開媒體路徑的 Cache Rule。Cloudflare [R2 快取說明](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)指出，預設快取範圍不是所有檔案類型都相同。
+
+   需要時應明確設定靜態圖片路徑的快取規則。
 5. 若來源讀取量較大，可評估 Smart Tiered Cache（分層快取），減少多個邊緣節點同時讀取 R2。覆寫或刪除物件後，依 TTL（存活時間）與快取規則清除對應 URL。
 6. 將 API 與 Web 設定為：
 
@@ -251,7 +289,9 @@ uploads/avatars/member-001.jpg
    Media__PublicPathPrefix=
    ```
 
-R2 本身的物件鍵不應包含資料庫 URL 的開頭斜線。若使用 `/qmah` 公開前綴，必須在 Cloudflare 端重寫路徑，或把 `qmah/` 寫入 R2 物件鍵；不應同時採用兩種方案。
+R2 本身的物件鍵不應包含資料庫 URL 的開頭斜線。若使用 `/qmah` 公開前綴，必須在 Cloudflare 端重寫路徑，或把 `qmah/` 寫入 R2 物件鍵。
+
+不應同時採用兩種方案。
 
 ### 6.3 Cloudflare 快取失效與驗證
 
@@ -260,7 +300,9 @@ R2 本身的物件鍵不應包含資料庫 URL 的開頭斜線。若使用 `/qma
 - 使用 Cloudflare Cache Rules 設定合理 TTL，更新後以 URL purge（依網址清除快取）。
 - 以版本化檔名或 query string 產生新 URL；這需要匯入流程或資料庫路徑策略配合，不是目前設定切換的一部分。
 
-Cloudflare [Cache Rules 自訂快取說明](https://developers.cloudflare.com/cache/concepts/customize-cache/)與 [Purge Cache API](https://developers.cloudflare.com/api/resources/cache/methods/purge/)可作為規則與自動化部署的依據。清除快取時應限制在受影響的媒體 URL，不應在每次部署時清除整個網域。
+Cloudflare 的 [Cache Rules 自訂快取說明](https://developers.cloudflare.com/cache/concepts/customize-cache/)與 [Purge Cache API](https://developers.cloudflare.com/api/resources/cache/methods/purge/)可作為規則與自動化部署的依據。
+
+清除快取時應限制在受影響的媒體 URL，不應在每次部署時清除整個網域。
 
 ## 7. 設定切換與回滾
 
@@ -283,7 +325,9 @@ Media__PublicBaseUrl=
 Media__PublicPathPrefix=
 ```
 
-確認 `Media:RootPath` 的本機檔案仍存在後重啟 API 與 Web。若 CDN 已快取錯誤內容，切換回 Local 後仍應依部署平台清除受影響的 CDN URL；Local 回應不會主動清除外部快取。
+確認 `Media:RootPath` 的本機檔案仍存在後重啟 API 與 Web。
+
+若 CDN 已快取錯誤內容，切換回 Local 後仍應依部署平台清除受影響的 CDN URL。Local 回應不會主動清除外部快取。
 
 ## 8. 驗證清單
 
@@ -314,4 +358,6 @@ Media__PublicPathPrefix=
 - `QMAH.Web/Infrastructure/Media/MediaUrlTagHelper.cs`：Razor 公開圖片標籤的網址轉換。
 - `QMAH.Infrastructure/Infrastructure/CatalogImport/CatalogImportService.cs`：匯入檔案與 `/media/...` 邏輯路徑的產生。
 
-導入 Azure Blob、Cloudflare R2 或直接上傳 CDN 來源時，應新增獨立的儲存服務與同步／清理流程，不應把物件儲存 SDK、SAS 或 Cloudflare 憑證塞入網址解析器，也不應改寫資料庫內的既有邏輯路徑。
+導入 Azure Blob、Cloudflare R2 或直接上傳 CDN 來源時，應新增獨立的儲存服務與同步／清理流程。
+
+不應把物件儲存 SDK、SAS 或 Cloudflare 憑證塞入網址解析器，也不應改寫資料庫內的既有邏輯路徑。

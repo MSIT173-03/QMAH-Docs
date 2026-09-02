@@ -1,17 +1,19 @@
 # API 名詞表
 
-本名詞表統一 QMAH API 文件中的專業用語、英文原文與台灣繁體中文說明。每個 OpenAPI operation（一次 API 呼叫）仍會在自身的 `summary`（清單短摘要）或 `description`（完整行為說明）中就地補上括號，不依賴整份文件的閱讀順序。
+本名詞表列出 QMAH API 文件使用的專業用語、英文原文與台灣繁體中文說明。
+
+每個 OpenAPI operation（一次 API 呼叫）仍會在自己的 `summary`（清單短摘要）或 `description`（完整行為說明）補上括號，不要求先讀完整份名詞表。
 
 ## 使用規則
 
-1. API 條目視為可以獨立閱讀的文件；條目內出現的專業術語，在同一條目中直接使用「原文（白話說明）」格式。
+1. API 條目可獨立閱讀；條目內出現的專業術語，直接使用「原文（白話說明）」格式。
 2. 同一術語固定使用本表的說法，不在不同 Controller 或文件段落另造同義詞。
 3. 程式欄位名稱、路徑、允許值與 HTTP 方法保留原文；原文後補充其用途或資料意義。
 4. `summary` 保持短句；需要解釋的內容放在 `description`、參數說明或 Schema（資料欄位格式）中。
 
 ## 後端、前端與前台／後台
 
-這四個詞分別描述技術層與使用情境，文件中不互相替代：
+四個詞分別描述技術層與使用情境，文件中不互相替代：
 
 | 詞 | 定義 | QMAH 對應 |
 | --- | --- | --- |
@@ -20,7 +22,9 @@
 | 前台（front office） | 一般訪客與會員使用的產品介面 | `QMAH.Client` Angular 前端所呈現的使用者前台 |
 | 後台（back office） | 管理員、內容編輯與營運人員使用的管理介面 | `QMAH.Web` Razor 前端所呈現的管理後台 |
 
-`QMAH.Web` 同時包含後端主機程式與 Razor 前端管理後台；`QMAH.Api` 是後端 API 主機；`QMAH.Client` 是前端使用者前台。啟動設定名稱若同時啟動多個主機，會直接標示 API 後端、Razor 管理後台與 Angular 使用者前台。
+`QMAH.Web` 同時包含後端主機程式與 Razor 前端管理後台。`QMAH.Api` 是後端 API 主機；`QMAH.Client` 是前端使用者前台。
+
+啟動設定名稱若同時啟動多個主機，會直接標示 API 後端、Razor 管理後台與 Angular 使用者前台。
 
 ## 共通術語
 
@@ -41,7 +45,7 @@
 | path parameter | `path parameter（路徑參數）` | 放在網址大括號中的資源識別欄位，例如 `{id}` |
 | query string | `query string（查詢參數）` | 放在網址 `?` 後的篩選、搜尋或分頁欄位 |
 | status code | `status code（HTTP 狀態碼）` | 表示請求結果，例如 200、400、401 或 404 |
-| ProblemDetails | `ProblemDetails（RFC 7807 標準錯誤回應格式）` | 以 `type`、`title`、`status`、`detail` 等欄位描述錯誤 |
+| ProblemDetails | `ProblemDetails（RFC 9457 標準錯誤回應格式）` | 以 `type`、`title`、`status`、`detail` 等欄位描述錯誤 |
 | ValidationProblemDetails | `ValidationProblemDetails（欄位驗證錯誤格式）` | ProblemDetails（標準錯誤回應格式）的延伸格式，另可包含 `errors` 欄位 |
 | DTO | `DTO（API 對外傳輸的資料格式）` | API 對外提供的資料結構，不等同於資料庫 Entity |
 | Entity | `Entity（資料庫對應模型）` | 由 ORM（物件關聯對映工具）追蹤並對應資料表的程式模型 |
@@ -82,4 +86,8 @@
 
 ## 文件維護
 
-OpenAPI 的 `summary` 與 `description` 使用 [OpenAPI 3.1 Operation Object](https://spec.openapis.org/oas/v3.1.0#operation-object) 的分工；HTTP 狀態碼使用 [RFC 9110 HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) 的語意。新增術語時先補入本表，再在對應的 operation 描述、參數或 Schema 補上同一組括號說明。
+OpenAPI 的 `summary` 與 `description` 使用 [OpenAPI 3.1 Operation Object](https://spec.openapis.org/oas/v3.1.0#operation-object) 的分工。
+
+HTTP 狀態碼使用 [RFC 9110 HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) 的語意。
+
+新增術語時先補入本表，再在對應的 operation 描述、參數或 Schema 補上同一組括號說明。

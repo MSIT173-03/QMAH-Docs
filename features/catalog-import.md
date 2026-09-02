@@ -1,12 +1,14 @@
 # 文物資料匯入
 
-QMAH 的文物匯入採「產生／預檢 → 確認 → 套用」流程。管理員可以在 `QMAH.Web` 的 Catalog → 文物資料匯入直接上傳資料包；批次或 CI 則使用 `NpmDataImporter`。兩者共用 `QMAH.Infrastructure/Infrastructure/CatalogImport` 的解析、驗證、同步與冪等規則。
+QMAH 的文物匯入流程分成「產生／預檢 → 確認 → 套用」三步。
+
+`QMAH.Web` 的 Catalog → 文物資料匯入接受資料包上傳；批次或 CI 使用 `NpmDataImporter`。兩個入口共用 `QMAH.Infrastructure/Infrastructure/CatalogImport` 的解析、驗證、同步與冪等規則。
 
 匯入器只接受已存在的 QMAH SQL Server Schema，不建資料庫、不建表、不使用 EF Migration，也不在網站啟動時自動匯入。
 
 ## 資料邊界
 
-一批文物可以同時影響三個功能，但責任仍分開：
+一批文物會同時供三個功能使用，資料責任仍分開：
 
 ```text
 catalog.Artifacts
@@ -20,7 +22,9 @@ catalog.Artifacts
 - 匯入不覆蓋商品人工價格、庫存與上架狀態，也不複製文物官方圖片。
 - 同一批資料重複匯入會辨識相同文物／商品，不重複建立資料列或圖片。
 
-目前正式基準為 8 個分類、每類 32 件，共 256 件文物、256 筆題庫與 256 件對應展示商品。這是參考資料量，不是資料表硬限制；實際匯入量以資料包與預檢結果為準。
+目前正式基準為 8 個分類、每類 32 件，共 256 件文物、256 筆題庫與 256 件對應展示商品。
+
+這是參考資料量，不是資料表硬限制；實際匯入量以資料包與預檢結果為準。
 
 ## 後台操作
 
@@ -31,7 +35,9 @@ catalog.Artifacts
 5. 按「預覽匯入」，先確認候選、新增、更新、未變更、無效、無法對應、圖片與同步數量。
 6. 預覽無誤後按「確認匯入」。系統使用同一次暫存資料包與確認碼，不接受修改資料後跳過預檢。
 
-上傳限制為文物／商品 JSON 各 32 MB、圖片 ZIP 256 MB；解壓縮後與單一檔案也有大小及檔案數限制。匯入暫存放在系統暫存目錄，完成或失敗後會清理；圖片與資料庫交易不完整時，不會把半套圖片當成成功結果。
+上傳限制為文物／商品 JSON 各 32 MB、圖片 ZIP 256 MB。解壓縮後與單一檔案也有大小及檔案數限制。
+
+匯入暫存放在系統暫存目錄，完成或失敗後會清理。圖片與資料庫交易不完整時，不會把半套圖片當成成功結果。
 
 ## JSON 最小欄位
 
@@ -49,7 +55,9 @@ catalog.Artifacts
 }
 ```
 
-可選欄位包括來源分類名稱、原始年代文字、描述、尺寸、作者、授權、姓名標示、原始 JSON、是否納入題庫與穩定 `id`。工具也接受既有資料處理流程常見的別名與最多三層的 `artifacts`／`items`／`records`／`data`／`results` 包裝，但欄位語意不能因此猜測。
+可選欄位包括來源分類名稱、原始年代文字、描述、尺寸、作者、授權、姓名標示、原始 JSON、是否納入題庫與穩定 `id`。
+
+工具也接受既有資料處理流程常見的別名與最多三層的 `artifacts`／`items`／`records`／`data`／`results` 包裝，但欄位語意不能因此猜測。
 
 商品資料在選擇商城同步時至少應能辨識商品編號、名稱、分類、價格、庫存與圖片；若有 `artifactRef`，會再核對商品與文物的對應。缺少價格或庫存不會預設成 0，而會列為無效，避免把缺資料誤當成免費或零庫存。
 
@@ -65,7 +73,9 @@ dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.cspro
   --media-root .\QMAH.Web\wwwroot\media
 ```
 
-CLI 的預設行為是同步題庫與商城；因此未使用 `--skip-products` 時，必須同時提供 `--products`，文物每分類上限 32、商品上限 256。只驗證文物與題庫時，明確使用 `--skip-products`：
+CLI 的預設行為是同步題庫與商城。因此未使用 `--skip-products` 時，必須同時提供 `--products`；文物每分類上限 32、商品上限 256。
+
+只驗證文物與題庫時，明確使用 `--skip-products`：
 
 ```powershell
 dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.csproj -- `
@@ -87,9 +97,13 @@ dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.cspro
   --approve <本次預檢確認碼>
 ```
 
-CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--product-file`、`--media`、`--connection-string` 與 `--approval-token`。正式文件以長名稱為主，別名只為銜接既有腳本；不要在不同腳本各自發明新參數。
+CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--product-file`、`--media`、`--connection-string` 與 `--approval-token`。
 
-後台與 CLI 的商城預設值不同，是因為使用情境不同：後台畫面預設關閉商城同步，讓管理員先確認是否要建立或更新商品；CLI 在提供商品檔且未使用 `--skip-products` 時才會執行商城同步。兩者的文物、題庫、商品驗證與冪等規則仍由同一個 Infrastructure 匯入核心處理。題庫同步在兩種入口都預設開啟，只有後台取消勾選或 CLI 明確加入 `--no-question-bank` 才會關閉。
+正式文件以長名稱為主，別名只為銜接既有腳本；不要在不同腳本各自發明新參數。
+
+後台預設關閉商城同步。CLI 在提供商品檔且未使用 `--skip-products` 時才會同步商城。
+
+這是入口設定的差異；文物、題庫與商品的驗證和冪等規則仍由同一個 Infrastructure 匯入核心處理。兩個入口都預設同步題庫，只有後台取消勾選或 CLI 明確加入 `--no-question-bank` 才會關閉。
 
 ## 失敗與重試
 
@@ -99,4 +113,6 @@ CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--produc
 - 來源／授權／圖片不足：補齊來源資料，不要在 Controller 裡補假的值。
 - DB 交易失敗：確認資料庫 Schema、連線與圖片根目錄；工具會回滾資料庫並清理本次新增檔案。
 
-raw JSON、HTTP response、下載快取、圖片 ZIP 與匯入 log 放在 Repository 外或 `_工具輸出`，不提交到 Git。後台匯入完成後，資料庫才是共同結果；不要把個人機器的暫存檔當成正式資料包。
+raw JSON、HTTP response、下載快取、圖片 ZIP 與匯入 log 放在 Repository 外或 `_工具輸出`，不提交到 Git。
+
+後台匯入完成後，資料庫才是共同結果；不要把個人機器的暫存檔當成正式資料包。

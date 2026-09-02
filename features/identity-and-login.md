@@ -1,6 +1,6 @@
 # Identity 與登入
 
-QMAH 以五個 Area 的 CRUD 後台為主，並已預留獨立 API 使用相同的 Identity 資料。Identity 負責登入身分、後台存取權限，以及程式取得目前使用者的標準方式。
+QMAH 的後台由五個 Area 組成，獨立 API 使用同一組 Identity 資料。Identity 負責登入身分與後台存取權限，也定義程式取得目前使用者的方式。
 
 ## 目前專題製作範圍
 
@@ -10,11 +10,19 @@ QMAH 以五個 Area 的 CRUD 後台為主，並已預留獨立 API 使用相同�
 - 後台需要授權時，Controller 可取得目前登入者的 `UserId`
 - API 使用相同的 Identity 資料與授權規則，但使用獨立的 Cookie，並以 HTTP 401／403 回應，不將登入頁 HTML 當成 JSON 回傳
 
-共用後台的登入頁、登出按鈕、Cookie 設定與 `Admin` 授權已集中在 Web 主機設定與 User Area。各 Area 不建立各自的登入流程；Controller 與 View 不得假設任意 `UserId`，也不得直接修改 Identity 系統表。API 已提供註冊、登入、登出與開發環境密碼重設流程；正式寄信服務仍要在決定供應商後接上，不能把展示用寄信實作當成正式通知服務。
+共用後台的登入頁、登出按鈕、Cookie 設定與 `Admin` 授權已集中在 Web 主機設定與 User Area。
 
-目前兩個主機都使用 Identity lockout：連續 5 次登入失敗會鎖定 15 分鐘；登入端點另外依來源 IP 進行每分鐘 12 次的固定視窗限流。管理員停用會員時會更新 Security Stamp，讓既有登入 Cookie 在下一次 request 失效。這些規則由主機共用設定維護，Angular 前端使用者前台只需要正確處理 401、403 與 429。
+各 Area 不建立各自的登入流程。Controller 與 View 不得假設任意 `UserId`，也不得直接修改 Identity 系統表。
 
-Web 登入 Cookie 名稱為 `.QMAH.Web.Auth`，API 登入 Cookie 名稱為 `.QMAH.Api.Auth`；兩個主機的 Anti-forgery Cookie 也各自使用 `.QMAH.Web.Antiforgery` 與 `.QMAH.Api.Antiforgery`。主機啟動後會清除已知的舊版 QMAH／ASP.NET Core Cookie，降低在本機切換版本時累積過大 request header 的機會；這是 Cookie 清理機制，不代表可以無限制放大伺服器的標頭上限。
+API 已提供註冊、登入、登出與開發環境密碼重設流程。正式寄信服務仍要在決定供應商後接上，不能把展示用寄信實作當成正式通知服務。
+
+目前兩個主機都使用 Identity lockout：連續 5 次登入失敗會鎖定 15 分鐘。登入端點另外依來源 IP 進行每分鐘 12 次的固定視窗限流。
+
+管理員停用會員時會更新 Security Stamp，讓既有登入 Cookie 在下一次 request 失效。這些規則由主機共用設定維護，Angular 前端使用者前台只需要正確處理 401、403 與 429。
+
+Web 登入 Cookie 名稱為 `.QMAH.Web.Auth`，API 登入 Cookie 名稱為 `.QMAH.Api.Auth`。兩個主機的 Anti-forgery Cookie 也各自使用 `.QMAH.Web.Antiforgery` 與 `.QMAH.Api.Antiforgery`。
+
+主機啟動後會清除已知的舊版 QMAH／ASP.NET Core Cookie，降低在本機切換版本時累積過大 request header 的機會。這是 Cookie 清理機制，不代表可以無限制放大伺服器的標頭上限。
 
 ## 帳號資料分成兩種
 
@@ -23,11 +31,13 @@ Web 登入 Cookie 名稱為 `.QMAH.Web.Auth`，API 登入 Cookie 名稱為 `.QMA
 | 登入憑證與角色 | `UserManager`、`SignInManager`、`RoleManager` | Email、密碼、鎖定、角色 |
 | QMAH 會員資料 | `QmahDbContext` | 暱稱、簡介、地址、通知、成就 |
 
-`AspNetUserLogins` 與 `AspNetUserTokens` 的用途、複合主鍵與 Entity 類型由 ASP.NET Core Identity 定義；schema 名稱與欄位長度可依資料庫設定。QMAH 將 `LoginProvider`、`ProviderKey` 與 Token `Name` 設為 `nvarchar(128)`，並在 `Program.cs` 設定 `options.Stores.MaxLengthForKeys = 128`。這是 Identity 官方模型用來避免複合主鍵超過資料庫索引長度的設定，不是任意縮短登入資料。
+`AspNetUserLogins` 與 `AspNetUserTokens` 的用途、複合主鍵與 Entity 類型由 ASP.NET Core Identity 定義。Schema 名稱與欄位長度可依資料庫設定。
+
+QMAH 將 `LoginProvider`、`ProviderKey` 與 Token `Name` 設為 `nvarchar(128)`，並在 `Program.cs` 設定 `options.Stores.MaxLengthForKeys = 128`。這是 Identity 官方模型用來避免複合主鍵超過資料庫索引長度的設定，不是任意縮短登入資料。
 
 欄位對照可以依 SQL Server 調整，但 Identity 的主鍵組合與登入流程不能自行改寫。密碼、角色、Claim、Login 與 Token 仍透過框架 API 操作。
 
-不要用一般 CRUD 直接改 `AspNetUsers.PasswordHash`、`AspNetUserRoles` 或 Token。Identity 還要同步正規化欄位、安全戳記與密碼雜湊，直接改資料表很容易留下無法登入的帳號
+不要用一般 CRUD 直接改 `AspNetUsers.PasswordHash`、`AspNetUserRoles` 或 Token。Identity 還要同步正規化欄位、安全戳記與密碼雜湊，直接改資料表很容易留下無法登入的帳號。
 
 `Program.cs` 已完成 Identity DI、角色授權服務、唯一 Email 規則，以及登入、登出與拒絕存取路徑：
 
@@ -35,9 +45,9 @@ Web 登入 Cookie 名稱為 `.QMAH.Web.Auth`，API 登入 Cookie 名稱為 `.QMA
 - `/User/Account/Logout`
 - `/User/Account/AccessDenied`
 
-最後整合登入頁時不需要再次註冊另一套 Identity，也不需要建立第二個 `DbContext`
+整合登入頁時不需要再次註冊另一套 Identity，也不需要建立第二個 `DbContext`。
 
-## Microsoft 官方參考
+## Microsoft 官方文件
 
 以下連結以 ASP.NET Core 10 文件為準：
 
@@ -49,17 +59,23 @@ Web 登入 Cookie 名稱為 `.QMAH.Web.Auth`，API 登入 Cookie 名稱為 `.QMA
 - [PasswordHasher 與密碼雜湊](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-10.0)
 - [Identity Scaffolding](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/scaffold-identity?view=aspnetcore-10.0)
 
-Microsoft 建議瀏覽器網站使用 Cookie，因為瀏覽器會自動處理 Cookie，不需要把登入憑證交給 JavaScript。Identity API 的 Token 模式是不能使用 Cookie 的 Client 才考慮的替代方案，該模式產生的 Token 也不是標準 JWT
+Microsoft 建議瀏覽器網站使用 Cookie，因為瀏覽器會自動處理 Cookie，不需要把登入憑證交給 JavaScript。
 
-登入 Cookie 由 ASP.NET Core Data Protection 保護。未自行覆寫設定時，目前文件列出的預設加密演算法是 AES-256-CBC，完整性驗證使用 HMACSHA256，金鑰存留期預設為 90 天。這些是框架預設值，不是資料庫欄位或 QMAH 自訂的加密流程
+Identity API 的 Token 模式是不能使用 Cookie 的 Client 才考慮的替代方案。該模式產生的 Token 也不是標準 JWT。
 
-密碼交給 Identity 的 `PasswordHasher`。不要在 Controller 或 Service 自己呼叫低階 PBKDF2 API，也不要直接讀寫 `PasswordHash`
+登入 Cookie 由 ASP.NET Core Data Protection 保護。未自行覆寫設定時，目前文件列出的預設加密演算法是 AES-256-CBC，完整性驗證使用 HMACSHA256，金鑰存留期預設為 90 天。
 
-`AddIdentity<ApplicationUser, IdentityRole<Guid>>()` 已包含目前 QMAH 使用的 Identity 與角色服務。`[Authorize(Roles = "Admin")]` 的角色名稱需要和資料庫中的角色完全一致，`Admin` 與 `admin` 不視為同一個角色
+這些是框架預設值，不是資料庫欄位或 QMAH 自訂的加密流程。
+
+密碼交給 Identity 的 `PasswordHasher`。不要在 Controller 或 Service 直接呼叫低階 PBKDF2 API，也不要直接讀寫 `PasswordHash`。
+
+`AddIdentity<ApplicationUser, IdentityRole<Guid>>()` 已包含目前 QMAH 使用的 Identity 與角色服務。`[Authorize(Roles = "Admin")]` 的角色名稱需要和資料庫中的角色完全一致；`Admin` 與 `admin` 不視為同一個角色。
 
 ## 不要為 QMAH 另外建立 Identity 專案
 
-QMAH 已經有 `QmahDbContext`、`ApplicationUser`、SQL Server Store 與登入流程。Angular 前端使用者前台可直接沿用這組後端登入契約，不需要另開 MVC 測試專案，也不需要為了驗證登入再建立另一個資料庫、Context 或 Migration。
+QMAH 已經有 `QmahDbContext`、`ApplicationUser`、SQL Server Store 與登入流程。
+
+Angular 前端使用者前台可直接沿用這組後端登入契約，不需要另開 MVC 測試專案，也不需要為了驗證登入再建立另一個資料庫、Context 或 Migration。
 
 若只是想閱讀 Microsoft 範本的完整流程，直接參考本節前方的官方 Identity 文件即可。任何外部練習專案都不屬於 QMAH Repository；不要把它的 Context、Migration 或 Identity 類別複製回 QMAH。
 
@@ -72,15 +88,29 @@ QMAH 已經有 `QmahDbContext`、`ApplicationUser`、SQL Server Store 與 Identi
 3. 只選真正需要的頁面，例如 Login、Logout 或 AccessDenied
 4. 產生後檢查差異，確認沒有重複註冊 Identity、改動既有 Schema 或加入不需要的 Migration
 
-官方 Identity Scaffolding 通常會產生 Razor Pages。若採用這條路線，必須依產生結果加入 `AddRazorPages()` 與 `MapRazorPages()`；目前 QMAH 採用 MVC `AccountController` 與 View，不要把兩種路由寫法混在同一個登入流程
+官方 Identity Scaffolding 通常會產生 Razor Pages。若採用這條路線，必須依產生結果加入 `AddRazorPages()` 與 `MapRazorPages()`。
 
-QMAH 目前已安裝 `Microsoft.AspNetCore.Identity.EntityFrameworkCore`、`Microsoft.EntityFrameworkCore.SqlServer`、`Microsoft.EntityFrameworkCore.Design`、`Microsoft.EntityFrameworkCore.Tools` 與 `Microsoft.VisualStudio.Web.CodeGeneration.Design`。一般開發不需要重複安裝，版本以 `QMAH.Web.csproj` 和 `packages.lock.json` 為準
+目前 QMAH 採用 MVC `AccountController` 與 View，不要把兩種路由寫法混在同一個登入流程。
 
-目前的 MVC `AccountController` 與 View 不需要額外安裝 `Microsoft.AspNetCore.Identity.UI`。若改採官方 Identity Razor Pages Scaffold，才依 Visual Studio 或官方文件提示加入該路線需要的套件，並重新確認 `Program.cs` 的 Razor Pages 註冊
+QMAH 目前已安裝下列套件：
+
+- `Microsoft.AspNetCore.Identity.EntityFrameworkCore`
+- `Microsoft.EntityFrameworkCore.SqlServer`
+- `Microsoft.EntityFrameworkCore.Design`
+- `Microsoft.EntityFrameworkCore.Tools`
+- `Microsoft.VisualStudio.Web.CodeGeneration.Design`
+
+一般開發不需要重複安裝，版本以 `QMAH.Web.csproj` 和 `packages.lock.json` 為準。
+
+目前的 MVC `AccountController` 與 View 不需要額外安裝 `Microsoft.AspNetCore.Identity.UI`。
+
+若改採官方 Identity Razor Pages Scaffold，才依 Visual Studio 或官方文件提示加入該路線需要的套件，並重新確認 `Program.cs` 的 Razor Pages 註冊。
 
 ## 參考資料庫帳號
 
-Release 參考資料庫的展示初始化工具會建立 24 個會員與 `Admin`、`User` 兩個角色。展示會員的公開顯示名稱使用 `Demo Admin`、`Demo Member 01`、`Demo Catalog` 等用途名稱，不對應真實人物，也不使用班級成員姓名。以下列出最常用的 8 個情境帳號；完整帳密由工具輸出到 Repository 外，不放進版本控制。
+Release 參考資料庫的展示初始化工具會建立 24 個會員與 `Admin`、`User` 兩個角色。
+
+展示會員的公開顯示名稱使用 `Demo Admin`、`Demo Member 01`、`Demo Catalog` 等用途名稱，不對應真實人物，也不使用班級成員姓名。以下列出最常用的 8 個情境帳號；完整帳密由工具輸出到 Repository 外，不放進版本控制。
 
 | 帳號 | 角色 | 用途 |
 | --- | --- | --- |
@@ -93,7 +123,11 @@ Release 參考資料庫的展示初始化工具會建立 24 個會員與 `Admin`
 | `player-a@qmah.local` | `User` | 遊戲玩家情境 |
 | `player-b@qmah.local` | `User` | 遊戲玩家情境 |
 
-`QmahDatabaseRelease seed-showcase-users` 會讀取 Repository 根目錄的 `QMAH.DemoCredentials.local.csv`，並將備份寫到同一位置。根目錄的 `QMAH.DemoCredentials.csv` 是可提交的空白密碼範本；若檔案不存在，或任一展示帳號的 Password 留白，工具會直接停止，不會自動產生密碼。完整帳密不會硬寫在程式碼或資料腳本裡；若網站部署到可由外部連線的環境，仍須先更換所有展示密碼。
+`QmahDatabaseRelease seed-showcase-users` 會讀取 Repository 根目錄的 `QMAH.DemoCredentials.local.csv`，並將備份寫到同一位置。
+
+根目錄的 `QMAH.DemoCredentials.csv` 是可提交的空白密碼範本。若檔案不存在，或任一展示帳號的 Password 留白，工具會直接停止，不會自動產生密碼。
+
+完整帳密不會硬寫在程式碼或資料腳本裡。若網站部署到可由外部連線的環境，仍須先更換所有展示密碼。
 
 ## Login ViewModel
 
@@ -197,7 +231,7 @@ public sealed class AccountController : Controller
 }
 ```
 
-`SignInManager` 會驗證密碼雜湊並建立登入 Cookie。程式不需要也不應該自己比較 `PasswordHash`
+`SignInManager` 會驗證密碼雜湊並建立登入 Cookie。程式不需要也不應該直接比較 `PasswordHash`
 
 `returnUrl` 只能在 `Url.IsLocalUrl()` 通過後使用，避免登入後被導向外部網址
 
@@ -317,7 +351,9 @@ public async Task<IActionResult> MyProfile()
 
 ## 第三方登入的資料與設定界線
 
-標準 Identity 的 `user.AspNetUserLogins` 保存外部登入來源、第三方帳號識別碼與 QMAH `UserId` 的對應；`user.AspNetUsers` 仍是會員主資料，`user.UserProfiles` 仍保存暱稱、頭像與自我介紹。不要為 Google、Microsoft 或其他供應商預先新增 `GoogleId`、`MicrosoftId` 等專用欄位，也不要先安裝尚未決定的套件。
+標準 Identity 的 `user.AspNetUserLogins` 保存外部登入來源、第三方帳號識別碼與 QMAH `UserId` 的對應。
+
+`user.AspNetUsers` 仍是會員主資料，`user.UserProfiles` 仍保存暱稱、頭像與自我介紹。不要為 Google、Microsoft 或其他供應商預先新增 `GoogleId`、`MicrosoftId` 等專用欄位，也不要先安裝尚未決定的套件。
 
 確定供應商後，以 Google 為例：
 
@@ -327,6 +363,16 @@ public async Task<IActionResult> MyProfile()
 4. 建立外部登入按鈕、callback、失敗訊息與第一次登入的會員資料確認頁。
 5. 測試新會員登入、既有會員綁定、解除綁定、停權帳號與登出。
 
-帳號綁定不能只依第三方 Email 自動合併：已存在的外部登入對應可直接登入；已登入會員新增登入方式時要完成明確綁定；Email 相同但尚未綁定時，先驗證既有帳號；`DISABLED` 或 `BANNED` 帳號不得因第三方驗證成功而繞過狀態。需要保存供應商個人資料、同意版本、登入稽核或多組織身分時，才另行評估 Schema。
+帳號綁定不能只依第三方 Email 自動合併：
 
-參考：[Google 外部登入設定](https://learn.microsoft.com/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-10.0)／[其他外部驗證提供者](https://learn.microsoft.com/aspnet/core/security/authentication/social/?view=aspnetcore-10.0)。
+- 已存在的外部登入對應可直接登入。
+- 已登入會員新增登入方式時，要完成明確綁定。
+- Email 相同但尚未綁定時，先驗證既有帳號。
+- `DISABLED` 或 `BANNED` 帳號不得因第三方驗證成功而繞過狀態。
+
+需要保存供應商個人資料、同意版本、登入稽核或多組織身分時，才另行評估 Schema。
+
+參考：
+
+- [Google 外部登入設定](https://learn.microsoft.com/aspnet/core/security/authentication/social/google-logins?view=aspnetcore-10.0)
+- [其他外部驗證提供者](https://learn.microsoft.com/aspnet/core/security/authentication/social/?view=aspnetcore-10.0)

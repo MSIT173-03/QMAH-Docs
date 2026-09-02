@@ -1,6 +1,22 @@
 # Angular 使用者前台開發
 
-本文件是 QMAH 期末前端使用者前台開發的共同入口。前端畫面使用 `QMAH.Client` 的 Angular 21.2.22，使用者前台透過 `QMAH.Api` 後端的 `/api/v1` JSON 契約取得資料與執行操作；資料庫、Identity（登入與會員驗證元件）、圖片網址與跨系統規則由 `QMAH.Infrastructure` 後端共用。完整欄位與狀態碼以 [`REST API 契約`](../reference/rest-api.md) 和 API 啟動後的 [OpenAPI JSON](https://localhost:7249/openapi/v1.json) 為準。
+本頁是 QMAH 使用者前台的 Angular 開發入口。`QMAH.Client` 使用 Angular 21.2.22，透過 `QMAH.Api` 的 `/api/v1` JSON 契約取得資料與執行操作。
+
+資料庫、Identity（登入與會員驗證元件）、圖片網址與跨系統規則由 `QMAH.Infrastructure` 共用。
+
+欄位與狀態碼以 [`REST API 契約`](../reference/rest-api.md) 和 API 啟動後的 [OpenAPI JSON](https://localhost:7249/openapi/v1.json) 為準。
+
+## Angular 21.2.22 的版本選擇
+
+課程要求使用 Angular 21，因此版本線維持在 Angular 21，不升到 Angular 22。
+
+原先的 Angular 21.1.3 相依樹在本機 `npm audit` 會列出漏洞。目前 Repository 固定使用 Angular 21 版本線內的 `21.2.22`，並已通過 `npm audit --audit-level=high`。
+
+這次只更新同一個 major version 內的次版本與修補版本，既有 standalone、Router、HttpClient、環境設定與 SCSS 寫法不需要改寫。
+
+Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、TypeScript 與 RxJS 相容範圍內。實際版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準。
+
+版本變更需同時更新相依鎖定檔、檢查課程要求與重新執行安全性檢查。不在單一功能分支自行升降版本。[Angular 版本相容性](https://angular.dev/reference/versions)／[Angular 版本發布與支援週期](https://angular.dev/reference/releases)
 
 ## 四個詞的分工
 
@@ -17,7 +33,9 @@
 
 ## 開發入口
 
-本機資料庫使用最新 Release 的 `.bak`，或在 SSMS 執行 QMAH-Database 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，完成其中一種還原即可。前端開發第一次使用時，在 `QMAH.Client` 執行：
+本機資料庫使用 QMAH-Database tag `db-v0.7.0` 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
+
+QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。前端第一次開發時，在 `QMAH.Client` 執行：
 
 ```powershell
 npm ci
@@ -28,12 +46,14 @@ API 與 Angular 可以透過下列方式啟動：
 | 方式 | 操作 |
 | --- | --- |
 | Visual Studio | 使用 `QMAH 後端主機與管理後台（API＋Razor）` 檢查後端 API 與資料庫，或使用 `QMAH API` 單獨啟動後端 API |
-| VS Code | 使用 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動，或分別使用 `QMAH API（https）` 與 `QMAH Angular 前端使用者前台` |
+| Visual Studio Code（2026 年目前穩定版） | 使用 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動，或分別使用 `QMAH API（https）` 與 `QMAH Angular 前端使用者前台` |
 | 命令列 | API 執行 `dotnet run --project .\QMAH.Api\QMAH.Api.csproj --launch-profile https`，另一個終端機在 `QMAH.Client` 執行 `npm start` |
 
-瀏覽器開啟 `http://localhost:4200/`。Angular 前端使用 `/api/v1` 相對路徑，開發伺服器由 `QMAH.Client/proxy.conf.json` 將 `/api`、`/openapi` 與 `/scalar` 轉送到後端 API，因此 component（畫面元件）不保存固定 API 連接埠。建置與測試命令見 [`Angular 前端的使用者前台開發起點`](./angular-development.md)。
+瀏覽器開啟 `http://localhost:4200/`。Angular 前端使用 `/api/v1` 相對路徑，開發伺服器由 `QMAH.Client/proxy.conf.json` 將 `/api`、`/openapi` 與 `/scalar` 轉送到後端 API。
 
-## 第一條資料流程
+因此 component（畫面元件）不保存固定 API 連接埠。建置與測試命令見本頁後方的[固定版本與本機工作流](#固定版本與本機工作流)。
+
+## 登入後的第一條資料流程
 
 使用者前台可依下列順序建立登入後的應用程式資料流：
 
@@ -43,11 +63,15 @@ API 與 Angular 可以透過下列方式啟動：
 4. 會員使用者前台確認登入完成後，再呼叫 `POST /api/v1/me/daily-activity/login` 記錄當日登入；營運管理後台登入不使用這個流程。
 5. 呼叫 `GET /api/v1/metadata`，將 API 回傳的 `Code` 與中文 `Label` 用於篩選器、表單與顯示文字。
 
-後端 API 使用 HttpOnly Cookie 保存登入狀態。Angular 的 `HttpClient` 已集中設定 `withCredentials`；所有 POST、PUT、DELETE 沿用 `X-XSRF-TOKEN` Header。前端不把密碼、Cookie、Token 或 API 網域寫進 localStorage；登入與寫入資料只依後端 API 契約送出。
+後端 API 使用 HttpOnly Cookie 保存登入狀態。Angular 的 `HttpClient` 已集中設定 `withCredentials`；所有 POST、PUT、DELETE 沿用 `X-XSRF-TOKEN` Header。
+
+前端不把密碼、Cookie、Token 或 API 網域寫進 localStorage。登入與寫入資料只依後端 API 契約送出。
 
 ## 功能開發順序
 
-每個功能以 `features/<feature>` 分層，畫面只處理顯示與使用者操作，API 呼叫、資料轉換與錯誤處理集中在 service。下表提供使用者前台接手順序與第一批契約：
+每個功能以 `features/<feature>` 分層。畫面只處理顯示與使用者操作，API 呼叫、資料轉換與錯誤處理集中在 service。
+
+下表提供使用者前台接手順序與第一批契約：
 
 | 功能 | 主要 API | 前台需要組合的資料 |
 | --- | --- | --- |
@@ -61,11 +85,15 @@ API 與 Angular 可以透過下列方式啟動：
 | 商城 | `/store/products`、`/store/products/{id}/reviews`、`/me/cart`、`/store/orders`、`/me/addresses` | 商品、評價、購物車、地址、訂單與折扣結果 |
 | 私人房間與活動加碼 | `/game/invitations`、`/game/rooms/{id}/invitations`、各 reward-policy API | 邀請狀態、會員加碼、預算剩餘量與接受後的發放結果 |
 
-各 API 的完整 request body、response DTO、權限與錯誤狀態由後端契約定義，直接查閱 [`REST API 契約`](../reference/rest-api.md) 或 Scalar。使用者前台不依賴 Entity、資料表名稱或管理後台 ViewModel。
+各 API 的完整 request body、response DTO、權限與錯誤狀態由後端契約定義，直接查閱 [`REST API 契約`](../reference/rest-api.md) 或 Scalar。
+
+使用者前台不依賴 Entity、資料表名稱或管理後台 ViewModel。
 
 ## 回應與錯誤處理
 
-清單回應統一使用 `items`、`page`、`pageSize`、`totalCount`、`totalPages`。空清單是正常狀態，`totalPages` 為 `0` 時保留空畫面與重新整理入口。日期使用 API 的 ISO 8601（國際標準日期時間文字格式）值，顯示格式由前台集中處理。
+清單回應統一使用 `items`、`page`、`pageSize`、`totalCount`、`totalPages`。空清單是正常狀態；`totalPages` 為 `0` 時保留空畫面與重新整理入口。
+
+日期使用 API 的 ISO 8601（國際標準日期時間文字格式）值，顯示格式由前台集中處理。
 
 成功回應依操作處理 `200`、`201`、`202` 與 `204`，不可假設所有成功都會有 JSON body。錯誤依 `ProblemDetails`（標準錯誤回應格式）與 `ValidationProblemDetails`（欄位驗證錯誤格式）處理：
 
@@ -80,15 +108,21 @@ API 與 Angular 可以透過下列方式啟動：
 | `429` | 保留目前輸入，提示稍後再試 |
 | `500`／`503` | 顯示服務暫時無法使用，保留重新整理或重試入口 |
 
-錯誤畫面使用 `title` 與 `detail` 的可讀內容，不顯示 Controller 名稱、資料庫名稱、例外堆疊或檔案路徑。送出按鈕在 request 完成前維持載入狀態，避免同一操作重複送出。
+錯誤畫面使用 `title` 與 `detail` 的可讀內容，不顯示 Controller 名稱、資料庫名稱、例外堆疊或檔案路徑。
+
+送出按鈕在 request 完成前維持載入狀態，避免同一操作重複送出。
 
 ## 圖片與地圖
 
-文物與商品的 `PrimaryImagePath`、`ThumbnailPath` 已由後端 API 解析成目前環境可使用的網址。使用者前台直接把它當作 `img` 的 `src`，不從 `ArtifactId`、分類代碼或檔名自行拼接路徑；圖片來源從 Local 切換到 Azure Front Door、Cloudflare 或其他 CDN 時，前端元件不需要改動。完整規則見 [`媒體交付設定`](./media-delivery.md)。
+文物與商品的 `PrimaryImagePath`、`ThumbnailPath` 已由後端 API 解析成目前環境可使用的網址。使用者前台直接把它當作 `img` 的 `src`，不從 `ArtifactId`、分類代碼或檔名自行拼接路徑。
+
+圖片來源從 Local 切換到 Azure Front Door、Cloudflare 或其他 CDN 時，前端元件不需要改動。完整規則見 [`媒體交付設定`](./media-delivery.md)。
 
 社群圖片使用 API 回傳的 `SocialMediaDto.Url`，受保護的內容仍透過 `/api/v1/social/media/{id}/content` 取得。圖片載入失敗、沒有縮圖或沒有替代文字時，畫面保留可理解的替代狀態；`AltText` 用於圖片替代文字。
 
-地圖只使用後端 API 回傳的 `location`、`locationName`、`addressLine`、`latitude` 與 `longitude`。座標成對存在時可產生定位連結，只有文字時使用地址搜尋，兩者皆無時保留地點未提供狀態。QMAH 不需在使用者前台或資料庫保存地圖圖磚資料；完整欄位與簡單串接方式見 [`地點與地圖串接說明`](../features/map-integration.md)。
+地圖只使用後端 API 回傳的 `location`、`locationName`、`addressLine`、`latitude` 與 `longitude`。座標成對存在時可產生定位連結，只有文字時使用地址搜尋，兩者皆無時保留地點未提供狀態。
+
+QMAH 不需在使用者前台或資料庫保存地圖圖磚資料。完整欄位與簡單串接方式見 [`地點與地圖串接說明`](../features/map-integration.md)。
 
 ## 建議的 Angular 分層
 
@@ -103,7 +137,9 @@ src/app/
 └─ app.routes.ts        # lazy loading 功能路由集中入口
 ```
 
-`core` 只放全站共用服務，`shared` 只放可重用的顯示元件，業務規則放在對應的 `features` service。使用者前台功能先以後端 API DTO 建立型別，再由 service 轉成畫面需要的資料；不用把資料庫 Entity 複製到 Angular。
+`core` 只放全站共用服務，`shared` 只放可重用的顯示元件，業務規則放在對應的 `features` service。
+
+使用者前台功能先以後端 API DTO 建立型別，再由 service 轉成畫面需要的資料。不用把資料庫 Entity 複製到 Angular。
 
 ## 完成功能前的檢查
 
@@ -132,7 +168,9 @@ Set-Location .\QMAH.Client
 npm ci
 ```
 
-`npm ci` 依 lockfile 還原固定依賴；`node_modules`、`dist` 與 `.angular/cache` 不提交。若使用 VS Code，可沿用 Repository 的 `.vscode/launch.json`、`.vscode/tasks.json`，必要時手動執行：
+`npm ci` 依 lockfile 還原固定依賴。`node_modules`、`dist` 與 `.angular/cache` 不提交。
+
+使用 2026 年目前穩定版的 Visual Studio Code 可沿用 Repository 的 `.vscode/launch.json`、`.vscode/tasks.json`，必要時手動執行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\Install-VSCodeExtensions.ps1
@@ -146,4 +184,6 @@ npm run build
 npm test -- --watch=false
 ```
 
-Angular 21 的版本選擇維持在同一個 major version；套件版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準，不在各分支自行升降版本。編譯成功後仍要用瀏覽器檢查 API、登入、錯誤畫面、鍵盤操作與窄螢幕版面。
+Angular 21 的版本選擇維持在同一個 major version。套件版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準，不在各分支自行升降版本。
+
+編譯成功後仍要用瀏覽器檢查 API、登入、錯誤畫面、鍵盤操作與窄螢幕版面。

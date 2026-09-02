@@ -1,24 +1,30 @@
 # 管理後台開發起點
 
-管理後台功能從這裡開始。依序確認資料表、路由、ViewModel、授權與 CRUD，再依自己的 Area 延伸。Razor 前端管理後台位於 `QMAH.Web`；Angular 前端使用者前台使用的 JSON 契約位於獨立的 `QMAH.Api`，兩者共用 `QMAH.Infrastructure`。
+管理後台頁面先確認資料表、路由、ViewModel、授權與 CRUD，再依對應 Area 延伸。
 
-若還不熟悉 List、Controller、ViewModel、Razor 表單與完整 CRUD 的連接方式，先照[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)做一次，再回來依自己的資料表調整。
+Razor 管理後台位於 `QMAH.Web`。Angular 使用者前台使用的 JSON 契約位於獨立的 `QMAH.Api`，兩者共用 `QMAH.Infrastructure`。
 
-開始各 Area 前，先閱讀[五個 Area 開發前檢查與執行界線](../architecture/area-boundaries.md)，確認哪些事情要先做、哪些資料不能直接刪除，以及各 Area 的跨表責任
+List、Controller、ViewModel、Razor 表單與完整 CRUD 的最小範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。完成範例後，再依對應資料表調整。
+
+各 Area 開發前先閱讀[五個 Area 開發前檢查與執行界線](../architecture/area-boundaries.md)，確認開發順序、不可直接刪除的資料與跨表責任。
 
 ## 開始前
 
-1. 還原最新 Release 附帶的 `QMAH-<version>.bak`，或完整執行 QMAH-Database 的 `QMAH.sql`。
+1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 2. 開啟 `QMAH.sln`，確認 `QMAH.Web` 與 `QMAH.Api` 至少各自可以啟動；Visual Studio 也可以選 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動兩者。
-3. 切到自己負責的 `feature/*` 分支並先 Pull。
-4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping；遠端版本更新後，依 [`database/README.md`](../reference/data-tools.md) 用最新版完整快照重新建立資料庫，不直接修改舊資料庫，也不需要自行增量匯入。
+3. 切到對應的 `feature/*` 分支並先 Pull。
+4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping。遠端版本更新後，依[資料工具參考](../reference/data-tools.md)用最新版完整快照重新建立資料庫；不直接修改舊資料庫，也不需要增量匯入。
 5. 用 SSMS Diagram 確認主鍵、外鍵、唯一索引、可否為 `NULL` 與 `rowversion`。
 
 資料庫已存在，不需要建表或建立 Migration。
 
-Identity 的資料表、服務註冊、MVC 登入／登出頁、角色授權與後台 `[Authorize]` 已整合完成。新增或修改後台功能時，仍必須沿用共同授權規則；API 則使用自己的 Cookie 驗證與 HTTP 狀態碼，不把 Razor ViewModel 當成 API 契約。
+Identity 的資料表、服務註冊、MVC 登入／登出頁、角色授權與後台 `[Authorize]` 已整合完成。
 
-正式 Repository 保留共同基礎與各 Area 的既有功能。各 Area 依 `QMAH.Infrastructure` 的 Entity 與 `QmahDbContext` 建立功能；Visual Studio Scaffold 用於產生起始碼，產生後仍需完成 ViewModel、授權、驗證與流程調整。需要跨主機共用的文物匯入規則已集中在 Infrastructure，避免 Web 與 API 各自維護一份。
+新增或修改後台功能時，仍必須沿用共同授權規則。API 使用獨立的 Cookie 驗證與 HTTP 狀態碼，不把 Razor ViewModel 當成 API 契約。
+
+正式 Repository 保留共同基礎與各 Area 的既有功能。各 Area 依 `QMAH.Infrastructure` 的 Entity 與 `QmahDbContext` 建立功能。
+
+Visual Studio Scaffold 用於產生起始碼，產生後仍需完成 ViewModel、授權、驗證與流程調整。需要跨主機共用的文物匯入規則已集中在 Infrastructure，避免 Web 與 API 各自維護一份。
 
 ## 檔案放置位置
 
@@ -35,7 +41,7 @@ QMAH.Web/Areas/Catalog/
    └─ Edit.cshtml
 ```
 
-- Controller、ViewModel 與 View 放在自己的 Area。
+- Controller、ViewModel 與 View 放在對應的 Area。
 - Area 專用 CSS 放 `wwwroot/css/areas/<area>.css`。
 - Area 專用 JavaScript 放 `wwwroot/js/areas/<area>.js`。
 - Entity 代表資料表，只在 Controller／Service 與 EF Core 之間使用；View 一律使用 ViewModel。
@@ -43,7 +49,9 @@ QMAH.Web/Areas/Catalog/
 
 ## 五個 Area 的最低 CRUD 範圍
 
-下表定義目前後台應提供的管理功能。實體刪除只適用於沒有外鍵、交易或歷史用途的測試資料；其他資料使用停用、隱藏、取消或封存狀態。
+下表定義目前後台應提供的管理功能。實體刪除只適用於沒有外鍵、交易或歷史用途的測試資料。
+
+其他資料使用停用、隱藏、取消或封存狀態。
 
 | Area | 最低清單與詳細頁 | 新增與修改 | 刪除或狀態操作 |
 | --- | --- | --- | --- |
@@ -53,7 +61,9 @@ QMAH.Web/Areas/Catalog/
 | `User` | Identity 帳號、Profile、地址、成就與會員成就 | 使用 Identity API 維護 Email、鎖定與角色；使用 DbContext CRUD Profile、地址與成就資料 | 帳號使用鎖定或停用；密碼、角色與 Token 不直接修改資料表；未被使用的地址或測試成就可依外鍵規則刪除 |
 | `Store` | 商品、購物車、優惠券、訂單、付款與點數 | 新增與修改商品、庫存、優惠券；訂單與付款提供詳細頁與合法狀態操作 | 商品使用上架／下架；訂單、明細、付款與點數流水保留歷史，不做實體刪除 |
 
-每個管理項目至少處理下列情況：有資料與空資料的 List、存在與不存在 Id 的 Details、合法與錯誤輸入、重複值、外鍵限制、未授權存取，以及 POST 完成後重新導向。完整單表範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。
+每個管理項目至少處理下列情況：有資料與空資料的 List、存在與不存在 Id 的 Details、合法與錯誤輸入、重複值、外鍵限制、未授權存取，以及 POST 完成後重新導向。
+
+完整單表範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。
 
 ## 開發順序
 
@@ -75,11 +85,13 @@ public async Task<IActionResult> Index(CancellationToken cancellationToken)
 }
 ```
 
-列表與詳細頁若不會修改資料，使用 `AsNoTracking()`。需要顯示關聯資料時使用 `Include()`，不要在 View 裡另外查資料庫。
+列表與詳細頁若不會修改資料，使用 `AsNoTracking()`。需要顯示關聯資料時使用 `Include()`；不要在 View 裡另外查資料庫。
 
 ### 2. 再做新增與編輯
 
-表單使用 ViewModel，只接收允許修改的欄位。POST Action 先檢查 `ModelState`，成功後再寫入資料庫。以下使用欄位較單純的 `ArtifactCategory` 示範完整新增流程：
+表單使用 ViewModel，只接收允許修改的欄位。POST Action 先檢查 `ModelState`，成功後再寫入資料庫。
+
+以下使用欄位較單純的 `ArtifactCategory` 示範完整新增流程：
 
 ```csharp
 [Required(ErrorMessage = "請輸入分類代碼。")]
@@ -129,7 +141,9 @@ public async Task<IActionResult> Create(
 }
 ```
 
-`Required` 與 `StringLength` 需要 `System.ComponentModel.DataAnnotations`；`AnyAsync` 需要 `Microsoft.EntityFrameworkCore`。實際 ViewModel 請建立完整類別與 namespace，不要把屬性直接放在 Controller。
+`Required` 與 `StringLength` 需要 `System.ComponentModel.DataAnnotations`；`AnyAsync` 需要 `Microsoft.EntityFrameworkCore`。
+
+實際 ViewModel 請建立完整類別與 namespace，不要把屬性直接放在 Controller。
 
 ### 3. 加入驗證與錯誤處理
 
@@ -151,11 +165,11 @@ public async Task<IActionResult> Create(
 
 ## Scaffold 的正確用途
 
-Visual Studio 的 **Add → New Scaffolded Item → MVC Controller with views, using Entity Framework** 可快速建立單表 CRUD 起始碼。
+Visual Studio 的 **Add → New Scaffolded Item → MVC Controller with views, using Entity Framework** 會產生單表 CRUD 起始碼。
 
 完整操作步驟見[Visual Studio Scaffold 操作教學](../reference/crud-and-scaffolding.md)。
 
-產生後仍要逐項檢查：
+產生後逐項檢查：
 
 - Area 路由與 Controller namespace。
 - 表單是否改用適當 ViewModel。

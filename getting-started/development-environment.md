@@ -1,6 +1,6 @@
 # 開發環境與啟動
 
-這裡集中說明 QMAH 的開發環境、資料庫還原、NuGet 套件、雙主機啟動、Hot Reload、Angular 前端使用者前台與 CRUD Scaffold。
+本頁說明 QMAH 的開發環境、資料庫還原、NuGet 套件、雙主機啟動、Hot Reload、Angular 使用者前台與 CRUD Scaffold。
 
 完成資料庫還原後，可直接用 Visual Studio 開啟方案並按 `F5`，不需要先執行命令列。
 
@@ -24,29 +24,35 @@
 | TypeScript                     |    5.9.3 | Angular 前端型別檢查                     |
 | RxJS                           |    7.8.2 | Angular 前端非同步資料流                 |
 
-[`global.json`](https://github.com/MSIT173-03/QMAH/blob/main/global.json) 固定 .NET SDK 基準為 10.0.301，並允許 `latestFeature` 以前進到同一個 .NET 10 的較新功能帶；因此本機若已安裝較新的相容 SDK，`dotnet --version` 可能顯示 10.0.400。這不會改變 Target Framework 或 NuGet 鎖定結果。[`.vsconfig`](https://github.com/MSIT173-03/QMAH/blob/main/.vsconfig) 指定 Visual Studio 的 **ASP.NET and web development** 工作負載。
+[`global.json`](https://github.com/MSIT173-03/QMAH/blob/main/global.json) 固定 .NET SDK 基準為 10.0.301，並允許 `latestFeature` 在同一個 .NET 10.0 版本線中使用已安裝的較新 feature band 與 patch。
+
+因此本機若已安裝較新的相容 SDK，`dotnet --version` 可能顯示 10.0.400。這不會改變 Target Framework 或 NuGet 鎖定結果。
+
+[`.vsconfig`](https://github.com/MSIT173-03/QMAH/blob/main/.vsconfig) 指定 Visual Studio 的 **ASP.NET and web development** 工作負載。
 
 ## 新電腦準備
 
 ### Visual Studio
 
-安裝 Visual Studio 2022，並包含 **ASP.NET and web development** 工作負載。
+優先使用 Visual Studio 2026，並包含 **ASP.NET and web development** 工作負載。Repository 的 `.vsconfig` 只指定工作負載，不把 IDE 的小版本寫死；Visual Studio 2022 不作為本專案文件的優先版本。
 
 Clone Repository 後開啟 `QMAH.sln`。若本機缺少工作負載，Visual Studio 會依 `.vsconfig` 顯示提示。
 
 ### SQL Server 與 SSMS
 
-一般開發可使用 Visual Studio 隨附的 LocalDB：
+本機可以使用 LocalDB、SQL Server Developer 或其他已安裝的本機 SQL Server instance。網站程式會自動尋找本機目前包含 `QMAH` 且處於 `ONLINE` 狀態的資料庫：
 
 ```text
-(localdb)\MSSQLLocalDB
+Server=.;Database=QMAH
 ```
 
-需要完整 SQL Server 功能時，也可以使用 SQL Server Developer。兩者都需要 SSMS 來還原參考 `.bak`、執行 QMAH-Database 的完整 `QMAH.sql` 與查看 Diagram。
+`(localdb)\MSSQLLocalDB` 是自動搜尋清單中的其中一個候選 instance，不是唯一要求。SSMS 用於還原參考 `.bak`、執行 QMAH-Database 的完整 `QMAH.sql` 與查看 Diagram。
 
 ### 參考資料庫
 
-從 [最新 GitHub Release](https://github.com/MSIT173-03/QMAH/releases/latest) 下載該版本附帶的 `QMAH-<version>.bak`。若不使用二進位備份，也可直接執行 QMAH-Database 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)。
+目前相容的完整 Snapshot 是 QMAH-Database tag `db-v0.7.0` 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，可直接在 SSMS 執行。
+
+若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。
 
 在 SSMS：
 
@@ -61,16 +67,22 @@ Clone Repository 後開啟 `QMAH.sln`。若本機缺少工作負載，Visual Stu
 
 ## 啟動網站與 API
 
-QMAH 把 Razor 前端管理後台與 REST API 分成兩個可獨立啟動的 ASP.NET Core 後端主機；兩者共用 `QMAH.Infrastructure`、Identity 與 SQL Server，不需要複製 Entity 或建立第二套資料庫。
+QMAH 把 Razor 前端管理後台與 REST API 分成兩個可獨立啟動的 ASP.NET Core 後端主機。
+
+兩者共用 `QMAH.Infrastructure`、Identity 與 SQL Server，不需要複製 Entity 或建立第二套資料庫。
 
 | 主機／設定 | 用途 | HTTPS／HTTP 網址 |
 | --- | --- | --- |
 | `QMAH.Web` 的 `https`／`http` | Razor 前端管理後台與五個 Area | `https://localhost:7039`／`http://localhost:5183` |
 | `QMAH.Api` 的 `https`／`http` | `/api/v1/*`、OpenAPI 與 Scalar | `https://localhost:7249`／`http://localhost:5147` |
 
-Visual Studio 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動後端 API 與 Razor 前端管理後台；若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定，較舊的 Visual Studio 若不顯示它，仍可分別以兩個專案的 `https` 設定啟動。
+Visual Studio 2026 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 後端主機與管理後台（API＋Razor）`，一次啟動後端 API 與 Razor 前端管理後台。
 
-VS Code 開啟 Repository 根目錄後，在 **Run and Debug** 選 `QMAH 使用者前台開發（API 後端＋Angular 前端）`。若只使用 Razor 前端管理後台，可直接執行 `QMAH.Web`；若只使用後端 API，可執行 `QMAH.Api`。根目錄 `.vscode/tasks.json` 也提供不依賴除錯器的 `dotnet run` 工作。
+若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定；若 IDE 未顯示該設定，仍可分別以兩個專案的 `https` 設定啟動。
+
+使用 2026 年目前穩定版的 Visual Studio Code 開啟 Repository 根目錄後，在 **Run and Debug** 選 `QMAH 使用者前台開發（API 後端＋Angular 前端）`。
+
+若只使用 Razor 前端管理後台，可直接執行 `QMAH.Web`；若只使用後端 API，可執行 `QMAH.Api`。根目錄 `.vscode/tasks.json` 也提供不依賴除錯器的 `dotnet run` 工作。
 
 不使用 IDE 時，開兩個終端機即可：
 
@@ -81,31 +93,51 @@ dotnet run --project .\QMAH.Web\QMAH.Web.csproj --launch-profile https
 
 Angular 前端使用者前台的啟動方式與 Node 相容版本見 [`angular-development.md`](../frontend/angular-development.md)。
 
-網站啟動時不會建立資料庫、不會建表、不會塞測試資料，也不會套用 Migration。若缺少必要 Schema，請先確認是否已還原正確的 Release `.bak`，或完整執行 QMAH-Database 的 `QMAH.sql`。
+網站啟動時不會建立資料庫、建表、寫入測試資料或套用 Migration。
 
-## 連線字串
+若缺少必要 Schema，請先確認是否已還原 QMAH-Database 的完整 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 
-預設連線分別位於 `QMAH.Web/appsettings.json` 與 `QMAH.Api/appsettings.json`；兩個檔案的 `QmahDatabase` 應指向同一個資料庫：
+## 連線字串與本機自動尋找
+
+預設連線分別位於 `QMAH.Web/appsettings.json` 與 `QMAH.Api/appsettings.json`；兩個檔案的 `QmahDatabase` 都以本機預設候選 `Server=.;Database=QMAH` 開始：
 
 ```json
 {
   "ConnectionStrings": {
-    "QmahDatabase": "Server=(localdb)\\MSSQLLocalDB;Database=QMAH;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False"
+    "QmahDatabase": "Server=.;Database=QMAH;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False"
   }
 }
 ```
 
-使用 SQL Server Developer 或不同 instance 時：
+`QmahDatabaseDiscovery:Enabled` 預設為 `true`。
+
+`QmahDatabaseConnectionResolver` 會依序檢查下列候選：
+
+- 設定檔中的連線字串。
+- 標準 LocalDB `(localdb)\\MSSQLLocalDB`。
+- 本機預設 SQL Server instance `.`。
+- `sqllocaldb info` 列出的 LocalDB instance。
+- Windows 登錄檔列出的本機 SQL Server instance。
+
+解析器逐一檢查 `master.sys.databases` 是否存在狀態為 `ONLINE` 的 `QMAH`，找到後使用第一個可用候選；全部找不到時才回到設定值。
+
+這是本機 instance 探索，不是掃描網路，也不會自動附加 `.mdf` 或還原 `.bak`。
+
+因此 `Server=.` 只是預設候選，不是資料庫必須存在的位置；連線字串可以指向其他本機 instance 或明確的 SQL Server。需要固定單一目標時：
 
 1. 需要覆寫 Web 設定時，複製 `QMAH.Web/appsettings.Local.example.json`，命名為 `QMAH.Web/appsettings.Local.json`。
 2. 需要覆寫 API 設定時，另複製 `QMAH.Api/appsettings.Local.example.json`，命名為 `QMAH.Api/appsettings.Local.json`。
-3. 在需要的本機設定檔修改 `QmahDatabase`；兩個主機要指向同一個資料庫。
+3. 在需要的本機設定檔修改 `QmahDatabase`；兩個主機要指向同一個資料庫。若要關閉自動探索，同一個本機設定檔加入 `"QmahDatabaseDiscovery": { "Enabled": false }`。
 
-兩個主機的 `Program.cs` 都會在其他設定之後讀取各自專案內的 `appsettings.Local.json`，因此本機值會覆蓋預設連線。這兩個檔案已被 Git 忽略，不要強制加入版控；API 另有 `Cors:AllowedOrigins`，需列出實際 Angular 來源，不要改成 `AllowAnyOrigin`。
+兩個主機的 `Program.cs` 都會在其他設定之後讀取各自專案內的 `appsettings.Local.json`，因此本機值會覆蓋預設連線設定。自動探索仍依 `QmahDatabaseDiscovery:Enabled` 決定。
+
+這兩個檔案已被 Git 忽略，不要強制加入版控。API 另有 `Cors:AllowedOrigins`，需列出實際 Angular 來源，不要改成 `AllowAnyOrigin`。
 
 不要把個人主機名稱、SQL 帳號、密碼或正式環境連線字串寫進 `appsettings.json`。
 
-`MultipleActiveResultSets` 固定為 `False`。QMAH 沒有同一連線同時讀取多個結果集的需求；微軟也說明 MARS 與 EF Core 交易儲存點不相容，因此不應自行改成 `True`。[Using Transactions](https://learn.microsoft.com/en-us/ef/core/saving/transactions#savepoints)
+`MultipleActiveResultSets` 固定為 `False`。QMAH 沒有同一連線同時讀取多個結果集的需求。
+
+微軟也說明 MARS 與 EF Core 交易儲存點不相容，因此不應自行改成 `True`。[Using Transactions](https://learn.microsoft.com/en-us/ef/core/saving/transactions#savepoints)
 
 ## 開發資料
 
@@ -123,7 +155,9 @@ NuGet 清單中的「可轉移套件」是 transitive package 的介面翻譯，
 
 Visual Studio 在開啟、還原或建置方案時會自動處理 NuGet。不要在 NuGet 管理視窗執行 **Update All**；共用版本由獨立變更統一更新並驗證鎖定檔。
 
-> **微軟官方做法：** `PackageReference` 把直接相依套件寫在專案檔；鎖定檔則可讓還原結果保持一致。本專案已設定 `RestorePackagesWithLockFile`，所以 Clone 後由 Visual Studio 還原即可，不需要把每台電腦的套件快取提交到 Git。[Package references in project files](https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies)
+> **官方參考：** `PackageReference` 把直接相依套件寫在專案檔；鎖定檔可讓還原結果保持一致。
+>
+> 本專案已設定 `RestorePackagesWithLockFile`，Clone 後由 Visual Studio 還原即可，不需要把個人電腦的套件快取提交到 Git。[Package references in project files](https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies)
 
 需要檢查鎖定還原時，使用：
 
@@ -145,7 +179,11 @@ dotnet restore QMAH.sln --locked-mode
 
 目前不預裝另一套驗證或記錄框架。一般表單使用 Data Annotations／`ModelState`，記錄使用 ASP.NET Core 內建 `ILogger<T>`；真的出現跨多欄位的共用驗證或集中式 Log 需求時，再選定一套工具，避免同一件事同時有兩種寫法。
 
-第三方登入尚未定案，因此目前不預先安裝 Google 或 Microsoft 驗證套件，也不變更資料庫。Identity 既有的 `user.AspNetUserLogins` 已保留標準外部登入對應；確定採用時再加入套件、設定與登入流程即可。完整原則請看 [`identity-and-login.md`](../features/identity-and-login.md)。
+第三方登入尚未定案，因此目前不預先安裝 Google 或 Microsoft 驗證套件，也不變更資料庫。
+
+Identity 既有的 `user.AspNetUserLogins` 已保留標準外部登入對應。確定採用時再加入套件、設定與登入流程即可。
+
+完整原則請看 [`identity-and-login.md`](../features/identity-and-login.md)。
 
 ## Visual Studio CRUD Scaffold
 
@@ -171,13 +209,17 @@ Scaffold 適合加快基本頁面製作，不等於功能已完成。
 
 從最基礎清單、Scaffold 修正到完整新增、編輯與刪除範例，請看[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。
 
-Scaffold 不只有一次產生完整 CRUD。也可以建立 Empty MVC Controller、從 Action 逐頁新增 View、直接建立 Razor View／Partial View，或使用 `dotnet-aspnet-codegenerator`。各方法與 MVC Razor View／Razor Pages 的差異見[Visual Studio Scaffold 操作教學](../reference/crud-and-scaffolding.md)。
+Scaffold 不是唯一的起始方式。也可以建立 Empty MVC Controller、從 Action 逐頁新增 View、直接建立 Razor View／Partial View，或使用 `dotnet-aspnet-codegenerator`。
 
-> **微軟官方工具：** ASP.NET Core MVC 官方教學本身就示範以 Scaffolding 產生 EF Core CRUD 起始碼。產生後仍要依實際欄位、授權與商業規則調整，因此 QMAH 只把它當作起點。[ASP.NET Core MVC with EF Core](https://learn.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-10.0)
+各方法與 MVC Razor View／Razor Pages 的差異見[Visual Studio Scaffold 操作教學](../reference/crud-and-scaffolding.md)。
+
+> **官方參考：** ASP.NET Core MVC 教學示範以 Scaffolding 產生 EF Core CRUD 起始碼。產生後仍要依實際欄位、授權與商業規則調整。
+>
+> QMAH 將 Scaffold 產物視為起點。[ASP.NET Core MVC with EF Core](https://learn.microsoft.com/en-us/aspnet/core/data/ef-mvc/intro?view=aspnetcore-10.0)
 
 ## 可選的開發輔助工具
 
-下列工具是為了減少重複輸入，不是額外的架構要求。沒有使用也能依文件正常開發。
+下列工具用來減少重複輸入，不是額外的架構要求。不使用這些工具也能依文件開發。
 
 | 工具 | 何時使用 | QMAH 的用法 |
 | --- | --- | --- |
@@ -186,7 +228,11 @@ Scaffold 不只有一次產生完整 CRUD。也可以建立 Empty MVC Controller
 | EF Core Power Tools（選用） | SQL Server Schema 調整後，想用 Visual Studio 介面檢查 Scaffold 結果 | 只對暫存輸出做 Reverse Engineer 比對，不直接覆蓋目前的 Entity 或 `QmahDbContext` |
 | Visual Studio Rename／Extract Method | 類別、欄位或重複程式碼需要整理 | 使用 IDE 重構功能，不要手動多檔搜尋取代 |
 
-`Microsoft.VisualStudio.Web.CodeGeneration.Design`、`dotnet-aspnet-codegenerator` 與 `dotnet-ef` 已經隨專案固定版本。Angular 依賴則固定在 `QMAH.Client/package.json` 與 `package-lock.json`；版本選擇與升級理由見 [`angular-development.md`](../frontend/angular-development.md)。EF Core Power Tools 是微軟文件列出的 Visual Studio 擴充工具，可提供 Reverse Engineering 與模型視覺化；它不是 EF Core 專案的一部分，安裝前仍要確認 Visual Studio 與 EF Core 10 相容。[EF Core Tools & Extensions](https://learn.microsoft.com/en-us/ef/core/extensions/)
+`Microsoft.VisualStudio.Web.CodeGeneration.Design`、`dotnet-aspnet-codegenerator` 與 `dotnet-ef` 已經隨專案固定版本。
+
+Angular 依賴固定在 `QMAH.Client/package.json` 與 `package-lock.json`；版本選擇與升級理由見 [`angular-development.md`](../frontend/angular-development.md)。
+
+EF Core Power Tools 是微軟文件列出的 Visual Studio 擴充工具，可提供 Reverse Engineering 與模型視覺化。它不是 EF Core 專案的一部分，安裝前仍要確認 Visual Studio 與 EF Core 10 相容。[EF Core Tools & Extensions](https://learn.microsoft.com/en-us/ef/core/extensions/)
 
 所有 Scaffold 與 Reverse Engineering 都先輸出到 `_工具輸出` 或暫存資料夾檢查。這樣可以驗證產生結果，卻不會把半成品 Controller、View 或 Entity 混進共同分支。
 
@@ -211,11 +257,17 @@ dotnet watch --project QMAH.Web\QMAH.Web.csproj
 
 需要同時觀察 API 時，另開終端機執行 `dotnet watch --project QMAH.Api\QMAH.Api.csproj`。兩個主機使用不同連接埠，不會互相覆蓋。
 
-兩個啟動設定檔已在 `Properties/launchSettings.json` 開啟 `hotReloadEnabled`。Visual Studio 的「儲存檔案時套用 Hot Reload」屬於個人 IDE 選項，無法由 Repository 強制設定；需要時可在 `工具 → 選項 → 偵錯 → .NET／C++ Hot Reload` 開啟。使用 `dotnet watch` 時，檔案儲存會由檔案監看器觸發 Hot Reload 或瀏覽器重新整理。
+兩個啟動設定檔已在 `Properties/launchSettings.json` 開啟 `hotReloadEnabled`。Visual Studio 的「儲存檔案時套用 Hot Reload」屬於個人 IDE 選項，無法由 Repository 強制設定。
 
-不另外安裝 Live Server。它只能預覽靜態 HTML，無法執行 MVC Controller、Razor、Identity 或資料庫查詢。Visual Studio 的舊版 Web Live Preview 主要面向 ASP.NET Framework，也不作為本專案的共同依賴；需要同時檢查多個瀏覽器時，使用 Visual Studio 的 **Browse With**／Browser Link 即可。
+需要時可在 `工具 → 選項 → 偵錯 → .NET／C++ Hot Reload` 開啟該選項。使用 `dotnet watch` 時，檔案儲存會由檔案監看器觸發 Hot Reload 或瀏覽器重新整理。
 
-> **微軟官方建議：** Razor Runtime Compilation 在 .NET 10 已標示 obsolete，官方建議開發時改用 Hot Reload。Live Server 只提供靜態檔案伺服器，也無法代替 ASP.NET Core 主機。[Razor runtime compilation is obsolete](https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/razor-runtime-compilation-obsolete?view=aspnetcore-10.0)
+不另外安裝 Live Server。它只能預覽靜態 HTML，無法執行 MVC Controller、Razor、Identity 或資料庫查詢。
+
+Visual Studio 的舊版 Web Live Preview 主要面向 ASP.NET Framework，也不作為本專案的共同依賴。需要同時檢查多個瀏覽器時，使用 Visual Studio 的 **Browse With**／Browser Link 即可。
+
+> **官方參考：** Razor Runtime Compilation 在 .NET 10 已標示 obsolete，開發時可使用 Hot Reload。
+>
+> Live Server 只提供靜態檔案伺服器，不能代替 ASP.NET Core 主機。[Razor runtime compilation is obsolete](https://learn.microsoft.com/en-us/aspnet/core/breaking-changes/10/razor-runtime-compilation-obsolete?view=aspnetcore-10.0)
 
 ## 本機工具
 
@@ -236,7 +288,9 @@ dotnet tool restore
 
 ### Visual Studio 顯示黃色警告或套件缺失
 
-先在 Solution 上按右鍵選 **Restore NuGet Packages**，再重新建置。仍失敗時確認使用的 .NET SDK 是否符合 `global.json`。`global.json` 使用 `latestFeature`，所以可使用指定的 .NET 10.0.301，或同一大版本較新的已安裝 feature band；不必把每台電腦鎖在單一 SDK 修補版。
+先在 Solution 上按右鍵選 **Restore NuGet Packages**，再重新建置。
+
+仍失敗時確認使用的 .NET SDK 是否符合 `global.json`。`global.json` 使用 `latestFeature`，所以可使用指定的 .NET 10.0.301，或同一個 .NET 10.0 版本線中較新的已安裝 feature band 與 patch；不必把每台電腦鎖在單一 SDK 修補版。
 
 ### 無法連線到 LocalDB
 
@@ -244,7 +298,11 @@ dotnet tool restore
 
 ### 網站能啟動，但顯示資料表不存在
 
-通常是資料庫名稱不是 `QMAH`、連錯 instance，或只建立空資料庫而沒有還原 `.bak`／執行 QMAH-Database 的完整 `QMAH.sql`。若是遠端版本更新後仍沿用舊版資料庫，請先備份需要保留的個人資料，再依 [資料工具參考](../reference/data-tools.md) 用最新版完整快照乾淨重建；不需要自行增量匯入，Repository 也不支援舊版資料庫原地更新。先在 SSMS 展開 Tables，確認六個 schema 的資料表存在。
+常見原因包括資料庫名稱不是 `QMAH`、連錯 instance，或只建立空資料庫而沒有還原 `.bak`／執行 QMAH-Database 的完整 `QMAH.sql`。
+
+若遠端版本更新後仍沿用舊版資料庫，先備份需要保留的個人資料，再依 [資料工具參考](../reference/data-tools.md) 用最新版完整快照乾淨重建。不需要自行增量匯入；Repository 也不支援舊版資料庫原地更新。
+
+最後在 SSMS 展開 Tables，確認六個 schema 的資料表存在。
 
 ### HTTPS 憑證警告
 
@@ -252,7 +310,11 @@ dotnet tool restore
 
 ### Visual Studio 與 VS Code 要來回切換
 
-兩者使用同一份 `.csproj`、`launchSettings.json`、資料庫連線與 `QMAH.Infrastructure`。Visual Studio 主要使用 `.slnLaunch` 與 Hot Reload；VS Code 使用根目錄 `.vscode/launch.json`、`.vscode/tasks.json` 或直接執行 `dotnet run`。不要修改輸出資料夾或複製另一份設定檔來配合 IDE；遇到舊快取時只清除 `bin`、`obj`、`.vs` 與 Angular 的 `.angular/cache`，再重新還原。
+兩者使用同一份 `.csproj`、`launchSettings.json`、資料庫連線與 `QMAH.Infrastructure`。
+
+Visual Studio 主要使用 `.slnLaunch` 與 Hot Reload；VS Code 使用根目錄 `.vscode/launch.json`、`.vscode/tasks.json` 或直接執行 `dotnet run`。
+
+不要修改輸出資料夾或複製另一份設定檔來配合 IDE。遇到舊快取時，只清除 `bin`、`obj`、`.vs` 與 Angular 的 `.angular/cache`，再重新還原。
 
 ### Scaffold 找不到 Entity 或 DbContext
 

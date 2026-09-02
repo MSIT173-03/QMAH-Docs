@@ -1,10 +1,10 @@
 # CRUD 與 Scaffold
 
-這份教學使用專案現有的 `catalog.ArtifactCategories` 示範後台開發。完成後可在 `/Catalog/ArtifactCategory` 查看分類清單、搜尋、詳細資料、新增、編輯與刪除未被使用的測試分類
+這份教學以專案現有的 `catalog.ArtifactCategories` 示範後台開發。完成後可在 `/Catalog/ArtifactCategory` 查看分類清單、搜尋、詳細資料、新增、編輯與刪除未被使用的測試分類。
 
 `ArtifactCategory` 只有 `Id`、`Code`、`Name`，適合先學完整流程。現有 8 個正式分類已被文物或鑰匙使用，不能刪除；練習刪除時，請先新增一筆沒有關聯的測試分類
 
-## 先看最基礎的資料清單
+## 先建立資料清單
 
 一個可用的 List 頁面只需要三個部分：
 
@@ -125,7 +125,7 @@ public sealed class ArtifactCategoryController : Controller
 }
 ```
 
-這段查詢的重點：
+查詢包含以下處理：
 
 - `AsNoTracking()`：清單不修改 Entity，不需要追蹤
 - `Where()`：有關鍵字時才加入篩選
@@ -487,7 +487,7 @@ Form Tag Helper 會自動產生 Anti-forgery token。`asp-for` 會把欄位名�
 
 Details 與 Delete View 只需要使用 `ArtifactCategoryDetailsViewModel` 顯示欄位。Delete 的 `<form>` 必須使用 `method="post"`、`asp-action="Delete"` 與 `asp-route-id="@Model.Id"`
 
-## 最快的開發方式
+## 選擇起始方式
 
 ### 只想先確認資料能不能列出來
 
@@ -502,7 +502,7 @@ Details 與 Delete View 只需要使用 `ArtifactCategoryDetailsViewModel` 顯�
 3. 選 **MVC Controller with views, using Entity Framework**
 4. Model 選需要的 Entity
 5. Data context 選 `QmahDbContext`
-6. 產生到自己的 Area 後，再修正 `[Area]`、namespace、View 路徑與表單欄位
+6. 產生到對應的 Area 後，再修正 `[Area]`、namespace、View 路徑與表單欄位
 
 Scaffold 能省下 Controller 與 View 的基本骨架，但產生後仍要：
 
@@ -542,7 +542,7 @@ Bootstrap 與套件已經放在專案內，不需要各 Area 再安裝一份。�
 9. 重新整理 POST 完成後的頁面，確認不會重複新增或刪除
 10. Build 專案並檢查瀏覽器 Console
 
-## 什麼時候不能直接照這個範例
+## 不適用單表 CRUD 的情況
 
 - Entity 有 `RowVersion`：Edit 必須加入並行衝突處理
 - 付款、訂單、點數、庫存、遊戲結算：通常是跨表交易，不能當單表 CRUD
@@ -552,7 +552,7 @@ Bootstrap 與套件已經放在專案內，不需要各 Area 再安裝一份。�
 
 專案內更完整的查詢、關聯、交易、`RowVersion` 與 Identity 寫法請看[QmahDbContext 使用手冊](../architecture/data-access.md)
 
-## Microsoft 官方教學
+## Microsoft 官方參考
 
 - [Get started with ASP.NET Core MVC](https://learn.microsoft.com/aspnet/core/tutorials/first-mvc-app/start-mvc?view=aspnetcore-10.0)
 - [ASP.NET Core MVC with EF Core tutorial series](https://learn.microsoft.com/aspnet/core/data/ef-mvc/?view=aspnetcore-10.0)
@@ -561,7 +561,11 @@ Bootstrap 與套件已經放在專案內，不需要各 Area 再安裝一份。�
 
 ## Scaffold 實作補充
 
-Visual Studio 的 Scaffold 會先進行 design-time build，再從目前專案或參考專案載入可用的 `public` Model。因此 Entity 不必搬進 Area；DB-first Entity 留在 `QMAH.Infrastructure/Models/Entities`，Area 只建立自己的 Controller、ViewModel、View 與必要 Service。若正式表單需要限制欄位或加入畫面專用資料，先建立 `public` ViewModel，再在 Scaffold 的 Model 選單選取它。
+Visual Studio 的 Scaffold 會先進行 design-time build，再從目前專案或參考專案載入可用的 `public` Model。
+
+因此 Entity 不必搬進 Area。DB-first Entity 留在 `QMAH.Infrastructure/Models/Entities`，Area 只建立對應的 Controller、ViewModel、View 與必要 Service。
+
+若正式表單需要限制欄位或加入畫面專用資料，先建立 `public` ViewModel，再在 Scaffold 的 Model 選單選取它。
 
 QMAH 固定使用 Entity 的單數名稱：
 
@@ -582,4 +586,8 @@ QMAH 固定使用 Entity 的單數名稱：
 - **Razor View／Partial View**：逐頁建立畫面，避免產生不需要的 Delete 或 Edit。
 - **CLI code generator**：在沒有 Visual Studio 的環境使用 `dotnet-aspnet-codegenerator`，參數仍要對應目前專案名稱與 DbContext。
 
-產生後依序檢查 namespace、Area 路由、ViewModel、授權、Anti-forgery、ModelState、外鍵錯誤、空資料與手機版面。含 `RowVersion` 的 Entity 必須加入並行衝突處理；訂單、付款、點數、庫存、遊戲結算與 Identity 不應直接套用單表 CRUD。這份文件的完整範例與 [資料存取與 DB-first](../architecture/data-access.md) 應一起閱讀。
+產生後依序檢查 namespace、Area 路由、ViewModel、授權、Anti-forgery、ModelState、外鍵錯誤、空資料與手機版面。
+
+含 `RowVersion` 的 Entity 必須加入並行衝突處理。訂單、付款、點數、庫存、遊戲結算與 Identity 不應直接套用單表 CRUD。
+
+這份文件的完整範例與[資料存取與 DB-first](../architecture/data-access.md)應一起閱讀。

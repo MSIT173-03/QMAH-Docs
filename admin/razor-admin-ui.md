@@ -1,14 +1,14 @@
 # Razor 與 Tabler 管理後台介面
 
-本文件說明 QMAH 後台共用介面的使用方式，適用於 Catalog、Game、Social、Store 與 User 系統的功能負責人。
+本頁說明 QMAH 後台共用介面的使用方式，適用於 Catalog、Game、Social、Store 與 User 頁面。
 
-## 最新套版方法：給組員的快速說明
+## 新頁面的套用方式
 
-1. 先同步最新版 `main`。五個 Area 都已經有 `Areas/<Area>/Views/_ViewStart.cshtml`，不必再自己建立，也不必在每一頁重寫 `Layout`。
-2. Controller 對應的完整 View 只放自己的 CRUD 內容，例如標題資料、搜尋表單、Card、Table 與按鈕；不要再加入 `page`、`page-wrapper`、Sidebar、Navbar 或整份 HTML 外框。
+1. 先同步最新版 `main`。五個 Area 都已經有 `Areas/<Area>/Views/_ViewStart.cshtml`，不必重複建立，也不必在每一頁重寫 `Layout`。
+2. Controller 對應的完整 View 只放該頁的 CRUD 內容，例如標題資料、搜尋表單、Card、Table 與按鈕；不要再加入 `page`、`page-wrapper`、Sidebar、Navbar 或整份 HTML 外框。
 3. 頁面標題使用 `ViewData["Title"]`，說明使用 `ViewData["AdminDescription"]`，右上角按鈕放在 `@section PageActions`。
 4. Scaffold 後若看到 `Layout = null`，請移除。Partial View 本身不會產生 Layout，應由一般 View 引用。
-5. View 自己的 CSS 請加上功能專用 class 作為範圍，例如 `.social-post-list`，不要直接改 `.page`、`.navbar`、`.page-wrapper`、`header` 或 `body`，否則可能蓋掉共用外框。
+5. View 專用 CSS 請加上功能專用 class 作為範圍，例如 `.social-post-list`，不要直接改 `.page`、`.navbar`、`.page-wrapper`、`header` 或 `body`，否則可能蓋掉共用外框。
 
 最小完整 View 範例：
 
@@ -23,13 +23,13 @@
 }
 
 <div class="social-post-list">
-    <!-- 此處只放自己的 CRUD UI -->
+    <!-- 此處只放該頁的 CRUD UI -->
 </div>
 ```
 
-成功套用後，畫面應同時看得到 Sidebar、頂部工具列、共用頁首與自己的 CRUD 內容。只出現其中一部分不算完整成功。
+成功套用後，畫面應同時看得到 Sidebar、頂部工具列、共用頁首與該頁的 CRUD 內容。只出現其中一部分不算完整成功。
 
-## 懶人包：新建後台 View 要做什麼
+## 新增後台 View
 
 1. Catalog、Game、Social、Store、User 已各自建立 `Views/_ViewStart.cshtml`，並指定 `/Views/Shared/Admin/_AdminLayout.cshtml`。
 2. 在這五個 Area 新建的完整 View 會自動擁有 Tabler CSS／JavaScript、Sidebar、Navbar、頁首、提示訊息、頁尾與右側主要內容區。
@@ -38,13 +38,15 @@
 5. Admin Layout 只會自動提供後台外框。View 內的 Card、Table、Form 和按鈕仍要使用本文範例或 Tabler 官方 class。
 6. 專案目前沒有自訂 Scaffold templates，所以 Visual Studio 不會自動產生 QMAH Tabler CRUD markup；未來若要自動化，可再新增 project-local `Templates/ViewGenerator/Bootstrap5` templates。
 
-正常畫面在桌機會是「左側固定側邊欄＋右側主要內容區」，組員新增 View 的 CRUD UI 會放進右側內容區。若側邊欄撐滿整個畫面、Navbar 和 CRUD 內容被排到頁面下方，這不是 `_ViewStart.cshtml` 的正常結果；請先確認 `wwwroot/admin/vendor/tabler/tabler.min.css` 是否完整載入，不要靠個別 View 加 margin 或複製 Layout 來補救。
+桌機畫面由左側固定側邊欄和右側主要內容區組成。新增 View 的 CRUD UI 會放在右側內容區。
+
+如果側邊欄撐滿整個畫面，或 Navbar 與 CRUD 內容被排到頁面下方，這不是 `_ViewStart.cshtml` 的正常結果。先確認 `wwwroot/admin/vendor/tabler/tabler.min.css` 是否完整載入，再處理 CSS 問題；不要在個別 View 加 margin，也不要複製 Layout 來補救。
 
 專案已內建 Tabler 1.4.0，並完成共用側邊欄、頂部工具列、QMAH 配色、明暗模式與手機版導覽。一般功能開發不需要安裝 Node.js，也不需要另外下載 Tabler。
 
 共用後台介面已經完成。`QMAH.Web/Views/_ViewStart.cshtml` 與 `QMAH.Web/Areas/_ViewStart.cshtml` 會將後台頁面導向 `Views/Shared/Admin/_AdminLayout.cshtml`；五個 Area 與根目錄的營運中心共用同一套後台版型。
 
-完成 Layout 設定後，側邊欄、頂部工具列與明暗模式會由共用介面提供，不應在個別 Area 重複實作。功能負責人仍需實作所負責系統的資料表、查詢表單、編輯表單與業務流程。
+完成 Layout 設定後，側邊欄、頂部工具列與明暗模式會由共用介面提供，不應在個別 Area 重複實作。各系統頁面仍需實作對應的資料表、查詢表單、編輯表單與業務流程。
 
 ## 共用介面包含的功能
 
@@ -79,7 +81,7 @@ public class ArtifactCategoryController : Controller
 }
 ```
 
-只有加上 `AdminNavigation` 且具有 `Index` Action 的 Controller 才會出現在次級選單。未加 Attribute 不會影響 Controller、路由、Scaffold 或 View，方便各 Area 自行決定哪些 CRUD 功能需要顯示。
+只有加上 `AdminNavigation` 且具有 `Index` Action 的 Controller 才會出現在次級選單。未加 Attribute 不會影響 Controller、路由、Scaffold 或 View；各 Area 可自行決定要顯示哪些 CRUD 功能。
 
 上述內容會由共用 Layout 自動產生，不需要複製到系統 View。這裡的「自動」只指後台外框；載入 Tabler CSS 與 JavaScript 不會自動將 Scaffold 產生的 HTML 改成 Tabler Card、Table 或 Form。
 
@@ -127,7 +129,7 @@ Layout 設定完成後，即可加入該頁面的實際內容：
 QMAH.Web/Areas/User/Views/_ViewStart.cshtml
 ```
 
-目前 Catalog、Game、Social、Store、User 都已經有這份 Area 專用檔案，不需要由功能負責人重複建立。若未來新增第六個後台 Area，建立方式如下：
+目前 Catalog、Game、Social、Store、User 都已經有這份 Area 專用檔案，不需要重複建立。若未來新增第六個後台 Area，建立方式如下：
 
 1. 在 Solution Explorer 對 `Areas/<Area>/Views` 資料夾按右鍵。
 2. 選 **Add** → **New Item...**。
@@ -142,11 +144,15 @@ QMAH.Web/Areas/User/Views/_ViewStart.cshtml
 
 設定後，該 Area 內的 View 不需要逐頁重複指定 `Layout`。
 
-每個 Area 各自建立 `Views/_ViewStart.cshtml` 是 ASP.NET Core Razor 正常的階層式用法，適合由不同負責人維護，也可避免誤傷前台頁面。若五個 Area 未來確定全部都只有後台 View，也可由團隊統一將 `QMAH.Web/Areas/_ViewStart.cshtml` 改成 Admin Layout，就不需要建立五份相同檔案。這是會影響所有 Area 的共用決定，不應由個別功能負責人自行修改。
+每個 Area 各自建立 `Views/_ViewStart.cshtml` 是 ASP.NET Core Razor 的階層式用法，可避免誤傷前台頁面。
+
+若五個 Area 未來確定全部只有後台 View，團隊也可以統一將 `QMAH.Web/Areas/_ViewStart.cshtml` 改成 Admin Layout，省略五份相同檔案。這項決定會影響所有 Area，必須在 PR 說明影響範圍。
 
 如果同一個 Area 同時有前台與後台頁面，請將 `_ViewStart.cshtml` 放在更小的 View 資料夾，或逐頁指定 Layout，不要讓整個 Area 都使用 Admin Layout。
 
-Scaffold 產生的完整 View 可能自己寫入 `Layout = null`。View 內的 Layout 設定會覆蓋 `_ViewStart.cshtml`，因此產生後要移除 `Layout = null`，或在 Scaffold 視窗選擇使用 Layout。Partial View 不會執行 `_ViewStart.cshtml`；它被完整後台 View 引用時，會顯示在外層 View 的 Admin Layout 中。
+Scaffold 產生的完整 View 可能直接寫入 `Layout = null`。View 內的 Layout 設定會覆蓋 `_ViewStart.cshtml`，所以產生後要移除 `Layout = null`，或在 Scaffold 視窗選擇使用 Layout。
+
+Partial View 不會執行 `_ViewStart.cshtml`。它被完整後台 View 引用時，會顯示在外層 View 的 Admin Layout 中。
 
 ### 3. 設定頁首操作按鈕
 
@@ -399,7 +405,7 @@ return RedirectToAction(nameof(Index));
 
 下一頁會自動顯示可關閉的提示訊息，不需要在每個 View 重複寫 Alert。
 
-## QMAH 配色怎麼用
+## QMAH 配色使用方式
 
 共用 CSS 已設定淺色與深色模式。Area CSS 應使用以下變數，不應另建一套主色：
 
@@ -439,7 +445,7 @@ return RedirectToAction(nameof(Index));
 - 請勿修改 `tabler.min.css` 或 `tabler.min.js`。
 - 若只需調整單一元件，請勿複製整份 Tabler CSS。
 - Area 業務樣式不應寫入共用後台 CSS。
-- 功能負責人不得新增或修改其他系統的 Area 檔案。
+- 一個系統的功能變更不得未經說明就新增或修改其他系統的 Area 檔案。
 - 介面圖示請勿使用 emoji、中文字圓圈或自行製作的大型色塊代替。
 - 資料列不應逐筆包成獨立 Card，應依資料用途選擇表格或清單。
 - 頁面必須確認手機版可操作，且整體版面不會出現非預期的水平捲動。
@@ -496,7 +502,7 @@ Layout = null;
 
 確認 View 有 `asp-validation-for`，POST Action 在驗證失敗時回傳原本 View，而且沒有在 `ModelState.IsValid == false` 時直接 Redirect。
 
-## 共用檔案在哪裡
+## 共用檔案位置
 
 | 內容 | 檔案位置 |
 | --- | --- |
@@ -510,9 +516,9 @@ Layout = null;
 | 明暗模式 | `QMAH.Web/wwwroot/admin/js/qmah-admin.js` |
 | Tabler 編譯資產 | `QMAH.Web/wwwroot/admin/vendor/tabler/` |
 
-一般功能開發不需要修改上述共用檔案。若調整項目確定適用於所有 Area，應交由共用介面維護者統一修改。
+一般功能開發不需要修改上述共用檔案。若調整項目確定適用於所有 Area，應透過共用介面變更流程統一修改。
 
-## 完成頁面前檢查
+## 頁面完成前檢查
 
 - [ ] 只修改所負責的 Area 與該 Area 專用的 CSS／JavaScript。
 - [ ] 頁面已透過 View 或 Area 的 `_ViewStart.cshtml` 套用 `_AdminLayout.cshtml`。
@@ -553,12 +559,22 @@ Layout = null;
 
 窄螢幕時表格可水平閱讀，但頁面標題、篩選器與主要操作不能被藏在捲軸後；表單改為單欄，導覽收合後仍要保留目前位置與鍵盤操作。圖片提供替代文字，圖表提供文字摘要或明細表格。營運摘要卡要能通往完整明細，圖表需能說明時間範圍與目前數值，不只是裝飾。
 
-共用 CSS 依責任放在 `qmah-admin-core.css`、`qmah-admin-navigation.css`、`qmah-admin-footer.css` 與 `qmah-operations.css`；Area 樣式只處理該區差異。新增頁面先套用既有 class，避免在 Razor 內加入固定寬度、顏色或間距的 inline style。展示資料要維持社群、遊戲、商城與文物的真實外鍵關聯，不使用重複標題或無意義的佔位文字取代可閱讀內容。
+共用 CSS 依責任放在 `qmah-admin-core.css`、`qmah-admin-navigation.css`、`qmah-admin-footer.css` 與 `qmah-operations.css`。Area 樣式只處理該區差異。
+
+新增頁面先套用既有 class，避免在 Razor 內加入固定寬度、顏色或間距的 inline style。展示資料要維持社群、遊戲、商城與文物的真實外鍵關聯，不使用重複標題或無意義的佔位文字取代可閱讀內容。
 
 ## Razor 與 Angular 的檔案界線
 
-目前可操作的管理畫面位於 `QMAH.Web`，使用 Razor View、HTML、CSS、Bootstrap、JavaScript、jQuery 與 ASP.NET Core Model Validation；一般會員使用者前台位於 `QMAH.Client`，透過 `QMAH.Api` 的 REST API 取得 JSON。兩者共用資料與權限規則，但不共用 Layout、ViewModel 或前端 bundle。
+目前可操作的管理畫面位於 `QMAH.Web`，使用 Razor View、HTML、CSS、Bootstrap、JavaScript、jQuery 與 ASP.NET Core Model Validation。
 
-Bootstrap、jQuery、驗證套件與 Tabler 資產已固定在 `QMAH.Web/wwwroot/lib`、`QMAH.Web/wwwroot/admin/vendor` 與共用 Layout；Area View 不要再次載入 Bootstrap、Tabler 或未固定版本的 CDN。Area 需要專屬樣式或腳本時，放在 `wwwroot/css/areas/<area>.css` 或 `wwwroot/js/areas/<area>.js`，兩個以上 Area 共用的行為才提升到 `site.css`／`site.js`。
+一般會員使用者前台位於 `QMAH.Client`，透過 `QMAH.Api` 的 REST API 取得 JSON。兩者共用資料與權限規則，但不共用 Layout、ViewModel 或前端 bundle。
 
-Razor 表單同時依賴前端提示與後端驗證：使用 `asp-validation-summary`、`asp-validation-for`、`_ValidationScriptsPartial`、`[ValidateAntiForgeryToken]` 與 ModelState；送出成功後使用 PRG（POST → Redirect → GET）避免重新整理重複提交。不要把使用者輸入直接交給 `Html.Raw()`，圖片使用資料庫的邏輯路徑與適當 `alt`，社群上傳檔案則走受控 Endpoint，不當成公開靜態資源。
+Bootstrap、jQuery、驗證套件與 Tabler 資產已固定在 `QMAH.Web/wwwroot/lib`、`QMAH.Web/wwwroot/admin/vendor` 與共用 Layout。Area View 不要再次載入 Bootstrap、Tabler 或未固定版本的 CDN。
+
+Area 需要專屬樣式或腳本時，放在 `wwwroot/css/areas/<area>.css` 或 `wwwroot/js/areas/<area>.js`。只有兩個以上 Area 共用的行為才提升到 `site.css`／`site.js`。
+
+Razor 表單同時依賴前端提示與後端驗證。使用 `asp-validation-summary`、`asp-validation-for`、`_ValidationScriptsPartial`、`[ValidateAntiForgeryToken]` 與 ModelState。
+
+送出成功後使用 PRG（POST → Redirect → GET），避免重新整理造成重複提交。不要把使用者輸入直接交給 `Html.Raw()`。
+
+圖片使用資料庫的邏輯路徑與適當 `alt`；社群上傳檔案則走受控 Endpoint，不當成公開靜態資源。

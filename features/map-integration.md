@@ -1,8 +1,8 @@
 # 地點與地圖串接說明
 
-QMAH 目前採用的是簡單的地圖連結串接。後台保留地點文字與選填座標，管理頁面依資料產生 OpenStreetMap（開放街圖）連結；目前沒有在網站內嵌完整地圖，也沒有另外保存地圖服務的圖磚、地點識別碼或地理編碼結果。
+QMAH 目前只產生地圖連結。後台保存地點文字與選填座標，管理頁面依資料產生 OpenStreetMap（開放街圖）連結；網站沒有內嵌完整地圖，也沒有保存地圖服務的圖磚、地點識別碼或地理編碼結果。
 
-這樣的設計讓地圖只是查看與選取地址的方式，活動、貼文與會員地址的主要資料仍由 QMAH 自己保存。Angular 前端使用者前台可以沿用相同欄位，在自己的畫面放入地圖元件或地圖選點流程，API 契約不需要改成某一家地圖服務的格式。
+地圖只負責查看與選取地址；活動、貼文與會員地址仍由 QMAH 保存。Angular 使用者前台可沿用相同欄位加入地圖元件或選點流程，API 契約不綁定特定地圖服務格式。
 
 ## 目前使用的技術
 
@@ -15,7 +15,12 @@ QMAH 目前採用的是簡單的地圖連結串接。後台保留地點文字與
 | 座標型別 | SQL Server `decimal(9,6)`，緯度與經度都可為 null |
 | 前端使用者前台起點 | Angular 21.2.22 透過 `HttpClient` 讀取 `/api/v1/*` |
 
-展示資料中的兩個實體場館地址已依官方公開資訊整理：國立故宮博物院為臺北市士林區至善路二段 221 號（[官方參觀資訊](https://www.npm.gov.tw/Articles.aspx?l=1&sno=02013678)），國立故宮博物院南部院區為嘉義縣太保市故宮大道 888 號（[南部院區參觀資訊](https://south.npm.gov.tw/Visit)）。資料使用場館公開地址作為位置展示，並不表示 QMAH 與場館存在主辦、合作或授權關係。
+展示資料中的兩個實體場館地址已依官方公開資訊整理：
+
+- 國立故宮博物院：臺北市士林區至善路二段 221 號（[官方參觀資訊](https://www.npm.gov.tw/Articles.aspx?l=1&sno=02013678)）。
+- 國立故宮博物院南部院區：嘉義縣太保市故宮大道 888 號（[南部院區參觀資訊](https://south.npm.gov.tw/Visit)）。
+
+資料使用場館公開地址作為位置展示，並不表示 QMAH 與場館存在主辦、合作或授權關係。
 
 後台畫面使用 `data-qmah-map-link` 標記地圖入口。共用檔案
 `QMAH.Web/wwwroot/admin/js/qmah-location-links.js` 會依下列順序建立連結；
@@ -39,15 +44,19 @@ QMAH 目前採用的是簡單的地圖連結串接。後台保留地點文字與
 | `GET /api/v1/social/posts/{id}` | `locationName`、`latitude`、`longitude` |
 | `GET /api/v1/me/addresses` | `city`、`district`、`addressLine`、`latitude`、`longitude` |
 
-`location` 或 `locationName` 是給人閱讀的地點名稱或地址。`latitude`（緯度）與 `longitude`（經度）是給地圖定位使用的選填欄位，兩者必須同時提供或同時省略。API 已限制緯度介於 `-90` 到 `90`、經度介於 `-180` 到 `180`。
+`location` 或 `locationName` 是給人閱讀的地點名稱或地址。`latitude`（緯度）與 `longitude`（經度）是給地圖定位使用的選填欄位。
+
+兩個座標必須同時提供或同時省略。API 已限制緯度介於 `-90` 到 `90`、經度介於 `-180` 到 `180`。
 
 線上活動的地點文字統一使用 `線上活動`，`latitude` 與 `longitude` 保持 `null`。實體活動若沒有可靠座標，保留地址文字並將兩個座標都留白；前台仍能顯示地址，不需要猜測位置。
 
 活動建立或修改後，對應的活動貼文會沿用同一組地點文字與座標。前台讀活動資料或活動貼文時，應以回應中的欄位為準，不要從標題或內容拆地址。
 
-地圖連結不是社群專屬功能。活動、貼文、會員收件地址與未來商城的取貨或配送地址，都可以在各自的管理頁引用同一個共用檔案。各業務頁只需要提供 `data-qmah-map-location`、`data-qmah-map-latitude`、`data-qmah-map-longitude` 或對應輸入欄位選擇器，不需要複製座標驗證與網址組合程式。
+地圖連結不是社群專屬功能。活動、貼文、會員收件地址與未來商城的取貨或配送地址，都可以在各自的管理頁引用同一個共用檔案。
 
-## Angular 前端使用者前台沿用管理後台的簡單連結
+各業務頁只需要提供 `data-qmah-map-location`、`data-qmah-map-latitude`、`data-qmah-map-longitude` 或對應輸入欄位選擇器，不需要複製座標驗證與網址組合程式。
+
+## Angular 使用者前台的地圖連結
 
 前台使用 Angular 時，可以把地圖連結組合集中在一個純函式或共用 service（服務）中。以下範例只處理網址，不代表要建立特定頁面：
 
@@ -86,9 +95,15 @@ export function buildOpenStreetMapUrl(value: MapLocation): string | null {
 
 ## 使用者前台加入地圖選點
 
-若使用者前台需要讓使用者選擇活動集合位置或會員地址，可以在表單中加入地圖元件。選點完成後只要把結果寫回同一個 `latitude` 與 `longitude` 欄位，地址文字仍保留在 `location`、`locationName` 或 `addressLine`，再依 API 契約送出即可。
+若使用者前台需要讓使用者選擇活動集合位置或會員地址，可以在表單中加入地圖元件。選點完成後把結果寫回同一個 `latitude` 與 `longitude` 欄位。
 
-地圖元件可以由使用者前台自行選擇，例如 Leaflet（前端地圖函式庫）或其他符合專題部署條件的服務。這個選擇只影響使用者前台如何顯示圖層、如何讓使用者點選位置，以及是否需要服務商的金鑰；資料庫仍只保存 QMAH 需要的地點文字與座標。若引入需要金鑰的圖磚或地理編碼服務，金鑰應放在 Angular 前端的部署設定或後端受保護設定，不放進 API 回應與版本庫。
+地址文字仍保留在 `location`、`locationName` 或 `addressLine`，再依 API 契約送出即可。
+
+地圖元件可以由使用者前台自行選擇，例如 Leaflet（前端地圖函式庫）或其他符合專題部署條件的服務。
+
+這個選擇只影響使用者前台如何顯示圖層、如何讓使用者點選位置，以及是否需要服務商的金鑰。資料庫仍只保存 QMAH 需要的地點文字與座標。
+
+若引入需要金鑰的圖磚或地理編碼服務，金鑰應放在 Angular 前端的部署設定或後端受保護設定，不放進 API 回應與版本庫。
 
 選點表單建議遵循以下資料流程：
 
@@ -108,7 +123,9 @@ API 驗證範圍與成對規則
 
 ## 與圖片 CDN 的界線
 
-地圖資料與圖片交付是兩條獨立流程。文物、商品與公開圖片依 [`media-delivery.md`](../frontend/media-delivery.md) 的 `Media` 設定解析本機或 CDN（內容傳遞網路）網址；活動與地址的地點欄位不會因圖片改放 Azure Blob、Azure Front Door、Cloudflare Proxy 或 Cloudflare R2 而改寫。
+地圖資料與圖片交付是兩條獨立流程。文物、商品與公開圖片依 [`media-delivery.md`](../frontend/media-delivery.md) 的 `Media` 設定解析本機或 CDN（內容傳遞網路）網址。
+
+活動與地址的地點欄位不會因圖片改放 Azure Blob、Azure Front Door、Cloudflare Proxy 或 Cloudflare R2 而改寫。
 
 前台可以同時使用：
 

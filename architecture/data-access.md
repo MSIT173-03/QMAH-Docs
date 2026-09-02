@@ -2,13 +2,17 @@
 
 `QmahDbContext` 是 QMAH 網站透過 EF Core 存取 SQL Server 的共同入口。
 
-資料表結構以 [`QMAH/database/Schema.sql`](https://github.com/MSIT173-03/QMAH/blob/main/database/Schema.sql) 與已審核的 SQL Server Schema 為準。Entity、Fluent mapping 與 `QmahDbContext` 負責對照與操作既有資料表，不會建立或修改 Schema。
+資料表結構以 [`QMAH/database/Schema.sql`](https://github.com/MSIT173-03/QMAH/blob/main/database/Schema.sql) 與已審核的 SQL Server Schema 為準。
 
-> **微軟官方做法：** EF Core 官方要求先決定 Schema 的唯一來源。若資料庫 Schema 是來源，就使用 Reverse Engineering 對照既有資料庫；若 C# 模型是來源，才使用 Migration。QMAH 已選擇前者，所以沒有 `InitialCreate`、`__EFMigrationsHistory` 或程式端建表。[Managing Database Schemas](https://learn.microsoft.com/en-us/ef/core/managing-schemas/)／[Reverse Engineering](https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/)
+Entity、Fluent mapping 與 `QmahDbContext` 只負責對照及操作既有資料表，不會建立或修改 Schema。
+
+> **官方參考：** EF Core 需要先決定 Schema 的唯一來源。資料庫是來源時使用 Reverse Engineering 對照既有資料庫；C# 模型是來源時才使用 Migration。
+>
+> QMAH 採用前者，因此沒有 `InitialCreate`、`__EFMigrationsHistory` 或程式端建表。[Managing Database Schemas](https://learn.microsoft.com/en-us/ef/core/managing-schemas/)／[Reverse Engineering](https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/)
 
 ## DbContext 在 QMAH 負責什麼
 
-把 `QmahDbContext` 想成「這次網頁操作要使用的資料庫工作區」。Controller 收到一個 request 後，透過它找到資料表、讀取資料、追蹤準備修改的 Entity，最後用 `SaveChangesAsync()` 一次寫回 SQL Server。
+在一次 HTTP request 中，Controller 透過 `QmahDbContext` 讀取資料表、追蹤要修改的 Entity，最後以 `SaveChangesAsync()` 將變更寫回 SQL Server。
 
 ### 五個基本名詞
 
@@ -33,24 +37,34 @@ public ArtifactController(QmahDbContext db)
 }
 ```
 
-因此不需要自己讀連線字串、建立 SQL 連線或使用 `new QmahDbContext()`。
+因此不需要在 Controller 重新讀取連線字串、建立 SQL 連線或使用 `new QmahDbContext()`。
 
 ### `QmahDbContext` 與連線字串的關係
 
-`QmahDbContext` 仍然會透過 SQL Server 連線字串存取資料庫。差別不是「使用 DbContext 就沒有連線字串」，而是連線設定集中在 `Program.cs`，Controller 只宣告需要資料庫工作區。
+`QmahDbContext` 仍透過 SQL Server 連線字串存取資料庫。連線設定集中在 `Program.cs`，Controller 只宣告需要 `QmahDbContext`。
 
-`Program.cs` 已完成一次共用註冊：
+`QMAH.Api/Program.cs` 與 `QMAH.Web/Program.cs` 會先呼叫 `QmahDatabaseConnectionResolver.ResolveAsync`，再把解析結果交給 `AddDbContext`。
+
+解析器依 `QmahDatabaseDiscovery:Enabled` 決定是否執行本機資料庫探索。Controller 不需要重新處理這段邏輯。
 
 ```csharp
+var resolution = await QmahDatabaseConnectionResolver.ResolveAsync(
+    builder.Configuration.GetConnectionString("QmahDatabase"),
+    builder.Configuration.GetValue("QmahDatabaseDiscovery:Enabled", true));
+
 builder.Services.AddDbContext<QmahDbContext>(options =>
 {
-    // 讀取 appsettings.json 或未提交的 appsettings.Local.json，並指定 SQL Server。
+    // 使用設定或本機探索後選出的 SQL Server 連線。
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("QmahDatabase")
-        ?? throw new InvalidOperationException(
-            "Connection string 'QmahDatabase' was not found."));
+        resolution.ConnectionString);
 });
 ```
+
+共用設定的預設 `QmahDatabase` 是 `Server=.;Database=QMAH`。它是第一個候選，也是在找不到可用資料庫時使用的 fallback。
+
+自動探索會檢查設定候選、標準 LocalDB、本機預設 SQL Server instance `.`、`sqllocaldb info` 列出的 LocalDB instance，以及已註冊的本機 SQL Server instance。每個候選都會透過 `master.sys.databases` 確認 `QMAH` 處於 `ONLINE`。
+
+這項探索不掃描網路、不自動附加 `.mdf`，也不還原 `.bak`。完整順序與關閉方式見[開發環境與啟動](../getting-started/development-environment.md)。
 
 Controller 只取得已設定好的 `QmahDbContext`：
 
@@ -111,7 +125,9 @@ var posts = await _db.SocialPosts
     .ToListAsync(cancellationToken);
 ```
 
-上例的 `post.User` 與 `post.Artifact` 會由 EF Core 轉成 SQL JOIN，不會先把整張使用者或文物資料表載入記憶體。QMAH 沒有啟用 Lazy Loading；使用投影 `Select()` 時直接存取 Navigation Property，需要完整 Entity graph 時才使用 `Include()`／`ThenInclude()`。
+上例的 `post.User` 與 `post.Artifact` 會由 EF Core 轉成 SQL JOIN，不會先把整張使用者或文物資料表載入記憶體。
+
+QMAH 沒有啟用 Lazy Loading。使用投影 `Select()` 時可以直接存取 Navigation Property；只有需要完整 Entity graph 時才使用 `Include()`／`ThenInclude()`。
 
 ### 讀取與修改
 
@@ -144,13 +160,13 @@ ViewModel 是 View 與 Controller 之間的資料；Entity 是 Controller／Serv
 | 顯示圖鑑文物與分類 | `_db.Artifacts`、`Category`、`EraBucket` | 在 View 內逐筆查資料庫 |
 | 顯示或修改商城商品 | `_db.Products`、`Product.ArtifactId` | 用商品名稱或圖片路徑硬比對文物 |
 | 修改會員暱稱或地址 | `_db.UserProfiles`、`_db.UserAddresses` | 直接改 `AspNetUsers` 的密碼欄位 |
-| 註冊、登入、改密碼、角色 | `UserManager`、`SignInManager`、`RoleManager` | 自己 `INSERT`／`UPDATE` Identity 資料表 |
+| 註冊、登入、改密碼、角色 | `UserManager`、`SignInManager`、`RoleManager` | 直接 `INSERT`／`UPDATE` Identity 資料表 |
 
-看完這張表還不確定時，直接往下找「圖鑑」、「商城」、「會員」三個範例；每段都使用目前 QMAH 的 Entity、欄位和關聯。
+需要判斷實際用法時，可直接查看下方的「圖鑑」、「商城」與「會員」範例；範例使用目前 QMAH 的 Entity、欄位與關聯。
 
 ## 開始前
 
-1. 從 GitHub Release 還原 `QMAH-<version>.bak`，或在 SSMS 完整執行 QMAH-Database 的 `QMAH.sql`，資料庫名稱使用 `QMAH`。
+1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`，資料庫名稱使用 `QMAH`。
 2. 用 Visual Studio 開啟 `QMAH.sln`，確認網站可以按 `F5` 啟動。
 3. 在所屬 Area 的 Controller 建構式注入 `QmahDbContext`。
 
@@ -172,7 +188,9 @@ ViewModel 是 View 與 Controller 之間的資料；Entity 是 Controller／Serv
 
 Entity 只在 Controller／Service 與 EF Core 之間使用。View 一律使用所屬 Area 的 ViewModel；日後真的提供 JSON API 時，再建立 DTO，避免畫面或 API 直接綁定資料表 Entity。
 
-> **微軟官方建議：** Web 應用程式通常以一個 HTTP request 作為一個工作單位，`AddDbContext` 預設會把 DbContext 註冊為 scoped。DbContext 不支援多執行緒並行使用，也不應跨 request 長期保存。[DbContext Lifetime, Configuration, and Initialization](https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/)
+> **官方參考：** Web 應用程式通常以一個 HTTP request 作為一個工作單位，`AddDbContext` 預設會把 DbContext 註冊為 scoped。
+>
+> DbContext 不支援多執行緒並行使用，也不應跨 request 長期保存。[DbContext Lifetime, Configuration, and Initialization](https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/)
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -192,7 +210,7 @@ public class ArtifactController : Controller
 }
 ```
 
-## 三個最常見的 QMAH 實例
+## QMAH 查詢範例
 
 ### 圖鑑：讀取文物、分類與年代
 
@@ -288,7 +306,7 @@ await _db.SaveChangesAsync(cancellationToken);
 
 清單與詳細頁通常不需要 EF Core 追蹤資料，加入 `AsNoTracking()` 可以減少記憶體與追蹤成本。
 
-> **微軟官方建議：** 不需要更新結果的查詢適合使用 no-tracking；通常執行較快，因為 EF Core 不必建立變更追蹤資訊。[Tracking vs. No-Tracking Queries](https://learn.microsoft.com/en-us/ef/core/querying/tracking)
+> **官方參考：** 不需要更新結果的查詢適合使用 no-tracking；通常執行較快，因為 EF Core 不必建立變更追蹤資訊。[Tracking vs. No-Tracking Queries](https://learn.microsoft.com/en-us/ef/core/querying/tracking)
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -550,7 +568,7 @@ public async Task<IActionResult> Edit(
 - 會員資料：`user.UserProfiles`、`user.UserAddresses`、`user.Achievements`、`user.UserAchievements`
 - 遊戲資料：`game.GamePlayers`、`game.GameRooms`、`game.GameRounds`、`game.RoundAnswers`、`game.Votes`
 
-它們在 Entity 中都是 8 bytes 的 `byte[]`，由 SQL Server 的 `rowversion` 自動產生。用途是判斷資料是否在開啟編輯頁之後，又被其他人修改；它不是流水號，也不是要由 Controller 自己加一的欄位。
+它們在 Entity 中都是 8 bytes 的 `byte[]`，由 SQL Server 的 `rowversion` 自動產生。用途是判斷資料是否在開啟編輯頁之後，又被其他程序修改；它不是流水號，也不是由 Controller 遞增的欄位。
 
 遊戲的 `GameRooms.StateVersion` 和 `GameRounds.StateVersion` 是另一件事。它們是遊戲流程用的整數版本，讓即時遊戲知道房間狀態是否前進；不要把它和 SQL Server 的 `RowVersion` 混在一起。
 
@@ -562,7 +580,7 @@ public async Task<IActionResult> Edit(
 
 遇到衝突時不要直接覆蓋資料庫。顯示「資料已被其他人修改，請重新確認」並重新載入最新內容，讓使用者決定是否再次送出。
 
-會員修改自己的資料時，可以用下列方式處理並行衝突。ViewModel 的 `RowVersion` 必須是 8 bytes 的 `byte[]`，不可改成自行產生的 Guid 或時間：
+會員修改所屬資料時，可以用下列方式處理並行衝突。ViewModel 的 `RowVersion` 必須是 8 bytes 的 `byte[]`，不可改成程式自行產生的 Guid 或時間：
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -670,7 +688,9 @@ public async Task<IActionResult> Edit(
 
 這段程式會保留使用者剛輸入的內容，但把 hidden `RowVersion` 換成資料庫最新值。畫面應提示衝突，不能在 catch 裡直接再次呼叫 `SaveChangesAsync()`，否則會在使用者不知情時覆蓋新資料。
 
-> **微軟官方建議：** SQL Server 的 `rowversion` 可作為整列資料的並行權杖。EF Core 偵測到資料已被更新時會拋出 `DbUpdateConcurrencyException`，應由應用程式重新讀取並決定如何處理衝突。[Handling Concurrency Conflicts](https://learn.microsoft.com/en-us/ef/core/saving/concurrency)
+> **官方參考：** SQL Server 的 `rowversion` 可作為整列資料的並行權杖。EF Core 偵測到資料已被更新時會拋出 `DbUpdateConcurrencyException`，應由應用程式重新讀取並決定如何處理衝突。
+>
+> [Handling Concurrency Conflicts](https://learn.microsoft.com/en-us/ef/core/saving/concurrency)
 
 ## 刪除與停用
 
@@ -712,7 +732,7 @@ catch
 
 預設連線已停用 `MultipleActiveResultSets`。微軟文件指出 SQL Server 啟用 MARS 時，EF Core 不會建立交易儲存點；本專案沒有需要 MARS 的流程，因此保持停用，讓錯誤復原行為較明確。
 
-> **微軟官方建議：** 單次 `SaveChanges` 預設已包在交易中，只有多次儲存必須視為同一整體時，才需要手動控制交易。[Using Transactions](https://learn.microsoft.com/en-us/ef/core/saving/transactions)
+> **官方參考：** 單次 `SaveChanges` 預設已包在交易中，只有多次儲存必須視為同一整體時，才需要手動控制交易。[Using Transactions](https://learn.microsoft.com/en-us/ef/core/saving/transactions)
 
 ## 圖片與資料列
 
@@ -740,9 +760,13 @@ catch
 
 會員個人資料、地址、通知等 QMAH 業務資料可以透過 `QmahDbContext` 操作；登入憑證與角色仍交給 Identity 管理。
 
-日後若加入 Google 或 Microsoft 登入，標準 Identity 會使用既有 `user.AspNetUserLogins` 保存外部帳號對應，不需要先在 `ApplicationUser` 增加供應商專用欄位。帳號綁定與 Secret 設定請看 [`identity-and-login.md`](../features/identity-and-login.md)。
+日後若加入 Google 或 Microsoft 登入，標準 Identity 會使用既有 `user.AspNetUserLogins` 保存外部帳號對應。`ApplicationUser` 不需要先增加供應商專用欄位。
 
-> **微軟官方做法：** ASP.NET Core Identity 專門管理使用者、密碼、角色、Claim、Token 與登入流程，並透過依賴注入提供管理 API。因此不得把密碼或角色當成一般 Entity 直接更新。[Introduction to Identity on ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-10.0)
+帳號綁定與 Secret 設定請看 [`identity-and-login.md`](../features/identity-and-login.md)。
+
+> **官方參考：** ASP.NET Core Identity 專門管理使用者、密碼、角色、Claim、Token 與登入流程，並透過依賴注入提供管理 API。
+>
+> 密碼與角色不可當成一般 Entity 直接更新。[Introduction to Identity on ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-10.0)
 
 ## Dapper 的使用邊界
 
@@ -761,11 +785,18 @@ Database.Migrate();
 Database.EnsureCreated();
 ```
 
-欄位、索引、外鍵或 CHECK constraint 需要調整時，依序處理 SQL Server 設計、`QMAH/database/Schema.sql`、EF Core Scaffold 核對、必要的 Entity／`QmahDbContext` 對照、Diagram，以及同一次匯出的 QMAH-Database `QMAH.sql`、Release `.sql`／`.bak`。
+欄位、索引、外鍵或 CHECK constraint 需要調整時，依下列順序處理：
+
+1. 修改 SQL Server 設計。
+2. 更新 `QMAH/database/Schema.sql`。
+3. 重新進行 EF Core Scaffold 核對。
+4. 視需要更新 Entity 與 `QmahDbContext` 對照。
+5. 更新 Diagram。
+6. 在同一次匯出流程中更新 QMAH-Database 的 `QMAH.sql` 與已驗證的交付產物。
 
 不要新增 EF Migration，也不要建立 `__EFMigrationsHistory`。
 
-這不是因為 Migration 不正確，而是兩種官方流程只能選定一個 Schema 來源。QMAH 的來源是 SQL Server，所以資料庫改完後核對／更新 Entity 與 mapping；不要再讓 Migration 形成第二套版本來源。
+Migration 本身沒有問題，但 QMAH 必須只保留一個 Schema 來源。QMAH 以 SQL Server 為來源，因此資料庫變更後核對並更新 Entity 與 mapping，不另外建立 Migration 版本來源。
 
 ## 常見問題
 
@@ -797,7 +828,9 @@ Database.EnsureCreated();
 - Identity 由 `UserManager`、`RoleManager`、`SignInManager` 操作。
 - 沒有加入 Migration、`EnsureCreated()` 或程式端建表。
 
-完整 `DbSet`、關聯與欄位對照請查看 [`QmahDbContext.cs`](https://github.com/MSIT173-03/QMAH/blob/main/QMAH.Infrastructure/Data/QmahDbContext.cs) 與 [`Models/Entities`](https://github.com/MSIT173-03/QMAH/tree/main/QMAH.Infrastructure/Models/Entities)。
+完整 `DbSet`、關聯與欄位對照請查看 [`QmahDbContext.cs`](https://github.com/MSIT173-03/QMAH/blob/main/QMAH.Infrastructure/Data/QmahDbContext.cs)。
+
+Entity 檔案位於 [`Models/Entities`](https://github.com/MSIT173-03/QMAH/tree/main/QMAH.Infrastructure/Models/Entities)。
 
 ## 跨主機與檔案界線
 
@@ -808,4 +841,8 @@ Database.EnsureCreated();
 | 文物匯入 | JSON 欄位、預檢結果、冪等同步 | `QMAH.Infrastructure/Infrastructure/CatalogImport` 與資料工具 |
 | Identity | `UserManager`、`SignInManager`、`RoleManager` | `QMAH.Infrastructure` 與各入口的 Controller |
 
-Razor 與 API 可以使用不同主機與連接埠，但必須指向同一個 SQL Server 資料庫。Angular 不直接連資料庫，也不把後端 Entity 複製成自己的業務契約；完整 request、response、權限與錯誤狀態以 [REST API 契約](../reference/rest-api.md) 為準。媒體網址由後端 Resolver 產生，前台不從 `ArtifactId`、分類代碼或檔名自行拼接。
+Razor 與 API 可以使用不同主機與連接埠，但必須指向同一個 SQL Server 資料庫。
+
+Angular 不直接連資料庫，也不把後端 Entity 複製成前端業務契約。完整 request、response、權限與錯誤狀態以 [REST API 契約](../reference/rest-api.md) 為準。
+
+媒體網址由後端 Resolver 產生。前台不從 `ArtifactId`、分類代碼或檔名拼接網址。
