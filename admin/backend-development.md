@@ -1,22 +1,22 @@
 # 管理後台開發起點
 
-管理後台功能從這裡開始。依序確認資料表、路由、ViewModel、授權與 CRUD，再依自己的 Area 延伸。Razor 前端管理後台位於 `QMAH.Web`；Angular 前端使用者前台使用的 JSON 契約位於獨立的 `QMAH.Api`，兩者共用 `QMAH.Infrastructure`。
+管理後台功能從這裡開始。依序確認資料表、路由、ViewModel、授權與 CRUD，再依對應 Area 延伸。Razor 前端管理後台位於 `QMAH.Web`；Angular 前端使用者前台使用的 JSON 契約位於獨立的 `QMAH.Api`，兩者共用 `QMAH.Infrastructure`。
 
-若還不熟悉 List、Controller、ViewModel、Razor 表單與完整 CRUD 的連接方式，先照[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)做一次，再回來依自己的資料表調整。
+若需要先確認 List、Controller、ViewModel、Razor 表單與完整 CRUD 的連接方式，先依[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)完成最小範例，再依對應資料表調整。
 
 開始各 Area 前，先閱讀[五個 Area 開發前檢查與執行界線](../architecture/area-boundaries.md)，確認哪些事情要先做、哪些資料不能直接刪除，以及各 Area 的跨表責任
 
 ## 開始前
 
-1. 還原最新 Release 附帶的 `QMAH-<version>.bak`，或完整執行 QMAH-Database 的 `QMAH.sql`。
+1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 2. 開啟 `QMAH.sln`，確認 `QMAH.Web` 與 `QMAH.Api` 至少各自可以啟動；Visual Studio 也可以選 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動兩者。
-3. 切到自己負責的 `feature/*` 分支並先 Pull。
-4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping；遠端版本更新後，依 [`database/README.md`](../reference/data-tools.md) 用最新版完整快照重新建立資料庫，不直接修改舊資料庫，也不需要自行增量匯入。
+3. 切到對應的 `feature/*` 分支並先 Pull。
+4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping；遠端版本更新後，依[資料工具參考](../reference/data-tools.md)用最新版完整快照重新建立資料庫，不直接修改舊資料庫，也不需要增量匯入。
 5. 用 SSMS Diagram 確認主鍵、外鍵、唯一索引、可否為 `NULL` 與 `rowversion`。
 
 資料庫已存在，不需要建表或建立 Migration。
 
-Identity 的資料表、服務註冊、MVC 登入／登出頁、角色授權與後台 `[Authorize]` 已整合完成。新增或修改後台功能時，仍必須沿用共同授權規則；API 則使用自己的 Cookie 驗證與 HTTP 狀態碼，不把 Razor ViewModel 當成 API 契約。
+Identity 的資料表、服務註冊、MVC 登入／登出頁、角色授權與後台 `[Authorize]` 已整合完成。新增或修改後台功能時，仍必須沿用共同授權規則；API 則使用獨立的 Cookie 驗證與 HTTP 狀態碼，不把 Razor ViewModel 當成 API 契約。
 
 正式 Repository 保留共同基礎與各 Area 的既有功能。各 Area 依 `QMAH.Infrastructure` 的 Entity 與 `QmahDbContext` 建立功能；Visual Studio Scaffold 用於產生起始碼，產生後仍需完成 ViewModel、授權、驗證與流程調整。需要跨主機共用的文物匯入規則已集中在 Infrastructure，避免 Web 與 API 各自維護一份。
 
@@ -35,7 +35,7 @@ QMAH.Web/Areas/Catalog/
    └─ Edit.cshtml
 ```
 
-- Controller、ViewModel 與 View 放在自己的 Area。
+- Controller、ViewModel 與 View 放在對應的 Area。
 - Area 專用 CSS 放 `wwwroot/css/areas/<area>.css`。
 - Area 專用 JavaScript 放 `wwwroot/js/areas/<area>.js`。
 - Entity 代表資料表，只在 Controller／Service 與 EF Core 之間使用；View 一律使用 ViewModel。

@@ -53,7 +53,7 @@ Microsoft 建議瀏覽器網站使用 Cookie，因為瀏覽器會自動處理 Co
 
 登入 Cookie 由 ASP.NET Core Data Protection 保護。未自行覆寫設定時，目前文件列出的預設加密演算法是 AES-256-CBC，完整性驗證使用 HMACSHA256，金鑰存留期預設為 90 天。這些是框架預設值，不是資料庫欄位或 QMAH 自訂的加密流程
 
-密碼交給 Identity 的 `PasswordHasher`。不要在 Controller 或 Service 自己呼叫低階 PBKDF2 API，也不要直接讀寫 `PasswordHash`
+密碼交給 Identity 的 `PasswordHasher`。不要在 Controller 或 Service 直接呼叫低階 PBKDF2 API，也不要直接讀寫 `PasswordHash`
 
 `AddIdentity<ApplicationUser, IdentityRole<Guid>>()` 已包含目前 QMAH 使用的 Identity 與角色服務。`[Authorize(Roles = "Admin")]` 的角色名稱需要和資料庫中的角色完全一致，`Admin` 與 `admin` 不視為同一個角色
 
@@ -197,7 +197,7 @@ public sealed class AccountController : Controller
 }
 ```
 
-`SignInManager` 會驗證密碼雜湊並建立登入 Cookie。程式不需要也不應該自己比較 `PasswordHash`
+`SignInManager` 會驗證密碼雜湊並建立登入 Cookie。程式不需要也不應該直接比較 `PasswordHash`
 
 `returnUrl` 只能在 `Url.IsLocalUrl()` 通過後使用，避免登入後被導向外部網址
 

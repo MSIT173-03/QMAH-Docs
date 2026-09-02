@@ -14,8 +14,8 @@
 
 ### 開始前一定先做
 
-- 從最新 `develop` 建立或更新自己的 `feature/<area>` 分支
-- 從最新 Release 還原 `QMAH-<version>.bak`，或在 SSMS 執行 QMAH-Database 的 `QMAH.sql`，確認網站能啟動，並先完成一次 Build
+- 從最新 `develop` 建立或更新對應的 `feature/<area>` 分支
+- 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`，確認網站能啟動，並先完成一次 Build
 - 閱讀該功能使用的 Entity、`DbSet`、外鍵、唯一索引、`CHECK`、`NOT NULL`、Default 與 `rowversion`
 - 先決定這個頁面是清單、詳細資料、新增、編輯、狀態操作，還是跨表流程
 - 列出 ViewModel 允許輸入的欄位，不把 Entity 全部直接當成表單模型
@@ -159,7 +159,7 @@ await _db.SaveChangesAsync(cancellationToken);
 - 檢舉詳細頁同時顯示目標內容、檢舉理由、處理人和處理時間
 - 活動表單先驗證 `EndAt > StartAt`、報名截止時間和容量，再處理報名人數
 - 貼文（含官方公告類型）、留言和活動清單預設只顯示符合目前發布狀態的資料
-- 通知查詢以目前登入者的 UserId 為條件，更新已讀時只更新自己的通知
+- 通知查詢以目前登入者的 UserId 為條件，更新已讀時只更新該登入者可存取的通知
 
 ### 目前一定不要先做
 
@@ -183,7 +183,7 @@ await _db.SaveChangesAsync(cancellationToken);
 
 - 先把 Login、Logout、AccessDenied 的路由和 `[AllowAnonymous]` 界線確認好
 - 會員清單透過 `UserManager<ApplicationUser>` 取得帳號資訊，再以 UserId 查詢 Profile 或地址
-- Profile、地址與通知表單使用自己的 ViewModel，不把 `ApplicationUser` 或 Identity 內部欄位交給表單
+- Profile、地址與通知表單使用各自的專用 ViewModel，不把 `ApplicationUser` 或 Identity 內部欄位交給表單
 - 編輯目前會員資料時，UserId 由登入 Cookie 取得；管理員編輯其他會員時，Id 由路由查回並再次確認權限
 - 帳號停用使用 Identity lockout API；修改 Email 或密碼使用 Identity API
 
@@ -199,7 +199,7 @@ await _db.SaveChangesAsync(cancellationToken);
 
 ### 開發中可能遇到的事情
 
-- `Product` 可用 `ArtifactId` 對應圖鑑文物，但商品自己的名稱、說明、尺寸、價格、庫存和上下架狀態獨立保存
+- `Product` 可用 `ArtifactId` 對應圖鑑文物，但商品名稱、說明、尺寸、價格、庫存和上下架狀態獨立保存
 - 購物車同一位會員不能重複建立同一商品列，數量限制為 1 至 99
 - 訂單金額、折扣、點數和明細總額有資料庫限制；訂單明細要保存成交當下的品名和單價快照
 - 訂單狀態是 `PENDING_PAYMENT`、`PAID`、`FULFILLING`、`SHIPPED`、`COMPLETED`、`CANCELLED`
@@ -211,7 +211,7 @@ await _db.SaveChangesAsync(cancellationToken);
 - 商品清單先區分啟用／停用、庫存和是否已有訂單引用
 - 結帳前由伺服器重新查商品價格、庫存、優惠券和點數，不使用瀏覽器送回的總金額
 - 建立訂單時同一個流程完成明細快照、金額計算、優惠券使用、庫存與點數異動，必要時使用交易
-- 付款回呼以 `MerchantTradeNo` 和合法回傳資料查找付款，重複通知不能重複扣庫存或點數
+- 目前程式沒有正式金流供應商的付款 callback Endpoint（回呼路徑）；`Payments` 的 `PENDING`、`PAID`、`FAILED`、`CANCELLED` 是資料模型可保存的狀態，不代表已接入供應商
 - 訂單詳細頁顯示快照欄位，不能因商品後續改名或改價而改寫歷史訂單
 
 ### 目前一定不要先做
@@ -219,7 +219,7 @@ await _db.SaveChangesAsync(cancellationToken);
 - 不讓前端直接提交訂單狀態、付款狀態、價格、折扣、庫存或點數餘額
 - 不修改已有訂單明細的成交品名、單價和數量來同步目前商品
 - 不刪除已有訂單、付款、點數交易或已使用優惠券
-- 不把付款回呼當成一般表單；必須驗證交易編號、金額、回傳代碼和目前狀態，並讓處理可重複執行
+- 若未來新增付款 callback，不把它當成一般表單；必須驗證交易編號、金額、回傳代碼和目前狀態，並讓處理可重複執行
 - 不把來源商城圖片或未明確授權的素材加入公開 Repository
 - 不在尚未決定正式金流前加入正式商店流程、退款系統或真實付款資料
 

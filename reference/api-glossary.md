@@ -41,7 +41,7 @@
 | path parameter | `path parameter（路徑參數）` | 放在網址大括號中的資源識別欄位，例如 `{id}` |
 | query string | `query string（查詢參數）` | 放在網址 `?` 後的篩選、搜尋或分頁欄位 |
 | status code | `status code（HTTP 狀態碼）` | 表示請求結果，例如 200、400、401 或 404 |
-| ProblemDetails | `ProblemDetails（RFC 7807 標準錯誤回應格式）` | 以 `type`、`title`、`status`、`detail` 等欄位描述錯誤 |
+| ProblemDetails | `ProblemDetails（RFC 9457 標準錯誤回應格式）` | 以 `type`、`title`、`status`、`detail` 等欄位描述錯誤 |
 | ValidationProblemDetails | `ValidationProblemDetails（欄位驗證錯誤格式）` | ProblemDetails（標準錯誤回應格式）的延伸格式，另可包含 `errors` 欄位 |
 | DTO | `DTO（API 對外傳輸的資料格式）` | API 對外提供的資料結構，不等同於資料庫 Entity |
 | Entity | `Entity（資料庫對應模型）` | 由 ORM（物件關聯對映工具）追蹤並對應資料表的程式模型 |

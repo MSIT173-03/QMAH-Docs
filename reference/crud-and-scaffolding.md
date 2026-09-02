@@ -502,7 +502,7 @@ Details 與 Delete View 只需要使用 `ArtifactCategoryDetailsViewModel` 顯�
 3. 選 **MVC Controller with views, using Entity Framework**
 4. Model 選需要的 Entity
 5. Data context 選 `QmahDbContext`
-6. 產生到自己的 Area 後，再修正 `[Area]`、namespace、View 路徑與表單欄位
+6. 產生到對應的 Area 後，再修正 `[Area]`、namespace、View 路徑與表單欄位
 
 Scaffold 能省下 Controller 與 View 的基本骨架，但產生後仍要：
 
@@ -561,7 +561,7 @@ Bootstrap 與套件已經放在專案內，不需要各 Area 再安裝一份。�
 
 ## Scaffold 實作補充
 
-Visual Studio 的 Scaffold 會先進行 design-time build，再從目前專案或參考專案載入可用的 `public` Model。因此 Entity 不必搬進 Area；DB-first Entity 留在 `QMAH.Infrastructure/Models/Entities`，Area 只建立自己的 Controller、ViewModel、View 與必要 Service。若正式表單需要限制欄位或加入畫面專用資料，先建立 `public` ViewModel，再在 Scaffold 的 Model 選單選取它。
+Visual Studio 的 Scaffold 會先進行 design-time build，再從目前專案或參考專案載入可用的 `public` Model。因此 Entity 不必搬進 Area；DB-first Entity 留在 `QMAH.Infrastructure/Models/Entities`，Area 只建立對應的 Controller、ViewModel、View 與必要 Service。若正式表單需要限制欄位或加入畫面專用資料，先建立 `public` ViewModel，再在 Scaffold 的 Model 選單選取它。
 
 QMAH 固定使用 Entity 的單數名稱：
 

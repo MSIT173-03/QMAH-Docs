@@ -45,7 +45,7 @@
 
 目前預留四種 Mini Game（小遊戲）模式：
 
-- `DETAIL_LOCATOR`：細節追蹤
+- `DETAIL_LOCATOR`：細節追跡
 - `ARTIFACT_PUZZLE`：館藏拼圖
 - `MEMORY_MATCH`：館藏翻牌
 - `STRIP_RESTORE`：長卷復位

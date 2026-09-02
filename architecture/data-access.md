@@ -33,24 +33,28 @@ public ArtifactController(QmahDbContext db)
 }
 ```
 
-因此不需要自己讀連線字串、建立 SQL 連線或使用 `new QmahDbContext()`。
+因此不需要在 Controller 重新讀取連線字串、建立 SQL 連線或使用 `new QmahDbContext()`。
 
 ### `QmahDbContext` 與連線字串的關係
 
 `QmahDbContext` 仍然會透過 SQL Server 連線字串存取資料庫。差別不是「使用 DbContext 就沒有連線字串」，而是連線設定集中在 `Program.cs`，Controller 只宣告需要資料庫工作區。
 
-`Program.cs` 已完成一次共用註冊：
+`QMAH.Api/Program.cs` 與 `QMAH.Web/Program.cs` 會先呼叫 `QmahDatabaseConnectionResolver.ResolveAsync`，再把解析結果交給 `AddDbContext`。解析器會依 `QmahDatabaseDiscovery:Enabled` 決定是否執行本機資料庫探索；Controller 不需要重新處理這段邏輯。
 
 ```csharp
+var resolution = await QmahDatabaseConnectionResolver.ResolveAsync(
+    builder.Configuration.GetConnectionString("QmahDatabase"),
+    builder.Configuration.GetValue("QmahDatabaseDiscovery:Enabled", true));
+
 builder.Services.AddDbContext<QmahDbContext>(options =>
 {
-    // 讀取 appsettings.json 或未提交的 appsettings.Local.json，並指定 SQL Server。
+    // 使用設定或本機探索後選出的 SQL Server 連線。
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("QmahDatabase")
-        ?? throw new InvalidOperationException(
-            "Connection string 'QmahDatabase' was not found."));
+        resolution.ConnectionString);
 });
 ```
+
+共用設定的預設 `QmahDatabase` 是 `Server=.;Database=QMAH`，只是第一個候選與找不到資料庫時的 fallback。自動探索會檢查設定候選、標準 LocalDB、已列出的 LocalDB instance 與已註冊的本機 SQL Server instance，並以 `master.sys.databases` 確認 `QMAH` 處於 `ONLINE`；不掃描網路、不自動附加 `.mdf`，也不還原 `.bak`。完整順序與關閉方式見[開發環境與啟動](../getting-started/development-environment.md)。
 
 Controller 只取得已設定好的 `QmahDbContext`：
 
@@ -144,13 +148,13 @@ ViewModel 是 View 與 Controller 之間的資料；Entity 是 Controller／Serv
 | 顯示圖鑑文物與分類 | `_db.Artifacts`、`Category`、`EraBucket` | 在 View 內逐筆查資料庫 |
 | 顯示或修改商城商品 | `_db.Products`、`Product.ArtifactId` | 用商品名稱或圖片路徑硬比對文物 |
 | 修改會員暱稱或地址 | `_db.UserProfiles`、`_db.UserAddresses` | 直接改 `AspNetUsers` 的密碼欄位 |
-| 註冊、登入、改密碼、角色 | `UserManager`、`SignInManager`、`RoleManager` | 自己 `INSERT`／`UPDATE` Identity 資料表 |
+| 註冊、登入、改密碼、角色 | `UserManager`、`SignInManager`、`RoleManager` | 直接 `INSERT`／`UPDATE` Identity 資料表 |
 
 看完這張表還不確定時，直接往下找「圖鑑」、「商城」、「會員」三個範例；每段都使用目前 QMAH 的 Entity、欄位和關聯。
 
 ## 開始前
 
-1. 從 GitHub Release 還原 `QMAH-<version>.bak`，或在 SSMS 完整執行 QMAH-Database 的 `QMAH.sql`，資料庫名稱使用 `QMAH`。
+1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`，資料庫名稱使用 `QMAH`。
 2. 用 Visual Studio 開啟 `QMAH.sln`，確認網站可以按 `F5` 啟動。
 3. 在所屬 Area 的 Controller 建構式注入 `QmahDbContext`。
 
@@ -550,7 +554,7 @@ public async Task<IActionResult> Edit(
 - 會員資料：`user.UserProfiles`、`user.UserAddresses`、`user.Achievements`、`user.UserAchievements`
 - 遊戲資料：`game.GamePlayers`、`game.GameRooms`、`game.GameRounds`、`game.RoundAnswers`、`game.Votes`
 
-它們在 Entity 中都是 8 bytes 的 `byte[]`，由 SQL Server 的 `rowversion` 自動產生。用途是判斷資料是否在開啟編輯頁之後，又被其他人修改；它不是流水號，也不是要由 Controller 自己加一的欄位。
+它們在 Entity 中都是 8 bytes 的 `byte[]`，由 SQL Server 的 `rowversion` 自動產生。用途是判斷資料是否在開啟編輯頁之後，又被其他程序修改；它不是流水號，也不是由 Controller 遞增的欄位。
 
 遊戲的 `GameRooms.StateVersion` 和 `GameRounds.StateVersion` 是另一件事。它們是遊戲流程用的整數版本，讓即時遊戲知道房間狀態是否前進；不要把它和 SQL Server 的 `RowVersion` 混在一起。
 
@@ -562,7 +566,7 @@ public async Task<IActionResult> Edit(
 
 遇到衝突時不要直接覆蓋資料庫。顯示「資料已被其他人修改，請重新確認」並重新載入最新內容，讓使用者決定是否再次送出。
 
-會員修改自己的資料時，可以用下列方式處理並行衝突。ViewModel 的 `RowVersion` 必須是 8 bytes 的 `byte[]`，不可改成自行產生的 Guid 或時間：
+會員修改所屬資料時，可以用下列方式處理並行衝突。ViewModel 的 `RowVersion` 必須是 8 bytes 的 `byte[]`，不可改成程式自行產生的 Guid 或時間：
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -761,7 +765,7 @@ Database.Migrate();
 Database.EnsureCreated();
 ```
 
-欄位、索引、外鍵或 CHECK constraint 需要調整時，依序處理 SQL Server 設計、`QMAH/database/Schema.sql`、EF Core Scaffold 核對、必要的 Entity／`QmahDbContext` 對照、Diagram，以及同一次匯出的 QMAH-Database `QMAH.sql`、Release `.sql`／`.bak`。
+欄位、索引、外鍵或 CHECK constraint 需要調整時，依序處理 SQL Server 設計、`QMAH/database/Schema.sql`、EF Core Scaffold 核對、必要的 Entity／`QmahDbContext` 對照、Diagram，以及同一次匯出的 QMAH-Database `QMAH.sql` 與已驗證的交付產物。
 
 不要新增 EF Migration，也不要建立 `__EFMigrationsHistory`。
 
@@ -808,4 +812,4 @@ Database.EnsureCreated();
 | 文物匯入 | JSON 欄位、預檢結果、冪等同步 | `QMAH.Infrastructure/Infrastructure/CatalogImport` 與資料工具 |
 | Identity | `UserManager`、`SignInManager`、`RoleManager` | `QMAH.Infrastructure` 與各入口的 Controller |
 
-Razor 與 API 可以使用不同主機與連接埠，但必須指向同一個 SQL Server 資料庫。Angular 不直接連資料庫，也不把後端 Entity 複製成自己的業務契約；完整 request、response、權限與錯誤狀態以 [REST API 契約](../reference/rest-api.md) 為準。媒體網址由後端 Resolver 產生，前台不從 `ArtifactId`、分類代碼或檔名自行拼接。
+Razor 與 API 可以使用不同主機與連接埠，但必須指向同一個 SQL Server 資料庫。Angular 不直接連資料庫，也不把後端 Entity 複製成前端業務契約；完整 request、response、權限與錯誤狀態以 [REST API 契約](../reference/rest-api.md) 為準。媒體網址由後端 Resolver 產生，前台不從 `ArtifactId`、分類代碼或檔名拼接。

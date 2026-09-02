@@ -2,7 +2,7 @@
 
 QMAH API（應用程式介面）位於獨立的 `QMAH.Api` 專案，所有版本化 Endpoint（API 可呼叫的路徑）以 `/api/v1` 開頭。API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.Infrastructure`、Identity（登入與會員驗證元件）與 SQL Server（資料庫服務），不複製 Entity（資料庫對應模型）或建立第二個資料庫。
 
-開發環境 API：`https://localhost:7249`。Development（開發環境）才提供 `/openapi/v1.json` 與 `/scalar/v1`；Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。
+開發環境 API：`https://localhost:7249`。Development（開發環境）預設提供 `/openapi/v1.json` 與 `/scalar/v1`；非 Development 環境只有在 `OpenApi:Enabled=true` 時提供 OpenAPI，若也要提供 Scalar（互動式 API 文件頁面）則另外啟用 `OpenApi:ScalarEnabled=true`。Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。
 
 ## API 文件與測試頁面
 
@@ -33,11 +33,11 @@ GUI 啟動方式如下：
 - Visual Studio 的 API 啟動設定使用 `https` profile（啟動設定檔），網址為 `https://localhost:7249`；HTTP profile（啟動設定檔）的網址為 `http://localhost:5147`。
 - VS Code 開啟 Run and Debug（執行與除錯介面）面板後，可選擇 `QMAH API（https）` 單獨啟動後端 API、選擇 `QMAH Angular 前端使用者前台` 單獨啟動 Angular 前端，或選擇 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動兩者。
 
-以上 GUI（圖形化介面）設定分別由 `QMAH.slnLaunch`、`QMAH.Api/Properties/launchSettings.json` 與 `.vscode/launch.json` 管理，團隊成員不需要自行建立啟動設定。
+以上 GUI（圖形化介面）設定分別由 `QMAH.slnLaunch`、`QMAH.Api/Properties/launchSettings.json` 與 `.vscode/launch.json` 管理，不需要另外建立啟動設定。
 
 Scalar 的 `Test Request` 會使用目前頁面的 session（瀏覽器工作階段）。Postman、Insomnia 或前端測試程式則須保留 cookies（瀏覽器保存的登入資料）、設定 `credentials`（是否攜帶 Cookie 的請求設定），並依 OpenAPI 契約傳送 request body（請求本文，送出的 JSON 內容）。
 
-`/openapi/v1.json` 可交給前端產生 client（呼叫 API 的程式碼）、執行 contract test（契約測試）或檢查 breaking change（會讓既有呼叫失效的變更）。正式環境（正式使用的部署環境）預設不公開文件；部署時若需要公開，須以設定檔明確啟用 `OpenApi:Enabled`，測試用帳號與密碼不得寫入文件。
+`/openapi/v1.json` 可交給前端產生 client（呼叫 API 的程式碼）、執行 contract test（契約測試）或檢查 breaking change（會讓既有呼叫失效的變更）。正式環境（正式使用的部署環境）預設不公開文件；部署時若需要公開 OpenAPI，須以設定檔明確啟用 `OpenApi:Enabled`，若也需要公開 Scalar，另須啟用 `OpenApi:ScalarEnabled`。測試用帳號與密碼不得寫入文件。
 
 契約驗證腳本需在 API 已啟動時執行：
 
@@ -55,7 +55,7 @@ Controller 負責 HTTP 行為與授權，DTO（API 對外傳輸的資料格式�
 
 ## OpenAPI 文字規範
 
-欄位分工遵循 OpenAPI 的定義：`summary`（清單中的短摘要）用來快速辨識用途，`description`（完整行為說明）用來說明端點的完整行為，必要時可使用 CommonMark（OpenAPI 文件通用的 Markdown 格式）。每個 operation（一次 API 呼叫）都有自己的 catalog（API 行為說明清單）項目，說明直接對應實際要呼叫的欄位與結果，不使用未替換的範例文字。
+欄位分工遵循 OpenAPI 的定義：`summary`（清單中的短摘要）用來快速辨識用途，`description`（完整行為說明）用來說明端點的完整行為，必要時可使用 CommonMark（OpenAPI 文件通用的 Markdown 格式）。每個 operation（一次 API 呼叫）都有對應的 catalog（API 行為說明清單）項目，說明直接對應實際要呼叫的欄位與結果，不使用未替換的範例文字。
 
 | 欄位 | 文件標準 | QMAH 實作方式 |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ Controller 負責 HTTP 行為與授權，DTO（API 對外傳輸的資料格式�
 
 `page` 從 1 開始，`pageSize` 會限制在 1 至 100；沒有資料時 `totalPages` 為 0、`page` 為 1。前台依回應的 `totalPages` 呈現分頁，空集合表示查詢結果為空，不視為錯誤。
 
-錯誤使用 RFC 7807（錯誤回應格式的標準規格）`ProblemDetails`（標準錯誤回應格式）／`ValidationProblemDetails`（欄位驗證錯誤格式），常見狀態如下：
+錯誤使用 RFC 9457（錯誤回應格式的標準規格）`ProblemDetails`（標準錯誤回應格式）／`ValidationProblemDetails`（欄位驗證錯誤格式），常見狀態如下：
 
 | 狀態 | 意義 |
 | ---: | --- |
@@ -143,7 +143,7 @@ Controller 負責 HTTP 行為與授權，DTO（API 對外傳輸的資料格式�
 | GET | `/api/v1/store/products/{productId}/reviews` | 公開評價分頁、平均星等與評價總數；只計入已發布內容 |
 | GET | `/api/v1/store/products/{productId}/reviews/me` | 登入後取得目前會員對該商品的評價 |
 | PUT | `/api/v1/store/products/{productId}/reviews/me` | 登入後新增或修改目前會員的 1 至 5 星評價與短文 |
-| DELETE | `/api/v1/store/products/{productId}/reviews/me` | 登入後刪除目前會員自己的評價；採軟刪除，不影響其他會員的內容 |
+| DELETE | `/api/v1/store/products/{productId}/reviews/me` | 登入後刪除目前會員所屬的評價；採軟刪除，不影響其他會員的內容 |
 
 Code（系統代碼）是資料契約，不是直接給使用者看的文案；前台應以 metadata（供前端使用的選項資料）的 Label（畫面顯示文字）呈現。文物圖片與商品圖片使用既有 `/media/catalog/` 路徑及其來源授權資料，媒體網址切換規則見[媒體交付設定](../frontend/media-delivery.md)。
 
@@ -171,7 +171,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | --- | --- | --- |
 | POST | `/api/v1/social/media` | 登入後以 `multipart/form-data`（表單檔案上傳格式）上傳；`file` 為必填 binary（原始檔案內容）圖片、`altText`（圖片替代文字）為選填欄位；支援 JPEG／PNG／GIF／WebP，最大 8 MB，超過回傳 413 |
 | GET | `/api/v1/social/media/{id}/content` | 公開已發布貼文的可用圖片；擁有者可預覽尚未關聯圖片 |
-| DELETE | `/api/v1/social/media/{id}` | 圖片擁有者軟刪除自己的圖片 |
+| DELETE | `/api/v1/social/media/{id}` | 圖片擁有者軟刪除所屬圖片 |
 
 社群圖片使用永久流水號，API 回傳受控 URL（資源網址）；前台不自行拼檔名、不讀取實體資料夾，也不把原始檔名當成 HTML 或路徑。官方文物圖鑑圖片不屬於這組社群上傳 Endpoint（API 可呼叫的路徑）。
 
@@ -201,7 +201,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | GET | `/api/v1/me/orders` | 查詢目前會員訂單 |
 | GET | `/api/v1/me/orders/{id}` | 取得目前會員訂單明細 |
 | GET | `/api/v1/me/coupons` | 目前帳號的優惠券 |
-| GET | `/api/v1/me/posts` | 目前帳號自己的貼文 |
+| GET | `/api/v1/me/posts` | 目前帳號所屬的貼文 |
 | GET | `/api/v1/me/achievements` | 目前帳號的成就 |
 | GET | `/api/v1/me/cart` | 取得購物車 |
 | POST | `/api/v1/me/cart` | 加入購物車商品 |
@@ -252,7 +252,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 
 這組資產操作成功通常回傳 `200 OK`（成功並回傳資料）；開始 Mini Game 建立嘗試回傳 `201 Created`（已建立資源）。欄位錯誤或業務條件不符回傳 `400`，未登入回傳 `401`，不是資源擁有者或沒有角色權限回傳 `403`，找不到文物、規則、房間或邀請回傳 `404`，餘額、候選文物、重複領取或目前狀態不允許時回傳 `409`。所有失敗均使用 `ProblemDetails`（標準錯誤回應格式）或 `ValidationProblemDetails`（欄位驗證錯誤格式）。
 
-鑑定點數、鑰匙與優惠券的異動資料是資產歷史的主要來源。`admin.AuditLogs` 不記錄每個 API 讀取或 request body（請求本文），目前只由 Web（Razor 管理後台）的具權限非 GET 管理寫入操作留下必要 metadata（操作時間、操作者、區域、路徑與結果）；點數、鑰匙、優惠券和批次活動則分別以自己的流水或批次主檔查帳。這樣可以查單一會員與活動影響範圍，也不會因前台輪詢而無限制增加稽核資料。
+鑑定點數、鑰匙與優惠券的異動資料是資產歷史的主要來源。`admin.AuditLogs` 不記錄每個 API 讀取或 request body（請求本文），目前只由 Web（Razor 管理後台）的具權限非 GET 管理寫入操作留下必要 metadata（操作時間、操作者、區域、路徑與結果）；點數、鑰匙、優惠券和批次活動則分別以對應流水或批次主檔查帳。這樣可以查單一會員與活動影響範圍，也不會因前台輪詢而無限制增加稽核資料。
 
 ### 管理摘要
 

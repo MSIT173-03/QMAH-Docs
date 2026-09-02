@@ -2,6 +2,12 @@
 
 本文件是 QMAH 期末前端使用者前台開發的共同入口。前端畫面使用 `QMAH.Client` 的 Angular 21.2.22，使用者前台透過 `QMAH.Api` 後端的 `/api/v1` JSON 契約取得資料與執行操作；資料庫、Identity（登入與會員驗證元件）、圖片網址與跨系統規則由 `QMAH.Infrastructure` 後端共用。完整欄位與狀態碼以 [`REST API 契約`](../reference/rest-api.md) 和 API 啟動後的 [OpenAPI JSON](https://localhost:7249/openapi/v1.json) 為準。
 
+## 為什麼固定 Angular 21.2.22
+
+課程要求使用 Angular 21，因此版本線維持在 Angular 21，不升到 Angular 22。原先的 Angular 21.1.3 相依樹在本機 `npm audit` 會列出漏洞；目前 Repository 改固定在 Angular 21 版本線內的 `21.2.22`，並已通過 `npm audit --audit-level=high`。這次只更新同一個 major version 內的次版本與修補版本，既有 standalone、Router、HttpClient、環境設定與 SCSS 寫法不需要改寫。
+
+Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、TypeScript 與 RxJS 相容範圍內；目前實際版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準。版本變更需同時更新相依鎖定檔、檢查課程要求與重新執行安全性檢查，不在單一功能分支自行升降版本。[Angular 版本相容性](https://angular.dev/reference/versions)／[Angular 版本發布與支援週期](https://angular.dev/reference/releases)
+
 ## 四個詞的分工
 
 後端（backend）與前端（frontend）描述技術層；前台（front office）與後台（back office）描述使用對象。QMAH 的對應如下：
@@ -17,7 +23,7 @@
 
 ## 開發入口
 
-本機資料庫使用最新 Release 的 `.bak`，或在 SSMS 執行 QMAH-Database 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，完成其中一種還原即可。前端開發第一次使用時，在 `QMAH.Client` 執行：
+本機資料庫使用 QMAH-Database tag `db-v0.7.0` 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`，完成其中一種還原即可。QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。前端開發第一次使用時，在 `QMAH.Client` 執行：
 
 ```powershell
 npm ci
@@ -28,7 +34,7 @@ API 與 Angular 可以透過下列方式啟動：
 | 方式 | 操作 |
 | --- | --- |
 | Visual Studio | 使用 `QMAH 後端主機與管理後台（API＋Razor）` 檢查後端 API 與資料庫，或使用 `QMAH API` 單獨啟動後端 API |
-| VS Code | 使用 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動，或分別使用 `QMAH API（https）` 與 `QMAH Angular 前端使用者前台` |
+| Visual Studio Code（2026 年目前穩定版） | 使用 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動，或分別使用 `QMAH API（https）` 與 `QMAH Angular 前端使用者前台` |
 | 命令列 | API 執行 `dotnet run --project .\QMAH.Api\QMAH.Api.csproj --launch-profile https`，另一個終端機在 `QMAH.Client` 執行 `npm start` |
 
 瀏覽器開啟 `http://localhost:4200/`。Angular 前端使用 `/api/v1` 相對路徑，開發伺服器由 `QMAH.Client/proxy.conf.json` 將 `/api`、`/openapi` 與 `/scalar` 轉送到後端 API，因此 component（畫面元件）不保存固定 API 連接埠。建置與測試命令見 [`Angular 前端的使用者前台開發起點`](./angular-development.md)。
@@ -132,7 +138,7 @@ Set-Location .\QMAH.Client
 npm ci
 ```
 
-`npm ci` 依 lockfile 還原固定依賴；`node_modules`、`dist` 與 `.angular/cache` 不提交。若使用 VS Code，可沿用 Repository 的 `.vscode/launch.json`、`.vscode/tasks.json`，必要時手動執行：
+`npm ci` 依 lockfile 還原固定依賴；`node_modules`、`dist` 與 `.angular/cache` 不提交。使用 2026 年目前穩定版的 Visual Studio Code 可沿用 Repository 的 `.vscode/launch.json`、`.vscode/tasks.json`，必要時手動執行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\Install-VSCodeExtensions.ps1

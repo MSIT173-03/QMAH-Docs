@@ -6,9 +6,9 @@ Repository：<https://github.com/MSIT173-03/QMAH>
 
 ## 權限怎麼運作
 
-加入 `MSIT173-03` 組織不會自動取得此 Repository 的 `Write` 權限。目前先以 `Read` 為預設；需要直接 Push 自己的 feature branch 時，請由 Repository 管理員另外授予 `Write`。
+加入 `MSIT173-03` 組織不會自動取得此 Repository 的 `Write` 權限。目前先以 `Read` 為預設；需要直接 Push 指定的 feature branch 時，`Write` 權限需由 Repository 管理員另外授予。
 
-加入組織後可以 Clone、Pull、建立 Pull Request 與檢視 GitHub Actions。取得此 Repository 的 `Write` 權限後，才可以直接 Push 自己的 `feature/*` 分支。
+加入組織後可以 Clone、Pull、建立 Pull Request 與檢視 GitHub Actions。取得此 Repository 的 `Write` 權限後，才可以直接 Push 對應的 `feature/*` 分支。
 
 日常 Push 不需要 Owner 逐次核准。`Write` 不包含刪除 Repository、修改敏感設定或管理組織的權限。
 
@@ -18,14 +18,16 @@ Repository：<https://github.com/MSIT173-03/QMAH>
 
 Repository 採 Public，以使用 GitHub Free 組織的 Branch Protection。保護只套用共同分支，不影響 feature branch 的日常 Push。
 
-目前設定：
+目前遠端設定（2026-09-02 查核）：
 
-| 分支 | Pull Request | 人工核准 | 必要檢查 |
-| --- | --- | --- | --- |
-| `main` | 必須，Owner 純同步可例外 | 不需要 | `Build` |
-| `develop` | 必須，Owner 純同步可例外 | 不需要 | `Build` |
+| 分支 | Pull Request review | Required status checks | force push／刪除 | 管理員強制套用 |
+| --- | --- | --- | --- | --- |
+| `main` | 必須，至少 1 人核准 | 未啟用 | 禁止 | 否 |
+| `develop` | 必須，至少 1 人核准 | 未啟用 | 允許 | 否 |
 
-`main` 禁止 force push 與刪除。組員原則上不要直接修改 `main` 或 `develop`，整合共同分支時透過 PR 留下變更紀錄，但不要求人工核准。Owner 只在確認來源分支沒有任何額外提交、單純將共同版本快轉同步時直接繞過 PR。`Build` 仍是共同分支的必要檢查。
+上表是 GitHub Settings 的現況，不是尚未啟用的目標政策。功能變更不直接修改 `main` 或 `develop`，整合共同分支時透過 PR 留下變更紀錄；目前兩個共同分支都要求至少 1 人核准，管理員未被強制套用這項規則。`main` 禁止 force push 與刪除，`develop` 目前允許兩者。
+
+目前 `Build` workflow 只有 `workflow_dispatch` 觸發，建立 PR 不會自動執行，且 `Build` 尚未列為共同分支的必要 status check。若要把 `Build` 設為合併門檻，需由 Repository 管理者在 GitHub Settings 的 Branch protection rules／Rulesets 同時決定 PR 核准人數、啟用的 workflow 觸發方式與必要檢查；相關設定完成前，文件不把它描述成已存在的保護條件。
 
 ## 分支用途
 
@@ -48,8 +50,8 @@ Repository 採 Public，以使用 GitHub Free 組織的 Branch Protection。保�
 1. 輸入 `https://github.com/MSIT173-03/QMAH.git`。
 2. 選擇本機資料夾並完成 Clone。
 3. 開啟 `QMAH.sln`。
-4. 在 Git 分支選單切到自己負責的 Area 分支。
-5. 依 README 從 Release 還原 `QMAH-<version>.bak`，或執行 QMAH-Database 的 `QMAH.sql`。
+4. 在 Git 分支選單切到對應的 Area 分支。
+5. 依 README 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 
 Visual Studio 檔案旁的藍色鎖通常表示「檔案目前沒有本機修改」，不是唯讀，也不代表沒有權限。
 
@@ -61,7 +63,7 @@ Pull → 修改 → 本機驗證 → Commit → Push → Pull Request → develo
 
 開始前：
 
-1. 確認目前位於自己的 feature branch。
+1. 確認目前位於對應的 feature branch。
 2. Pull 遠端同分支。
 3. 取得團隊目前指定的共同分支內容並處理衝突；平時以 `develop` 為整合分支，團隊通知直接同步最新展示版時則使用 `origin/main`。
 4. 再開始修改。
@@ -71,28 +73,28 @@ Pull → 修改 → 本機驗證 → Commit → Push → Pull Request → develo
 1. 在 Git Changes 逐一查看變更。
 2. 確認沒有密碼、個人設定、raw、快取、`bin`、`obj` 或 `.bak`。
 3. 本機建置並操作受影響頁面。
-4. Commit、Push 自己的 feature branch。
+4. Commit、Push 對應的 feature branch。
 5. 建立 `feature/<area> → develop` 的 Pull Request。
 
 展示前，建立 `develop → main` Pull Request 留下展示版本紀錄；確認 Build 通過後即可合併，不要求人工核准。
 
-## Visual Studio：保留自己的修改並同步最新 main
+## Visual Studio：保留本機修改並同步最新 main
 
-不要在還有「未認可變更」時直接切換分支或 Pull。最安全的做法是先將目前進度 Commit 到自己的分支，再把 `origin/main` 合併進來：
+不要在還有「未認可變更」時直接切換分支或 Pull。較安全的做法是先將目前進度 Commit 到對應分支，再把 `origin/main` 合併進來：
 
-1. 看 Visual Studio 右下角的分支名稱，確認目前在自己的 `feature/<area>`，不是 `main`。
+1. 看 Visual Studio 右下角的分支名稱，確認目前在對應的 `feature/<area>`，不是 `main`。
 2. 開啟 **檢視 → Git 變更**，檢查檔案後輸入訊息並選 **認可全部**（Commit All）。功能尚未完成也可以先做進度 Commit。
-3. 建議先選 **推送**（Push），將自己的分支備份到 GitHub。
+3. 建議先選 **推送**（Push），將對應分支備份到 GitHub。
 4. 選 **Git → 擷取**（Fetch）。Fetch 只更新遠端分支資訊，不會修改目前檔案。
 5. 開啟 **檢視 → Git 存放庫**，展開 **遠端 → origin**，對 `origin/main` 按右鍵，選 **合併至目前分支**（Merge into Current Branch）。不要切到 `main` 才操作。
 6. 若出現衝突，逐檔比較「目前內容」與「傳入內容」。不要直接對所有檔案選「全部接受目前」或「全部接受傳入」。
-7. 衝突處理完成後執行 **建置 → 建置方案**，再認可合併結果並 Push 自己的分支。
+7. 衝突處理完成後執行 **建置 → 建置方案**，再認可合併結果並 Push 對應分支。
 
 簡化順序：
 
 ```text
-確認在自己的分支
-→ Commit 自己的修改
+確認目前位於工作分支
+→ Commit 本次修改
 → Push 備份
 → Fetch
 → 將 origin/main 合併至目前分支
@@ -113,9 +115,9 @@ Scaffold 產生的完整 View 若包含 `Layout = null`，請移除，否則會�
 
 ### 不熟悉衝突時的外部備份方案
 
-若真的不想處理 Git 衝突，可以先把自己新增或修改的 Controller、ViewModel、View 與相關檔案複製到 Repository 外，保留原本資料夾結構；原分支仍建議先 Commit 並 Push，作為可恢復的備份。
+若目前不處理 Git 衝突，可以先把新增或修改的 Controller、ViewModel、View 與相關檔案複製到 Repository 外，保留原本資料夾結構；原分支仍建議先 Commit 並 Push，作為可恢復的備份。
 
-接著 Fetch，從最新的 `origin/main` 建立另一個功能分支，再只將自己的功能檔案複製回正確位置並 Build。不要用整個舊 Area 覆蓋新版，也不要把舊的 `_ViewStart.cshtml` 蓋回去，否則可能移除 main 已加入的共用設定或覆蓋別人的修改。
+接著 Fetch，從最新的 `origin/main` 建立另一個功能分支，再只將原分支的功能檔案複製回正確位置並 Build。不要用整個舊 Area 覆蓋新版，也不要把舊的 `_ViewStart.cshtml` 蓋回去，否則可能移除 main 已加入的共用設定或覆蓋其他變更。
 
 這種方式較容易理解，但有漏檔與蓋掉新內容的風險。正常情況仍優先使用 Merge，只有不確定如何處理衝突時才使用外部備份方案。
 
@@ -145,7 +147,7 @@ PR 要寫清楚：
 - 是否影響 Schema、資料或圖片。
 - 尚未完成或已知限制。
 
-需要驗證時，由有權限的組員在 GitHub Actions 手動執行 `Build`；建立 PR 不會自動啟動工作流程：
+需要驗證時，在具備 Actions 權限的環境手動執行 `Build`；建立 PR 不會自動啟動工作流程：
 
 ```powershell
 dotnet restore QMAH.sln --locked-mode
@@ -178,7 +180,7 @@ dotnet build QMAH.sln --no-restore --configuration Release
 - 自行建立另一套資料庫或 schema。
 - 只改 Entity，卻沒有確認 SQL Server 欄位。
 
-需要調整 Schema 時，在 PR 或群組列出欄位名稱、型別、是否允許 `NULL`、預設值、索引／外鍵與受影響功能，再由資料庫整合流程同步 `QMAH/database/Schema.sql`、QMAH-Database 的 `QMAH.sql`、Entity、DbContext、Diagram 與同版本 Release `.sql`／`.bak`。
+需要調整 Schema 時，在 PR 或群組列出欄位名稱、型別、是否允許 `NULL`、預設值、索引／外鍵與受影響功能，再由資料庫整合流程同步 `QMAH/database/Schema.sql`、QMAH-Database 的 `QMAH.sql`、Entity、DbContext、Diagram 與同一次輸出的交付產物。
 
 ## 衝突處理
 

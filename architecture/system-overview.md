@@ -14,7 +14,7 @@ flowchart LR
     api --> media[媒體 Resolver<br/>Local／物件儲存／CDN]
 ```
 
-前台只讀取 API 的 DTO 與狀態；管理後台在 `QMAH.Web` 以 Area、Controller、ViewModel 與 Razor View 組成；共用資料存取與 Identity 規則位於 `QMAH.Infrastructure`。資料工具是維護者工作流的一部分，不會由網站啟動流程偷偷建立結構或塞入資料。
+前台只讀取 API 的 DTO 與狀態；管理後台在 `QMAH.Web` 以 Area、Controller、ViewModel 與 Razor View 組成；共用資料存取與 Identity 規則位於 `QMAH.Infrastructure`。資料工具屬於 Snapshot 產製流程，不會由網站啟動流程建立結構或寫入展示資料。
 
 ## Repository 與專案責任
 
@@ -30,7 +30,7 @@ flowchart LR
 
 ## DB-first 邊界
 
-SQL Server Schema 是共同契約。新增或修改資料表、欄位、索引、外鍵、約束或 `rowversion` 時，先在資料庫與 `Schema.sql` 確認設計，再核對 Scaffold 產生的 Entity、`QmahDbContext`、API DTO、管理後台 ViewModel 與文件。完整 Snapshot 要由同一次驗證流程輸出到 [QMAH-Database](https://github.com/MSIT173-03/QMAH-Database)，不把資料庫增量腳本當成一般組員的啟動步驟。
+SQL Server Schema 是共同契約。新增或修改資料表、欄位、索引、外鍵、約束或 `rowversion` 時，先在資料庫與 `Schema.sql` 確認設計，再核對 Scaffold 產生的 Entity、`QmahDbContext`、API DTO、管理後台 ViewModel 與文件。完整 Snapshot 要由同一次驗證流程輸出到 [QMAH-Database](https://github.com/MSIT173-03/QMAH-Database)，不把資料庫增量腳本當成網站啟動步驟。
 
 ## 依責任繼續閱讀
 

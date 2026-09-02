@@ -1,10 +1,10 @@
 # 開發資料與本機展示
 
-QMAH 只有一份共同資料庫設計。每位成員在本機還原自己的 `QMAH` 資料庫副本，使用相同 Schema 與共同基準資料；本機新增、修改或刪除的測試資料不會影響其他副本。
+QMAH 只有一份共同資料庫設計。每個本機環境還原一份 `QMAH` 資料庫副本，使用相同 Schema 與共同基準資料；本機新增、修改或刪除的測試資料不會影響其他副本。
 
 ## 1. 取得共同資料
 
-先到 GitHub Repository 頁面的 **Releases** 開啟最新版本，在 **Assets** 下載 `QMAH-<version>.bak` 並用 SSMS 還原；也可以直接在 SSMS 執行 QMAH-Database 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，或執行 Release 附帶的同版本 `.sql`。兩種方式擇一即可，資料庫還原步驟請看 [資料工具參考](../reference/data-tools.md)。
+目前相容的完整 Snapshot 是 QMAH-Database tag `db-v0.7.0` 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，可直接在 SSMS 執行；若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只保留版本導覽，不再提供 SQL／BAK 資產。兩種還原方式擇一即可，資料庫還原步驟請看 [資料工具參考](../reference/data-tools.md)。
 
 完成其中一種方式後即可直接用 Visual Studio 啟動網站。網站啟動時不會建表、重設資料、執行 Seed 或覆寫本機資料。
 
@@ -15,9 +15,9 @@ QMAH 只有一份共同資料庫設計。每位成員在本機還原自己的 `Q
 - 各 Area 用於清單、詳情、關聯與狀態畫面的代表性測試資料
 - Identity 帳號、角色與會員資料；後台稽核與社群媒體資料表結構
 
-## 2. Release 共同資料內容
+## 2. Snapshot 共同資料內容
 
-以下數量以目前共同 Release `.bak`／`.sql` 同源的完整資料庫快照為準。這就是每位組員還原後取得的共同資料，已包含社群、商城、遊戲與營運頁面需要的展示情境，不需要再執行任何增量資料工具。`generate-showcase-data` 仍可由資料庫整合者在建立下一份快照前，或由個人在隔離資料庫中重建資料；它的批次參數不代表另一個 Release，也不代表組員還原後要再補上的數量。`dbo.sysdiagrams` 是 SSMS 使用的系統表，不列入 QMAH 業務資料表數量。
+以下數量以 QMAH-Database `db-v0.7.0` 的完整資料庫 Snapshot 為準。還原後已包含社群、商城、遊戲與營運頁面需要的展示情境，不需要再執行增量資料工具。`generate-showcase-data` 只用於隔離資料庫重建資料，或在產生下一份 Snapshot 前準備資料；批次參數不代表另一個 Release，也不是還原後的必要步驟。`dbo.sysdiagrams` 是 SSMS 使用的系統表，不列入 QMAH 業務資料表數量。
 
 ### 2.1 共用 Schema
 
@@ -165,9 +165,9 @@ catalog.Artifacts.Id
 
 ## 5. 資料工具（只供維護完整快照或個人資料庫使用）
 
-一般組員不需要執行本節。還原最新 Release 的單一 `.bak`，或執行同源的完整 QMAH-Database `QMAH.sql` 後，已經包含本文件前段列出的完整共同資料，可以直接開始開發；本節的命令只由資料庫整合者在產生下一份完整 snapshot 前使用，或供個人在隔離資料庫中重建展示情境。
+網站啟動前只需還原一份已驗證的完整 Snapshot；完成後已包含本文件前段列出的共同資料，可以直接開始開發。本節後面的命令只用於隔離資料庫重建展示情境，或在產生下一份完整 Snapshot 前準備資料。
 
-以下資料可以在自己的 LocalDB 建立、修改與刪除：
+以下資料可以在隔離的本機資料庫建立、修改與刪除：
 
 - Game：房間、玩家、回合、作答、投票
 - Social：貼文、留言、公告貼文、活動、報名、通知、檢舉、社群媒體
@@ -177,9 +177,9 @@ catalog.Artifacts.Id
 
 測試資料仍須符合既有外鍵、唯一索引與 CHECK constraint。各副本的資料列不必相同；共同契約是 Schema。
 
-共同資料已涵蓋所有房間狀態、所有訂單狀態，以及付款的 `PENDING`、`PAID`、`FAILED`。個人開發仍可在自己的 LocalDB 增加資料，但不需要為了測試基本清單與篩選重新準備這些狀態。
+共同資料已涵蓋所有房間狀態、所有訂單狀態，以及付款的 `PENDING`、`PAID`、`FAILED`。隔離環境仍可增加資料，但不需要為了測試基本清單與篩選重新準備這些狀態。
 
-資料庫整合者若要重建下一份完整 snapshot，先在隔離的 canonical database 使用 `QmahDatabaseRelease seed-showcase-users` 建立或更新 24 個展示帳號，再使用資料工具產生與文物、商品及會員互相連結的內容。完成後必須重新執行 `Export-ReferenceDatabase.ps1`，讓產物回到單一完整 `.bak`／`.sql`；不可把這些命令列為組員還原後的步驟：
+產生下一份完整 Snapshot 時，先在隔離的 canonical database 使用 `QmahDatabaseRelease seed-showcase-users` 建立或更新 24 個展示帳號，再使用資料工具產生與文物、商品及會員互相連結的內容。完成後必須重新執行 `Export-ReferenceDatabase.ps1`，讓產物回到單一完整 `.bak`／`.sql`；這些命令不是一般還原步驟：
 
 ```powershell
 dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelease.csproj -- `
@@ -190,11 +190,11 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
   --seed 173
 ```
 
-工具預設會在隔離資料庫產生一批 288 篇不同主題的貼文：約 96 篇文物專題、41 篇鑑定遊戲交流、112 篇一般社群內容、7 篇由實際活動資料建立的活動貼文，以及 32 篇官方公告。每篇貼文至少有兩筆留言，每三篇再增加一筆回覆，共 672 筆展示留言；另有 160 筆只使用文物縮小複製品的訂單與 96 筆商品評價。文物專題只取部分文物，遊戲貼文也只有部分回合會連到文物，因此不會讓 256 件文物看起來全部都被安排過討論。社群文章依固定順序取用獨立素材，不以亂數拼接句子或循環重用相同文章；文章、文物、活動、商品與會員關係仍由實際外鍵維持。`--post-count`、`--order-count` 與 `--seed` 可以在維護者或個人資料庫調整；相同參數會更新同一批工具資料，不會任意產生重複資料。這些數字是工具批次數量，最後快照的總數以本節前段的實際資料表統計為準；命令不建立 Schema、不執行 Migration，也不刪除非工具產生的資料。
+工具預設會在隔離資料庫產生一批 288 篇不同主題的貼文：約 96 篇文物專題、41 篇鑑定遊戲交流、112 篇一般社群內容、7 篇由實際活動資料建立的活動貼文，以及 32 篇官方公告。每篇貼文至少有兩筆留言，每三篇再增加一筆回覆，共 672 筆展示留言；另有 160 筆只使用文物縮小複製品的訂單與 96 筆商品評價。文物專題只取部分文物，遊戲貼文也只有部分回合會連到文物，因此不會讓 256 件文物看起來全部都被安排過討論。社群文章依固定順序取用獨立素材，不以亂數拼接句子或循環重用相同文章；文章、文物、活動、商品與會員關係仍由實際外鍵維持。`--post-count`、`--order-count` 與 `--seed` 可以在隔離資料庫調整；相同參數會更新同一批工具資料，不會任意產生重複資料。這些數字是工具批次數量，最後快照的總數以本節前段的實際資料表統計為準；命令不建立 Schema、不執行 Migration，也不刪除非工具產生的資料。
 
-展示資料現在由 `QmahDatabaseRelease` 維護，不再以固定 SQL 作為增量步驟。資料庫整合者在隔離資料庫執行 `seed-showcase-users` 與 `generate-showcase-data` 後，必須再透過單一 Snapshot pipeline 產生完整 `.bak`／`.sql`，讓一般組員只需還原一份完整快照。
+展示資料現在由 `QmahDatabaseRelease` 維護，不再以固定 SQL 作為增量步驟。隔離資料庫執行 `seed-showcase-users` 與 `generate-showcase-data` 後，必須再透過單一 Snapshot pipeline 產生完整 `.bak`／`.sql`，讓還原流程只需要一份完整快照。
 
-工具命令、參數、帳號檔案邊界與 Snapshot 交付順序，集中記錄在 [資料工具參考](../reference/data-tools.md)。本文件保留共同資料的內容與關係，避免把維護者操作和一般開發者的啟動步驟混在一起。
+工具命令、參數、帳號檔案邊界與 Snapshot 交付順序，集中記錄在 [資料工具參考](../reference/data-tools.md)。本文件保留共同資料的內容與關係，將資料維護操作和網站啟動步驟分開說明。
 
 ## 6. 訂單與付款規則
 
@@ -211,7 +211,7 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 - 新增或修改外鍵、唯一索引或一般索引
 - 改變跨 Area 的資料關係或歷史資料保存方式
 
-只是在自己的 LocalDB 多建立幾筆商品、訂單、貼文或會員資料，不需要提出。
+只在隔離 LocalDB 多建立幾筆商品、訂單、貼文或會員資料，不需要提出。
 
 ## 8. 共同資料的存取方式
 
@@ -229,15 +229,15 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 資料工具整理與驗證
   → SQL Server 共同資料庫
   → Entity、QmahDbContext、Schema.sql 一致性檢查
-  → 同一次輸出新的 QMAH-Database `QMAH.sql`、Release `.sql` 與 `.bak`
-  → 上傳 GitHub Release 的 Assets
+  → 同一次輸出新的 QMAH-Database `QMAH.sql`、manifest 與版本 tag
+  → 如需 `.sql`／`.bak` 交付檔，從同一次輸出產生並另外保存
 ```
 
 工具輸出的原始檔、快取與品質報告只放在工作區 `_工具輸出`。Repository 不保存 `.bak`、本機資料庫或 raw output。
 
 ## 本機展示帳號
 
-`seed-showcase-users` 會建立或更新 24 個本機展示會員，以及 `Admin`、`User` 角色。預設先將 QMAH 根目錄的 `QMAH.DemoCredentials.csv` 複製成未提交的 `QMAH.DemoCredentials.local.csv`，填入自己的密碼後再執行命令；工具找不到檔案或任何密碼留白時會停止，不會自動產生密碼。
+`seed-showcase-users` 會建立或更新 24 個本機展示會員，以及 `Admin`、`User` 角色。預設先將 QMAH 根目錄的 `QMAH.DemoCredentials.csv` 複製成未提交的 `QMAH.DemoCredentials.local.csv`，填入隔離展示資料庫使用的密碼後再執行命令；工具找不到檔案或任何密碼留白時會停止，不會自動產生密碼。
 
 常用展示帳號如下：
 
@@ -251,7 +251,7 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 | `user@qmah.local` | 會員、地址與個人資料情境 |
 | `player-a@qmah.local`、`player-b@qmah.local` | 遊戲玩家情境 |
 
-`.local.csv` 與備份檔不應提交。忘記密碼時，使用資料工具的 `reset-password` 只重設自己的隔離資料庫；不要把密碼、Cookie、Token 或本機 log 放進 Git。
+`.local.csv` 與備份檔不應提交。忘記密碼時，使用資料工具的 `reset-password` 只重設指定的隔離資料庫；不要把密碼、Cookie、Token 或本機 log 放進 Git。
 
 ## 展示資料啟動
 

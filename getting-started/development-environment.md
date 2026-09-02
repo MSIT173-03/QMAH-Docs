@@ -24,29 +24,29 @@
 | TypeScript                     |    5.9.3 | Angular 前端型別檢查                     |
 | RxJS                           |    7.8.2 | Angular 前端非同步資料流                 |
 
-[`global.json`](https://github.com/MSIT173-03/QMAH/blob/main/global.json) 固定 .NET SDK 基準為 10.0.301，並允許 `latestFeature` 以前進到同一個 .NET 10 的較新功能帶；因此本機若已安裝較新的相容 SDK，`dotnet --version` 可能顯示 10.0.400。這不會改變 Target Framework 或 NuGet 鎖定結果。[`.vsconfig`](https://github.com/MSIT173-03/QMAH/blob/main/.vsconfig) 指定 Visual Studio 的 **ASP.NET and web development** 工作負載。
+[`global.json`](https://github.com/MSIT173-03/QMAH/blob/main/global.json) 固定 .NET SDK 基準為 10.0.301，並允許 `latestFeature` 在同一個 .NET 10.0 版本線中使用已安裝的較新 feature band 與 patch；因此本機若已安裝較新的相容 SDK，`dotnet --version` 可能顯示 10.0.400。這不會改變 Target Framework 或 NuGet 鎖定結果。[`.vsconfig`](https://github.com/MSIT173-03/QMAH/blob/main/.vsconfig) 指定 Visual Studio 的 **ASP.NET and web development** 工作負載。
 
 ## 新電腦準備
 
 ### Visual Studio
 
-安裝 Visual Studio 2022，並包含 **ASP.NET and web development** 工作負載。
+優先使用 Visual Studio 2026，並包含 **ASP.NET and web development** 工作負載。Repository 的 `.vsconfig` 只指定工作負載，不把 IDE 的小版本寫死；Visual Studio 2022 不作為本專案文件的優先版本。
 
 Clone Repository 後開啟 `QMAH.sln`。若本機缺少工作負載，Visual Studio 會依 `.vsconfig` 顯示提示。
 
 ### SQL Server 與 SSMS
 
-一般開發可使用 Visual Studio 隨附的 LocalDB：
+本機可以使用 LocalDB、SQL Server Developer 或其他已安裝的本機 SQL Server instance。網站程式會自動尋找本機目前包含 `QMAH` 且處於 `ONLINE` 狀態的資料庫：
 
 ```text
-(localdb)\MSSQLLocalDB
+Server=.;Database=QMAH
 ```
 
-需要完整 SQL Server 功能時，也可以使用 SQL Server Developer。兩者都需要 SSMS 來還原參考 `.bak`、執行 QMAH-Database 的完整 `QMAH.sql` 與查看 Diagram。
+`(localdb)\MSSQLLocalDB` 是自動搜尋清單中的其中一個候選 instance，不是唯一要求。SSMS 用於還原參考 `.bak`、執行 QMAH-Database 的完整 `QMAH.sql` 與查看 Diagram。
 
 ### 參考資料庫
 
-從 [最新 GitHub Release](https://github.com/MSIT173-03/QMAH/releases/latest) 下載該版本附帶的 `QMAH-<version>.bak`。若不使用二進位備份，也可直接執行 QMAH-Database 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)。
+目前相容的完整 Snapshot 是 QMAH-Database tag `db-v0.7.0` 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，可直接在 SSMS 執行。若另有同一版本且已驗證的 `.bak`，也可用 SSMS 還原；QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。
 
 在 SSMS：
 
@@ -68,9 +68,9 @@ QMAH 把 Razor 前端管理後台與 REST API 分成兩個可獨立啟動的 ASP
 | `QMAH.Web` 的 `https`／`http` | Razor 前端管理後台與五個 Area | `https://localhost:7039`／`http://localhost:5183` |
 | `QMAH.Api` 的 `https`／`http` | `/api/v1/*`、OpenAPI 與 Scalar | `https://localhost:7249`／`http://localhost:5147` |
 
-Visual Studio 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動後端 API 與 Razor 前端管理後台；若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定，較舊的 Visual Studio 若不顯示它，仍可分別以兩個專案的 `https` 設定啟動。
+Visual Studio 2026 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動後端 API 與 Razor 前端管理後台；若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定；若 IDE 未顯示該設定，仍可分別以兩個專案的 `https` 設定啟動。
 
-VS Code 開啟 Repository 根目錄後，在 **Run and Debug** 選 `QMAH 使用者前台開發（API 後端＋Angular 前端）`。若只使用 Razor 前端管理後台，可直接執行 `QMAH.Web`；若只使用後端 API，可執行 `QMAH.Api`。根目錄 `.vscode/tasks.json` 也提供不依賴除錯器的 `dotnet run` 工作。
+使用 2026 年目前穩定版的 Visual Studio Code 開啟 Repository 根目錄後，在 **Run and Debug** 選 `QMAH 使用者前台開發（API 後端＋Angular 前端）`。若只使用 Razor 前端管理後台，可直接執行 `QMAH.Web`；若只使用後端 API，可執行 `QMAH.Api`。根目錄 `.vscode/tasks.json` 也提供不依賴除錯器的 `dotnet run` 工作。
 
 不使用 IDE 時，開兩個終端機即可：
 
@@ -81,27 +81,29 @@ dotnet run --project .\QMAH.Web\QMAH.Web.csproj --launch-profile https
 
 Angular 前端使用者前台的啟動方式與 Node 相容版本見 [`angular-development.md`](../frontend/angular-development.md)。
 
-網站啟動時不會建立資料庫、不會建表、不會塞測試資料，也不會套用 Migration。若缺少必要 Schema，請先確認是否已還原正確的 Release `.bak`，或完整執行 QMAH-Database 的 `QMAH.sql`。
+網站啟動時不會建立資料庫、不會建表、不會塞測試資料，也不會套用 Migration。若缺少必要 Schema，請先確認是否已還原 QMAH-Database 的完整 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 
-## 連線字串
+## 連線字串與本機自動尋找
 
-預設連線分別位於 `QMAH.Web/appsettings.json` 與 `QMAH.Api/appsettings.json`；兩個檔案的 `QmahDatabase` 應指向同一個資料庫：
+預設連線分別位於 `QMAH.Web/appsettings.json` 與 `QMAH.Api/appsettings.json`；兩個檔案的 `QmahDatabase` 都以本機預設候選 `Server=.;Database=QMAH` 開始：
 
 ```json
 {
   "ConnectionStrings": {
-    "QmahDatabase": "Server=(localdb)\\MSSQLLocalDB;Database=QMAH;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False"
+    "QmahDatabase": "Server=.;Database=QMAH;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False"
   }
 }
 ```
 
-使用 SQL Server Developer 或不同 instance 時：
+`QmahDatabaseDiscovery:Enabled` 預設為 `true`。`QmahDatabaseConnectionResolver` 會把設定值、標準 LocalDB `(localdb)\\MSSQLLocalDB`、`sqllocaldb info` 列出的 LocalDB instance，以及 Windows 登錄檔列出的本機 SQL Server instance 加入候選，逐一檢查 `master.sys.databases` 是否存在 `ONLINE` 的 `QMAH`。找到後使用第一個可用候選；全部找不到時才回到設定值。這是本機 instance 探索，不是掃描網路，也不會自動附加 `.mdf` 或還原 `.bak`。
+
+因此 `Server=.` 只是預設候選，不是資料庫必須存在的位置；連線字串可以指向其他本機 instance 或明確的 SQL Server。需要固定單一目標時：
 
 1. 需要覆寫 Web 設定時，複製 `QMAH.Web/appsettings.Local.example.json`，命名為 `QMAH.Web/appsettings.Local.json`。
 2. 需要覆寫 API 設定時，另複製 `QMAH.Api/appsettings.Local.example.json`，命名為 `QMAH.Api/appsettings.Local.json`。
-3. 在需要的本機設定檔修改 `QmahDatabase`；兩個主機要指向同一個資料庫。
+3. 在需要的本機設定檔修改 `QmahDatabase`；兩個主機要指向同一個資料庫。若要關閉自動探索，同一個本機設定檔加入 `"QmahDatabaseDiscovery": { "Enabled": false }`。
 
-兩個主機的 `Program.cs` 都會在其他設定之後讀取各自專案內的 `appsettings.Local.json`，因此本機值會覆蓋預設連線。這兩個檔案已被 Git 忽略，不要強制加入版控；API 另有 `Cors:AllowedOrigins`，需列出實際 Angular 來源，不要改成 `AllowAnyOrigin`。
+兩個主機的 `Program.cs` 都會在其他設定之後讀取各自專案內的 `appsettings.Local.json`，因此本機值會覆蓋預設連線設定；自動探索仍依 `QmahDatabaseDiscovery:Enabled` 決定。這兩個檔案已被 Git 忽略，不要強制加入版控；API 另有 `Cors:AllowedOrigins`，需列出實際 Angular 來源，不要改成 `AllowAnyOrigin`。
 
 不要把個人主機名稱、SQL 帳號、密碼或正式環境連線字串寫進 `appsettings.json`。
 
@@ -236,7 +238,7 @@ dotnet tool restore
 
 ### Visual Studio 顯示黃色警告或套件缺失
 
-先在 Solution 上按右鍵選 **Restore NuGet Packages**，再重新建置。仍失敗時確認使用的 .NET SDK 是否符合 `global.json`。`global.json` 使用 `latestFeature`，所以可使用指定的 .NET 10.0.301，或同一大版本較新的已安裝 feature band；不必把每台電腦鎖在單一 SDK 修補版。
+先在 Solution 上按右鍵選 **Restore NuGet Packages**，再重新建置。仍失敗時確認使用的 .NET SDK 是否符合 `global.json`。`global.json` 使用 `latestFeature`，所以可使用指定的 .NET 10.0.301，或同一個 .NET 10.0 版本線中較新的已安裝 feature band 與 patch；不必把每台電腦鎖在單一 SDK 修補版。
 
 ### 無法連線到 LocalDB
 

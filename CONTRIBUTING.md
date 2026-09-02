@@ -1,6 +1,6 @@
 # QMAH-Docs 協作規則
 
-[QMAH 專案](https://github.com/MSIT173-03/QMAH) ｜ [開發文件](https://msit173-03.github.io/QMAH-Docs/) ｜ [開發資料庫](https://github.com/MSIT173-03/QMAH-Database)
+[QMAH 專案](https://github.com/MSIT173-03/QMAH) ｜ [QMAH-Docs 專案](https://github.com/MSIT173-03/QMAH-Docs) ｜ [QMAH-Database 專案](https://github.com/MSIT173-03/QMAH-Database) ｜ [QMAH-Docs 文件站](https://msit173-03.github.io/QMAH-Docs/)
 
 文件以 Markdown 維護，網站由 VitePress 建置。新增或修改文件時，先判斷內容主要是教學、操作、參考或設計說明，再放入既有的六組目錄；不要為了目錄完整而建立沒有內容的頁面，也不要複製另一份相同規則。
 
