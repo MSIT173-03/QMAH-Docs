@@ -121,7 +121,9 @@ body {
 .vp-doc {
   color: var(--qmah-ink);
   line-height: 1.86;
-  max-width: 820px;
+  max-width: 75ch;
+  min-width: 0;
+  width: 100%;
 }
 
 .vp-doc h1 {
@@ -149,6 +151,7 @@ body {
 
 .vp-doc a {
   color: var(--qmah-blue);
+  overflow-wrap: anywhere;
   text-decoration-color: color-mix(in srgb, var(--qmah-blue) 45%, transparent);
   text-underline-offset: 0.18em;
 }
@@ -159,8 +162,30 @@ body {
 }
 
 .vp-doc table {
+  box-sizing: border-box;
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.vp-doc table > thead,
+.vp-doc table > tbody {
+  display: table;
   min-width: 100%;
   width: max-content;
+}
+
+.vp-doc th,
+.vp-doc td {
+  vertical-align: top;
+}
+
+.vp-doc :not(pre) > code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .vp-doc th {
@@ -181,6 +206,20 @@ body {
   color: var(--qmah-jade);
 }
 
+.vp-doc p:has(> img[src*="/diagrams/"]) {
+  max-width: none;
+  overflow-x: auto;
+  padding-bottom: 0.55rem;
+  scrollbar-color: var(--qmah-line) transparent;
+}
+
+.vp-doc p:has(> img[src*="/diagrams/"]) img {
+  display: block;
+  height: auto;
+  max-width: none;
+  width: auto;
+}
+
 .vp-doc div[class*="language-"] {
   border: 1px solid var(--qmah-line);
   border-radius: 0;
@@ -189,6 +228,12 @@ body {
 
 .qmah-home {
   margin: 0 auto;
+  max-width: 1060px;
+  min-width: 0;
+  width: 100%;
+}
+
+.vp-doc:has(.qmah-home) {
   max-width: 1060px;
 }
 
@@ -297,6 +342,12 @@ body {
   font-size: 0.83rem;
   line-height: 1.45;
   margin-top: 0.2rem;
+}
+
+.qmah-rail-item > span:last-child,
+.qmah-system-row > span:nth-child(2) {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .qmah-index-sheet {
@@ -409,6 +460,16 @@ body {
   padding-top: 3rem;
 }
 
+@media (max-width: 959px) {
+  .VPNavBar .VPNavBarMenu {
+    display: none !important;
+  }
+
+  .VPNavBar .VPNavBarHamburger {
+    display: flex !important;
+  }
+}
+
 @media (max-width: 760px) {
   .qmah-index-header {
     padding-top: 3rem;
@@ -443,14 +504,21 @@ body {
 
   .qmah-system-row {
     gap: 0.75rem;
-    grid-template-columns: 3.8rem minmax(0, 1fr) 1rem;
-    min-height: 5.9rem;
+    grid-template-columns: 3.6rem minmax(0, 1fr) auto;
+    min-height: 0;
+    padding: 1rem 0;
+  }
+
+  .qmah-rail-item:hover,
+  .qmah-system-row:hover,
+  .qmah-system-row:focus-visible {
+    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .qmah-rail-item,
-  .qmah-system-row {
+.qmah-rail-item,
+.qmah-system-row {
     transition: none;
     transform: none;
   }

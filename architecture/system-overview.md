@@ -1,18 +1,14 @@
 # 系統架構總覽
 
-本頁列出 QMAH 的三個執行面，以及資料庫、文件和資料工具的責任關係。開始實作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。
+本頁列出 QMAH 的三個執行面，以及資料庫、文件和資料工具的責任關係。開始實作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。
 
 ## 系統流向
 
-```mermaid
-flowchart LR
-    client[QMAH.Client<br/>Angular 使用者前台] --> api[QMAH.Api<br/>REST API]
-    web[QMAH.Web<br/>Razor 管理後台] --> infra[QMAH.Infrastructure<br/>Entity、DbContext、服務]
-    api --> infra
-    tools[QmahDataTools<br/>資料匯入與 Snapshot] --> db[(SQL Server<br/>QMAH)]
-    infra --> db
-    api --> media[媒體 Resolver<br/>Local／物件儲存／CDN]
-```
+![QMAH 執行面與文件交付架構](../diagrams/rendered/system-architecture.svg)
+
+*圖 1：QMAH 前台、API、管理後台、共用基礎、資料工具、資料庫與媒體交付的責任關係。*
+
+[圖表 IR 原始檔](../diagrams/system-architecture.json) · [draw.io 編輯檔（QMAH-Docs 專案）](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/system-architecture.drawio)
 
 前台只讀取 API 的 DTO 與狀態。管理後台在 `QMAH.Web` 以 Area、Controller、ViewModel 與 Razor View 組成；共用資料存取與 Identity 規則位於 `QMAH.Infrastructure`。
 
@@ -25,7 +21,7 @@ flowchart LR
 | `QMAH.Api` | REST API、DTO、OpenAPI、前台需要的驗證與功能操作 | 直接暴露 Entity 或管理後台 ViewModel |
 | `QMAH.Web` | Razor 管理後台、Area、Tabler Layout、表單驗證 | 讓前台繞過 API 讀取管理資料 |
 | `QMAH.Infrastructure` | Entity、`QmahDbContext`、Identity、共用服務與資料存取 | 以 EF Migration 取代 DB-first Schema |
-| `QMAH.Client` | Angular standalone 元件、Router、HttpClient 與使用者體驗 | 自行拼接圖片路徑或猜資料表欄位 |
+| `QMAH.Client` | Angular standalone 元件、Router、HttpClient 與使用者體驗 | 拼接圖片路徑或猜測資料表欄位 |
 | `tools/QmahDataTools` | 匯入、展示資料、Snapshot 匯出與驗證 | 讓一般網站啟動自動執行資料批次 |
 | `QMAH/database/Schema.sql` | QMAH 主 Repository 的結構契約 | 存放完整資料與大型可還原 Snapshot |
 | `QMAH-Database` | 完整 `QMAH.sql`、manifest 與版本歷史 | 取代產品程式或 API 文件 |
@@ -39,6 +35,7 @@ SQL Server Schema 是共同契約。新增或修改資料表、欄位、索引�
 ## 依責任查閱文件
 
 - Area 內的資料表、狀態與跨區域規則： [Area 責任與資料界線](area-boundaries.md)
+- 逐表用途、主鍵、外鍵與 Schema 分區： [資料表參考](database-reference.md)
 - 查詢、交易、`RowVersion` 與服務判斷： [資料存取與 DB-first](data-access.md)
 - API 與前台欄位： [REST API 契約](../reference/rest-api.md)
 - Snapshot、展示資料與匯出檢查： [資料工具參考](../reference/data-tools.md)

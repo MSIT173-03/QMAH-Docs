@@ -35,9 +35,9 @@ Web 登入 Cookie 名稱為 `.QMAH.Web.Auth`，API 登入 Cookie 名稱為 `.QMA
 
 QMAH 將 `LoginProvider`、`ProviderKey` 與 Token `Name` 設為 `nvarchar(128)`，並在 `Program.cs` 設定 `options.Stores.MaxLengthForKeys = 128`。這是 Identity 官方模型用來避免複合主鍵超過資料庫索引長度的設定，不是任意縮短登入資料。
 
-欄位對照可以依 SQL Server 調整，但 Identity 的主鍵組合與登入流程不能自行改寫。密碼、角色、Claim、Login 與 Token 仍透過框架 API 操作。
+欄位對照可依 SQL Server 調整，但 Identity 的主鍵組合與登入流程不改寫。密碼、角色、Claim、Login 與 Token 仍透過框架 API 操作。
 
-不要用一般 CRUD 直接改 `AspNetUsers.PasswordHash`、`AspNetUserRoles` 或 Token。Identity 還要同步正規化欄位、安全戳記與密碼雜湊，直接改資料表很容易留下無法登入的帳號。
+一般 CRUD 不直接改 `AspNetUsers.PasswordHash`、`AspNetUserRoles` 或 Token。Identity 還要同步正規化欄位、安全戳記與密碼雜湊，直接改資料表很容易留下無法登入的帳號。
 
 `Program.cs` 已完成 Identity DI、角色授權服務、唯一 Email 規則，以及登入、登出與拒絕存取路徑：
 
@@ -45,7 +45,7 @@ QMAH 將 `LoginProvider`、`ProviderKey` 與 Token `Name` 設為 `nvarchar(128)`
 - `/User/Account/Logout`
 - `/User/Account/AccessDenied`
 
-整合登入頁時不需要再次註冊另一套 Identity，也不需要建立第二個 `DbContext`。
+整合登入頁時不再次註冊另一套 Identity，也不建立第二個 `DbContext`。
 
 ## Microsoft 官方文件
 
@@ -59,38 +59,38 @@ QMAH 將 `LoginProvider`、`ProviderKey` 與 Token `Name` 設為 `nvarchar(128)`
 - [PasswordHasher 與密碼雜湊](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-10.0)
 - [Identity Scaffolding](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/scaffold-identity?view=aspnetcore-10.0)
 
-Microsoft 建議瀏覽器網站使用 Cookie，因為瀏覽器會自動處理 Cookie，不需要把登入憑證交給 JavaScript。
+Microsoft 建議瀏覽器網站使用 Cookie，因為瀏覽器會自動處理 Cookie，登入憑證不需交給 JavaScript。
 
 Identity API 的 Token 模式是不能使用 Cookie 的 Client 才考慮的替代方案。該模式產生的 Token 也不是標準 JWT。
 
-登入 Cookie 由 ASP.NET Core Data Protection 保護。未自行覆寫設定時，目前文件列出的預設加密演算法是 AES-256-CBC，完整性驗證使用 HMACSHA256，金鑰存留期預設為 90 天。
+登入 Cookie 由 ASP.NET Core Data Protection 保護。未覆寫設定時，目前文件列出的預設加密演算法是 AES-256-CBC，完整性驗證使用 HMACSHA256，金鑰存留期預設為 90 天。
 
 這些是框架預設值，不是資料庫欄位或 QMAH 自訂的加密流程。
 
-密碼交給 Identity 的 `PasswordHasher`。不要在 Controller 或 Service 直接呼叫低階 PBKDF2 API，也不要直接讀寫 `PasswordHash`。
+密碼交給 Identity 的 `PasswordHasher`。Controller 或 Service 不直接呼叫低階 PBKDF2 API，也不直接讀寫 `PasswordHash`。
 
 `AddIdentity<ApplicationUser, IdentityRole<Guid>>()` 已包含目前 QMAH 使用的 Identity 與角色服務。`[Authorize(Roles = "Admin")]` 的角色名稱需要和資料庫中的角色完全一致；`Admin` 與 `admin` 不視為同一個角色。
 
-## 不要為 QMAH 另外建立 Identity 專案
+## QMAH Identity 整合邊界
 
 QMAH 已經有 `QmahDbContext`、`ApplicationUser`、SQL Server Store 與登入流程。
 
-Angular 前端使用者前台可直接沿用這組後端登入契約，不需要另開 MVC 測試專案，也不需要為了驗證登入再建立另一個資料庫、Context 或 Migration。
+Angular 前端使用者前台可直接沿用這組後端登入契約，不另開 MVC 測試專案，也不為了驗證登入再建立另一個資料庫、Context 或 Migration。
 
-若只是想閱讀 Microsoft 範本的完整流程，直接參考本節前方的官方 Identity 文件即可。任何外部練習專案都不屬於 QMAH Repository；不要把它的 Context、Migration 或 Identity 類別複製回 QMAH。
+Microsoft 範本的完整流程詳見本節前方的官方 Identity 文件。外部練習專案不屬於 QMAH Repository；其 Context、Migration 或 Identity 類別不複製回 QMAH。
 
 ## 已存在 QMAH 專案時的 Identity Scaffolding
 
 QMAH 已經有 `QmahDbContext`、`ApplicationUser`、SQL Server Store 與 Identity 套件。若使用 Visual Studio 的 **Add → New Scaffolded Item → Identity**：
 
-1. 使用既有的 `QmahDbContext`，不要建立新的 Context
-2. 使用既有的 `ApplicationUser`，不要產生另一個 `IdentityUser`
+1. 使用既有的 `QmahDbContext`，不建立新的 Context
+2. 使用既有的 `ApplicationUser`，不產生另一個 `IdentityUser`
 3. 只選真正需要的頁面，例如 Login、Logout 或 AccessDenied
 4. 產生後檢查差異，確認沒有重複註冊 Identity、改動既有 Schema 或加入不需要的 Migration
 
 官方 Identity Scaffolding 通常會產生 Razor Pages。若採用這條路線，必須依產生結果加入 `AddRazorPages()` 與 `MapRazorPages()`。
 
-目前 QMAH 採用 MVC `AccountController` 與 View，不要把兩種路由寫法混在同一個登入流程。
+目前 QMAH 採用 MVC `AccountController` 與 View；兩種路由寫法不混用於同一個登入流程。
 
 QMAH 目前已安裝下列套件：
 
@@ -239,7 +239,7 @@ public sealed class AccountController : Controller
 
 `Areas/User/Views/Account/Login.cshtml`
 
-```cshtml
+```html
 @model QMAH.Web.Areas.User.ViewModels.LoginViewModel
 
 @{ ViewData["Title"] = "後台登入"; }
@@ -298,7 +298,7 @@ public class SocialPostsController : Controller
 public class ContentReportsController : Controller
 ```
 
-目前使用 `Admin` 與 `User` 就夠。不要為每個 Area 建立一個角色，除非團隊真的要展示不同管理員權限。只在 View 隱藏按鈕不算授權，Controller 仍要使用 `[Authorize]`
+目前使用 `Admin` 與 `User` 即可。各 Area 不建立專屬角色，除非確有不同管理員權限的需求。View 隱藏按鈕不等於授權，Controller 仍要使用 `[Authorize]`。
 
 ## 取得目前登入者
 
@@ -326,7 +326,7 @@ public async Task<IActionResult> MyProfile()
 }
 ```
 
-不要讓表單自行決定「目前使用者」的 UserId，也不要用 Email、暱稱或畫面文字當外鍵
+表單不決定「目前使用者」的 UserId，也不以 Email、暱稱或畫面文字作為外鍵。
 
 ## 會員 CRUD 範圍
 
@@ -336,7 +336,7 @@ public async Task<IActionResult> MyProfile()
 - 角色顯示：使用 `_userManager.GetRolesAsync(user)`
 - 帳號停用：使用 Identity lockout API 或既有帳號狀態流程，不直接刪除帳號
 
-不做「建立密碼雜湊」「直接編輯角色關聯表」「顯示 PasswordHash」等功能。API 的註冊與重設密碼同樣必須經過 `UserManager`。
+不提供「建立密碼雜湊」「直接編輯角色關聯表」「顯示 PasswordHash」等功能。API 的註冊與重設密碼同樣必須經過 `UserManager`。
 
 ## 完成後測試
 
@@ -353,7 +353,7 @@ public async Task<IActionResult> MyProfile()
 
 標準 Identity 的 `user.AspNetUserLogins` 保存外部登入來源、第三方帳號識別碼與 QMAH `UserId` 的對應。
 
-`user.AspNetUsers` 仍是會員主資料，`user.UserProfiles` 仍保存暱稱、頭像與自我介紹。不要為 Google、Microsoft 或其他供應商預先新增 `GoogleId`、`MicrosoftId` 等專用欄位，也不要先安裝尚未決定的套件。
+`user.AspNetUsers` 仍是會員主資料，`user.UserProfiles` 仍保存暱稱、頭像與自我介紹。Google、Microsoft 或其他供應商不預先新增 `GoogleId`、`MicrosoftId` 等專用欄位，也不預先安裝尚未決定的套件。
 
 確定供應商後，以 Google 為例：
 

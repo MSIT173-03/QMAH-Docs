@@ -155,6 +155,12 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 
 所有 POST、PUT、DELETE 先呼叫 `GET /api/v1/account/antiforgery-token`，再帶 `X-XSRF-TOKEN` Header（HTTP 標頭）。GET 不需要 Anti-forgery（防偽請求驗證）token（驗證用的暫時字串）。
 
+![API 登入與會員查詢流程](../diagrams/rendered/api-auth-flow.svg)
+
+*圖 3：Angular 前台取得防偽 Cookie、建立登入 Cookie，再呼叫需要會員狀態的 API 的順序。*
+
+[圖表 IR 原始檔](../diagrams/api-auth-flow.json) · [draw.io 編輯檔（QMAH-Docs 專案）](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/api-auth-flow.drawio)
+
 ## Endpoint 清單
 
 ### 帳號
@@ -202,7 +208,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | POST | `/api/v1/social/posts/{postId}/comments` | 登入後新增留言或回覆 |
 | POST | `/api/v1/social/reports` | 登入後檢舉公開貼文／留言 |
 
-活動是獨立資料，活動通過審核與發布後會有對應的活動貼文；一般公告則是 `SocialPosts` 的公告貼文類型。地址／地點可只填文字，也可同時提供成對的 `latitude` 與 `longitude`，不要求前台只能使用地圖。
+活動是獨立資料，活動通過審核與發布後會有對應的活動貼文；一般公告則是 `SocialPosts` 的公告貼文類型。地址／地點可只填文字，也可同時提供成對的 `latitude` 與 `longitude`；地圖不是前台的必要元件。
 
 ### 社群媒體
 
@@ -212,7 +218,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | GET | `/api/v1/social/media/{id}/content` | 公開已發布貼文的可用圖片；擁有者可預覽尚未關聯圖片 |
 | DELETE | `/api/v1/social/media/{id}` | 圖片擁有者軟刪除所屬圖片 |
 
-社群圖片使用永久流水號，API 回傳受控 URL（資源網址）；前台不自行拼檔名、不讀取實體資料夾，也不把原始檔名當成 HTML 或路徑。官方文物圖鑑圖片不屬於這組社群上傳 Endpoint（API 可呼叫的路徑）。
+社群圖片使用永久流水號，API 回傳受控 URL（資源網址）；前台不拼接檔名、不讀取實體資料夾，也不把原始檔名當成 HTML 或路徑。官方文物圖鑑圖片不屬於這組社群上傳 Endpoint（API 可呼叫的路徑）。
 
 ### 遊戲
 
@@ -229,7 +235,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 
 遊戲 API（應用程式介面）不把內部 `PlayerKey` 回傳給前台；前台使用 DTO（API 對外傳輸的資料格式）的玩家 Id（資源識別碼）、顯示名稱與狀態。答案類型與房間狀態使用 metadata（供前端使用的選項資料）／API 文件中的允許值，畫面不另行散落定義字串。
 
-回合詳情與房間歷程會依投票總數、送出時間與答案 Id 產生穩定排名；只有已結算且至少有一票的第一名會標示為勝者。排行榜以各回合收到的票數累計分數，並同時提供作答回合數與獲勝回合數，讓前台可以製作單場結算和長期回顧，不必自行重算既有資料。
+回合詳情與房間歷程會依投票總數、送出時間與答案 Id 產生穩定排名；只有已結算且至少有一票的第一名會標示為勝者。排行榜以各回合收到的票數累計分數，並同時提供作答回合數與獲勝回合數，前台可直接使用這些結果製作單場結算和長期回顧。
 
 ### 目前會員與商城操作
 
@@ -260,7 +266,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 
 ### 經濟、進程與社群加碼
 
-以下 Endpoint（API 可呼叫的路徑）是 Angular 前端使用者前台接手鑑定點數、鑰匙、優惠券、成就稱號與遊戲獎勵時使用的契約。除公開的活動加碼查詢外，都需要登入；寫入操作仍須先取得 Anti-forgery（防偽請求驗證）Cookie 與 token（驗證用的暫時字串）。
+以下 Endpoint（API 可呼叫的路徑）是 Angular 前端使用者前台接手鑑定點數、鑰匙、優惠券、成就稱號與遊戲獎勵時使用的契約。除公開的活動加碼查詢外，都需要登入；寫入操作均先取得 Anti-forgery（防偽請求驗證）Cookie 與 token（驗證用的暫時字串）。
 
 | Method | Path | 權限 | 用途與主要欄位 |
 | --- | --- | --- | --- |

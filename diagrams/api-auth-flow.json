@@ -1,0 +1,135 @@
+{
+  "version": "1",
+  "diagram": {
+    "title": "QMAH API 登入與會員查詢流程",
+    "direction": "TB",
+    "theme": "light",
+    "gap": 70,
+    "background": "#ffffff"
+  },
+  "groups": [
+    {"id": "request", "label": " "},
+    {"id": "authentication", "label": " "},
+    {"id": "member-query", "label": " "}
+  ],
+  "nodes": [
+    {
+      "id": "request-label",
+      "label": "請求",
+      "kind": "note",
+      "group": "request",
+      "position": {"x": 80, "y": 90},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "authentication-label",
+      "label": "驗證",
+      "kind": "note",
+      "group": "authentication",
+      "position": {"x": 80, "y": 540},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "member-query-label",
+      "label": "會員查詢",
+      "kind": "note",
+      "group": "member-query",
+      "position": {"x": 80, "y": 970},
+      "size": {"width": 140, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "browser-start",
+      "label": "Angular 前台發出請求",
+      "description": "瀏覽器帶 credentials",
+      "kind": "client",
+      "group": "request",
+      "position": {"x": 300, "y": 90},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "antiforgery-endpoint",
+      "label": "GET antiforgery-token",
+      "description": "/api/v1/account/antiforgery-token",
+      "kind": "process",
+      "group": "request",
+      "position": {"x": 300, "y": 220},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "login-endpoint",
+      "label": "POST account/login",
+      "description": "Email、密碼與 XSRF header",
+      "kind": "process",
+      "group": "request",
+      "position": {"x": 300, "y": 350},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "identity",
+      "label": "ASP.NET Core Identity",
+      "description": "驗證帳號與登入狀態",
+      "kind": "service",
+      "group": "authentication",
+      "position": {"x": 300, "y": 540},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "identity-db",
+      "label": "user.AspNetUsers",
+      "description": "帳號、鎖定與狀態",
+      "kind": "database",
+      "group": "authentication",
+      "position": {"x": 300, "y": 670},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "login-cookie",
+      "label": "登入 Cookie 工作階段",
+      "description": ".QMAH.Api.Auth",
+      "kind": "document",
+      "group": "authentication",
+      "position": {"x": 300, "y": 800},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "member-endpoint",
+      "label": "GET /me/*",
+      "description": "依目前 UserId 查詢會員資料",
+      "kind": "process",
+      "group": "member-query",
+      "position": {"x": 300, "y": 970},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "dto-response",
+      "label": "會員 DTO 回應",
+      "description": "API 回傳可公開欄位",
+      "kind": "document",
+      "group": "member-query",
+      "position": {"x": 300, "y": 1100},
+      "size": {"width": 320, "height": 76}
+    },
+    {
+      "id": "browser-end",
+      "label": "Angular 前台收到回應",
+      "description": "保留 Cookie 工作階段",
+      "kind": "client",
+      "group": "member-query",
+      "position": {"x": 300, "y": 1230},
+      "size": {"width": 320, "height": 76}
+    }
+  ],
+  "edges": [
+    {"id": "start-antiforgery", "from": "browser-start", "to": "antiforgery-endpoint", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "antiforgery-login", "from": "antiforgery-endpoint", "to": "login-endpoint", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "login-identity", "from": "login-endpoint", "to": "identity", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "identity-to-db", "from": "identity", "to": "identity-db", "kind": "data", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "database-cookie", "from": "identity-db", "to": "login-cookie", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "cookie-member", "from": "login-cookie", "to": "member-endpoint", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "member-to-dto", "from": "member-endpoint", "to": "dto-response", "kind": "data", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "dto-browser", "from": "dto-response", "to": "browser-end", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}}
+  ]
+}

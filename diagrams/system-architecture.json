@@ -1,0 +1,185 @@
+{
+  "version": "1",
+  "diagram": {
+    "title": "QMAH 執行面與文件交付架構",
+    "direction": "LR",
+    "theme": "light",
+    "gap": 110,
+    "background": "#ffffff"
+  },
+  "groups": [
+    {"id": "interfaces", "label": " "},
+    {"id": "application", "label": " "},
+    {"id": "data", "label": " "},
+    {"id": "documentation", "label": " "}
+  ],
+  "nodes": [
+    {
+      "id": "interfaces-label",
+      "label": "介面",
+      "kind": "note",
+      "group": "interfaces",
+      "position": {"x": 100, "y": 95},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "application-label",
+      "label": "應用層",
+      "kind": "note",
+      "group": "application",
+      "position": {"x": 470, "y": 95},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "data-label",
+      "label": "資料與工具",
+      "kind": "note",
+      "group": "data",
+      "position": {"x": 1120, "y": 250},
+      "size": {"width": 150, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "documentation-label",
+      "label": "文件交付",
+      "kind": "note",
+      "group": "documentation",
+      "position": {"x": 100, "y": 705},
+      "size": {"width": 140, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "client",
+      "label": "QMAH.Client",
+      "description": "Angular 使用者前台",
+      "kind": "client",
+      "group": "interfaces",
+      "position": {"x": 100, "y": 150},
+      "size": {"width": 220, "height": 76}
+    },
+    {
+      "id": "web",
+      "label": "QMAH.Web",
+      "description": "Razor 管理後台",
+      "kind": "client",
+      "group": "interfaces",
+      "position": {"x": 100, "y": 360},
+      "size": {"width": 220, "height": 76}
+    },
+    {
+      "id": "api",
+      "label": "QMAH.Api",
+      "description": "REST API",
+      "kind": "service",
+      "group": "application",
+      "position": {"x": 460, "y": 150},
+      "size": {"width": 220, "height": 76}
+    },
+    {
+      "id": "infrastructure",
+      "label": "QMAH.Infrastructure",
+      "description": "Entity、DbContext、共用服務",
+      "kind": "service",
+      "group": "application",
+      "position": {"x": 720, "y": 300},
+      "size": {"width": 260, "height": 76}
+    },
+    {
+      "id": "data-tools",
+      "label": "QmahDataTools",
+      "description": "匯入、展示資料、Snapshot",
+      "kind": "process",
+      "group": "data",
+      "position": {"x": 1120, "y": 550},
+      "size": {"width": 260, "height": 76}
+    },
+    {
+      "id": "database",
+      "label": "SQL Server／QMAH",
+      "description": "執行期資料庫",
+      "kind": "database",
+      "group": "data",
+      "position": {"x": 1450, "y": 300},
+      "size": {"width": 240, "height": 76}
+    },
+    {
+      "id": "media",
+      "label": "Media Resolver",
+      "description": "本機、物件儲存或 CDN",
+      "kind": "external",
+      "position": {"x": 1450, "y": 100},
+      "size": {"width": 240, "height": 76}
+    },
+    {
+      "id": "docs-source",
+      "label": "QMAH-Docs",
+      "description": "Markdown source",
+      "kind": "document",
+      "group": "documentation",
+      "position": {"x": 100, "y": 760},
+      "size": {"width": 220, "height": 76}
+    },
+    {
+      "id": "docs-site",
+      "label": "VitePress 文件站",
+      "description": "由 Markdown 建置",
+      "kind": "document",
+      "group": "documentation",
+      "position": {"x": 460, "y": 760},
+      "size": {"width": 240, "height": 76}
+    }
+  ],
+  "edges": [
+    {
+      "id": "client-api",
+      "from": "client",
+      "to": "api",
+      "kind": "sync",
+      "style": {"source_port": "east", "target_port": "west"}
+    },
+    {
+      "id": "web-infrastructure",
+      "from": "web",
+      "to": "infrastructure",
+      "kind": "sync",
+      "style": {"source_port": "east", "target_port": "west"}
+    },
+    {
+      "id": "api-infrastructure",
+      "from": "api",
+      "to": "infrastructure",
+      "kind": "dependency",
+      "style": {"source_port": "east", "target_port": "north"}
+    },
+    {
+      "id": "infrastructure-database",
+      "from": "infrastructure",
+      "to": "database",
+      "kind": "data",
+      "style": {"source_port": "east", "target_port": "west"}
+    },
+    {
+      "id": "tools-database",
+      "from": "data-tools",
+      "to": "database",
+      "kind": "data",
+      "style": {"source_port": "east", "target_port": "south"}
+    },
+    {
+      "id": "api-media",
+      "from": "api",
+      "to": "media",
+      "kind": "dependency",
+      "style": {"source_port": "east", "target_port": "west"}
+    },
+    {
+      "id": "docs-build",
+      "from": "docs-source",
+      "to": "docs-site",
+      "kind": "dependency",
+      "style": {"source_port": "east", "target_port": "west"}
+    }
+  ]
+}

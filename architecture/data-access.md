@@ -103,7 +103,7 @@ while (await reader.ReadAsync(cancellationToken))
 }
 ```
 
-這種寫法可使用，但每個查詢都要自行管理連線、SQL 字串、參數、Reader 與資料列 mapping。`QmahDbContext` 把這些共通工作集中處理：Entity 對應資料表、LINQ 轉 SQL、查詢參數化、同一 request 的 Change Tracking，以及 `SaveChangesAsync()` 的寫入交易。
+這種寫法可使用，但每個查詢都要個別管理連線、SQL 字串、參數、Reader 與資料列 mapping。`QmahDbContext` 把這些共通工作集中處理：Entity 對應資料表、LINQ 轉 SQL、查詢參數化、同一 request 的 Change Tracking，以及 `SaveChangesAsync()` 的寫入交易。
 
 一般 QMAH CRUD 使用 DbContext。只有報表、統計或非常特定的唯讀 SQL 明顯更適合手寫時，才評估 Dapper 或 ADO.NET；仍須使用相同連線字串與既有資料庫規則。
 
@@ -162,7 +162,7 @@ ViewModel 是 View 與 Controller 之間的資料；Entity 是 Controller／Serv
 | 修改會員暱稱或地址 | `_db.UserProfiles`、`_db.UserAddresses` | 直接改 `AspNetUsers` 的密碼欄位 |
 | 註冊、登入、改密碼、角色 | `UserManager`、`SignInManager`、`RoleManager` | 直接 `INSERT`／`UPDATE` Identity 資料表 |
 
-需要判斷實際用法時，可直接查看下方的「圖鑑」、「商城」與「會員」範例；範例使用目前 QMAH 的 Entity、欄位與關聯。
+實際用法可參考下方的「圖鑑」、「商城」與「會員」範例；範例使用目前 QMAH 的 Entity、欄位與關聯。
 
 ## 開始前
 
@@ -172,7 +172,7 @@ ViewModel 是 View 與 Controller 之間的資料；Entity 是 Controller／Serv
 
 `Program.cs` 已將 `QmahDbContext` 註冊為 scoped service，同一個 HTTP request 會共用同一份 DbContext。
 
-不要自行 `new QmahDbContext()`，也不要在 Controller 建立 SQL Server 連線、執行 Migration 或改寫連線字串。
+Controller 不直接 `new QmahDbContext()`，也不建立 SQL Server 連線、執行 Migration 或改寫連線字串。
 
 ## 資料存取分工
 
@@ -262,11 +262,11 @@ if (product is null)
 var originalArtifactName = product.Artifact?.Name;
 ```
 
-修改商品時，先重新查出受追蹤的 `Product`，再逐欄指定 `Name`、`Description`、`Price`、`Stock` 或 `IsActive`。不要把表單送回來的整個 `Product` 直接 `Update`。
+修改商品時，重新查出受追蹤的 `Product`，再逐欄指定 `Name`、`Description`、`Price`、`Stock` 或 `IsActive`。表單送回的整個 `Product` 不直接 `Update`。
 
 ### 會員：Identity 與會員資料分開拿
 
-登入身分由 Identity 管理，暱稱、簡介與公開範圍則在 `user.UserProfiles`。先用 `UserManager` 取得目前登入者，再用同一個 UserId 查 Profile：
+登入身分由 Identity 管理，暱稱、簡介與公開範圍則在 `user.UserProfiles`。使用 `UserManager` 取得目前登入者，再用同一個 UserId 查 Profile：
 
 這段假設 Controller 已注入 `UserManager<ApplicationUser>`，而 `input` 是通過 `ModelState` 驗證的 `EditProfileViewModel`。不需要也不能從表單傳入另一位會員的 `UserId`。
 
@@ -328,7 +328,7 @@ public async Task<IActionResult> Index(CancellationToken cancellationToken)
 
 - 唯讀查詢使用 `AsNoTracking()`。
 - 需要顯示關聯資料時才加入 `Include()`。
-- 不要在迴圈內逐筆查分類、會員或商品，避免產生大量 SQL。
+- 迴圈內不逐筆查分類、會員或商品，避免產生大量 SQL。
 - 資料量可能增加的清單要加入排序、篩選與分頁，不一次載入全部資料。
 - 使用 `ToListAsync()`、`SingleOrDefaultAsync()`、`AnyAsync()` 與 `SaveChangesAsync()` 等非同步方法。
 - Action 可接收 `CancellationToken`，並傳給 EF Core 的非同步方法。
@@ -384,7 +384,7 @@ var items = await _db.Artifacts
     .ToListAsync(cancellationToken);
 ```
 
-ViewModel 應放在所屬 Area 容易找到的位置，不要把純畫面欄位塞回資料庫 Entity。
+ViewModel 應放在所屬 Area 容易找到的位置；純畫面欄位不放回資料庫 Entity。
 
 商品與文物的正式關聯是 `Product.ArtifactId`。商城要顯示原作文物時，直接使用 `Product.Artifact` 導覽屬性；圖鑑要找對應商品時，則以目前文物 Id 查詢 `ArtifactId`：
 
@@ -401,7 +401,7 @@ var linkedProduct = await _db.Products
         cancellationToken);
 ```
 
-`ExternalRef` 只供資料匯入、匯出與查重，不要拆解 `artifact-{ArtifactRef}`、比對名稱或用圖片路徑建立關聯。
+`ExternalRef` 只供資料匯入、匯出與查重；不拆解 `artifact-{ArtifactRef}`、不比對名稱，也不以圖片路徑建立關聯。
 
 ## 單筆查詢與不存在的資料
 
@@ -423,13 +423,13 @@ public async Task<IActionResult> Details(Guid id, CancellationToken cancellation
 }
 ```
 
-不要假設網址傳入的 Id 一定存在。詳細、修改、刪除與狀態操作都要處理 `null`。
+網址傳入的 Id 不視為必然存在。詳細、修改、刪除與狀態操作都處理 `null`。
 
 ## 新增資料
 
 POST Action 只接收畫面允許修改的欄位。價格、庫存、會員 Id、狀態、建立時間與外鍵是否合法，都要由後端重新確認。
 
-先在 `QMAH.Web/Areas/Catalog/ViewModel/CreateCategoryViewModel.cs` 建立輸入模型：
+在 `QMAH.Web/Areas/Catalog/ViewModel/CreateCategoryViewModel.cs` 建立輸入模型：
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -488,13 +488,13 @@ public async Task<IActionResult> Create(
 }
 ```
 
-不要使用整個 Entity 自動綁定 POST 欄位，也不要直接相信隱藏欄位傳回的價格、角色、UserId 或狀態。
+整個 Entity 不用於自動綁定 POST 欄位；隱藏欄位傳回的價格、角色、UserId 或狀態也不直接視為可信值。
 
 ## 修改資料
 
-修改時先依 Id 取回受追蹤的 Entity，再逐欄更新允許修改的內容。
+修改時依 Id 取回受追蹤的 Entity，再逐欄更新允許修改的內容。
 
-先在 `QMAH.Web/Areas/Store/ViewModels/EditProductViewModel.cs` 建立輸入模型：
+在 `QMAH.Web/Areas/Store/ViewModels/EditProductViewModel.cs` 建立輸入模型：
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -559,28 +559,29 @@ public async Task<IActionResult> Edit(
 
 避免使用 `_db.Update(model)` 或把 POST 收到的 Entity 整筆標記為修改。這類寫法容易覆蓋畫面未顯示的欄位，也增加 overposting 風險。
 
-`Price` 沒有出現在這個 ViewModel，所以這個 Action 不會修改價格。若功能需要改價，應另外加入有範圍驗證的欄位，並明確寫出 `product.Price = model.Price`；不要為了省程式碼而改成整筆 Update。
+`Price` 沒有出現在這個 ViewModel，因此這個 Action 不會修改價格。若功能需要改價，應另外加入有範圍驗證的欄位，並明確寫出 `product.Price = model.Price`；不以整筆 Update 取代欄位更新。
 
 ## 同時修改同一筆資料
 
-目前有 `RowVersion` 的資料表共有 10 張：
+目前有 `RowVersion` 的資料表共有 18 張：
 
-- 會員資料：`user.UserProfiles`、`user.UserAddresses`、`user.Achievements`、`user.UserAchievements`
-- 遊戲資料：`game.GamePlayers`、`game.GameRooms`、`game.GameRounds`、`game.RoundAnswers`、`game.Votes`
+- 會員與活動紀錄：`user.Achievements`、`user.UserAchievements`、`user.UserAddresses`、`user.UserProfiles`、`common.DailyMemberActivities`
+- 遊戲資料：`game.GameRooms`、`game.GamePlayers`、`game.GameRounds`、`game.RoundAnswers`、`game.Votes`、`game.GameRoomInvitations`、`game.GameEconomySettings`、`game.GameModeDefinitions`、`game.MiniGameAttempts`
+- 商城、社群加碼與鑰匙規則：`store.ProductReviews`、`admin.CommunityRewardCampaigns`、`catalog.KeyExchangeRules`
 
 它們在 Entity 中都是 8 bytes 的 `byte[]`，由 SQL Server 的 `rowversion` 自動產生。用途是判斷資料是否在開啟編輯頁之後，又被其他程序修改；它不是流水號，也不是由 Controller 遞增的欄位。
 
-遊戲的 `GameRooms.StateVersion` 和 `GameRounds.StateVersion` 是另一件事。它們是遊戲流程用的整數版本，讓即時遊戲知道房間狀態是否前進；不要把它和 SQL Server 的 `RowVersion` 混在一起。
+遊戲的 `GameRooms.StateVersion` 和 `GameRounds.StateVersion` 是另一件事。它們是遊戲流程用的整數版本，讓即時遊戲知道房間狀態是否前進；不與 SQL Server 的 `RowVersion` 混用。
 
-編輯這些資料時，不要自行改動或產生新的 `RowVersion`。Edit ViewModel 應保存查詢時取得的 `byte[] RowVersion`，View 使用 hidden input 傳回；儲存前將它設定為 EF Core 的 OriginalValue，再捕捉 `DbUpdateConcurrencyException`。
+編輯這些資料時，不改動或產生新的 `RowVersion`。Edit ViewModel 應保存查詢時取得的 `byte[] RowVersion`，View 使用 hidden input 傳回；儲存前將它設定為 EF Core 的 OriginalValue，再捕捉 `DbUpdateConcurrencyException`。
 
-```cshtml
+```html
 <input asp-for="RowVersion" type="hidden" />
 ```
 
-遇到衝突時不要直接覆蓋資料庫。顯示「資料已被其他人修改，請重新確認」並重新載入最新內容，讓使用者決定是否再次送出。
+遇到衝突時不直接覆蓋資料庫。顯示「資料已被其他人修改，請重新確認」並重新載入最新內容，由使用者決定是否再次送出。
 
-會員修改所屬資料時，可以用下列方式處理並行衝突。ViewModel 的 `RowVersion` 必須是 8 bytes 的 `byte[]`，不可改成程式自行產生的 Guid 或時間：
+會員修改所屬資料時，可用下列方式處理並行衝突。ViewModel 的 `RowVersion` 必須是 8 bytes 的 `byte[]`，不可改成程式產生的 Guid 或時間：
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -694,9 +695,9 @@ public async Task<IActionResult> Edit(
 
 ## 刪除與停用
 
-刪除前要確認外鍵與歷史資料用途。
+刪除前應確認外鍵與歷史資料用途。
 
-文物會同時出現在圖鑑、遊戲題庫與商城。Catalog 後台做到上架或下架時，先在該 Controller 用同一個資料庫交易同步三張表即可。日後若同一套同步規則被前台、後台或排程同時使用，再抽出 Service。
+文物會同時出現在圖鑑、遊戲題庫與商城。Catalog 後台執行上架或下架時，該 Controller 以同一個資料庫交易同步三張表即可。日後若同一套同步規則由前台、後台或排程共同使用，再抽出 Service。
 
 訂單、付款、點數、遊戲回合、作答、投票、解鎖與會員紀錄通常需要保留。這些資料若已被其他資料表引用，優先使用 `IsActive`、狀態或取消時間等欄位停用，不直接刪除。
 
@@ -728,7 +729,7 @@ catch
 }
 ```
 
-不要把長時間網路請求放在交易內。第三方付款、寄信或外部 API 應先設計清楚成功、失敗與重試方式，再決定資料庫狀態如何落地。
+長時間網路請求不放在交易內。第三方付款、寄信或外部 API 應先定義成功、失敗與重試方式，再決定資料庫狀態如何落地。
 
 預設連線已停用 `MultipleActiveResultSets`。微軟文件指出 SQL Server 啟用 MARS 時，EF Core 不會建立交易儲存點；本專案沒有需要 MARS 的流程，因此保持停用，讓錯誤復原行為較明確。
 
@@ -746,7 +747,7 @@ catch
 - 檔案寫入失敗時，不會留下指向不存在圖片的資料列。
 - 刪除舊圖前，沒有其他資料列共用同一路徑。
 
-資料庫交易無法回復檔案系統操作，因此圖片寫入需要自行安排暫存、完成與清理順序。
+資料庫交易無法回復檔案系統操作，因此圖片寫入需安排暫存、完成與清理順序。
 
 ## Identity
 
@@ -756,13 +757,13 @@ catch
 - `RoleManager<IdentityRole<Guid>>`
 - `SignInManager<ApplicationUser>`
 
-不要直接新增或修改 `user.AspNetUsers`、`user.AspNetRoles`、密碼雜湊或登入 Token。
+不直接新增或修改 `user.AspNetUsers`、`user.AspNetRoles`、密碼雜湊或登入 Token。
 
 會員個人資料、地址、通知等 QMAH 業務資料可以透過 `QmahDbContext` 操作；登入憑證與角色仍交給 Identity 管理。
 
 日後若加入 Google 或 Microsoft 登入，標準 Identity 會使用既有 `user.AspNetUserLogins` 保存外部帳號對應。`ApplicationUser` 不需要先增加供應商專用欄位。
 
-帳號綁定與 Secret 設定請看 [`identity-and-login.md`](../features/identity-and-login.md)。
+帳號綁定與 Secret 設定詳見 [`identity-and-login.md`](../features/identity-and-login.md)。
 
 > **官方參考：** ASP.NET Core Identity 專門管理使用者、密碼、角色、Claim、Token 與登入流程，並透過依賴注入提供管理 API。
 >
@@ -772,13 +773,13 @@ catch
 
 Dapper 已預先安裝，適合報表、統計或 EF Core 不易表達的唯讀 SQL。
 
-一般 CRUD、關聯追蹤、跨表寫入與 Identity 仍使用 `QmahDbContext`。不要因為 Dapper 可直接寫 SQL，就繞過既有 Entity、授權或交易規則。
+一般 CRUD、關聯追蹤、跨表寫入與 Identity 仍使用 `QmahDbContext`。Dapper 的 SQL 能力不取代既有 Entity、授權或交易規則。
 
 SQL 必須參數化，不可把使用者輸入直接串進 SQL 字串。
 
 ## Schema 變更
 
-不要在 Controller 或啟動程式中呼叫：
+Controller 或啟動程式不呼叫：
 
 ```csharp
 Database.Migrate();
@@ -794,7 +795,7 @@ Database.EnsureCreated();
 5. 更新 Diagram。
 6. 在同一次匯出流程中更新 QMAH-Database 的 `QMAH.sql` 與已驗證的交付產物。
 
-不要新增 EF Migration，也不要建立 `__EFMigrationsHistory`。
+不新增 EF Migration，也不建立 `__EFMigrationsHistory`。
 
 Migration 本身沒有問題，但 QMAH 必須只保留一個 Schema 來源。QMAH 以 SQL Server 為來源，因此資料庫變更後核對並更新 Entity 與 mapping，不另外建立 Migration 版本來源。
 
@@ -802,11 +803,11 @@ Migration 本身沒有問題，但 QMAH 必須只保留一個 Schema 來源。QM
 
 ### `Invalid object name` 或找不到資料表
 
-通常代表連到錯誤資料庫，或尚未還原參考 `.bak`／執行 QMAH-Database 的完整 `QMAH.sql`。先確認連線字串中的 Server 與 Database，再到 SSMS 檢查 `admin`、`catalog`、`game`、`social`、`store`、`user` schema。
+通常代表連到錯誤資料庫，或尚未還原參考 `.bak`／執行 QMAH-Database 的完整 `QMAH.sql`。確認連線字串中的 Server 與 Database，再到 SSMS 檢查 `admin`、`catalog`、`game`、`social`、`store`、`user` schema。
 
 ### 查詢回傳重複資料
 
-先檢查 `Include()` 與關聯是否造成一對多展開。列表可改用 `Select()` 投影 ViewModel，或確認是否真的需要載入完整集合。
+檢查 `Include()` 與關聯是否造成一對多展開。列表可改用 `Select()` 投影 ViewModel，或確認是否真的需要載入完整集合。
 
 ### 修改後沒有寫入
 
@@ -814,7 +815,7 @@ Migration 本身沒有問題，但 QMAH 必須只保留一個 Schema 來源。QM
 
 ### 需要使用同一份 DbContext 嗎
 
-同一個 request 直接使用注入的 `_db`。不要把 DbContext 存成 static、跨 request 共用，也不要自行延長生命週期。
+同一個 request 直接使用注入的 `_db`。DbContext 不存成 static、不跨 request 共用，也不延長生命週期。
 
 ## 開發完成前檢查
 
@@ -828,7 +829,7 @@ Migration 本身沒有問題，但 QMAH 必須只保留一個 Schema 來源。QM
 - Identity 由 `UserManager`、`RoleManager`、`SignInManager` 操作。
 - 沒有加入 Migration、`EnsureCreated()` 或程式端建表。
 
-完整 `DbSet`、關聯與欄位對照請查看 [`QmahDbContext.cs`](https://github.com/MSIT173-03/QMAH/blob/main/QMAH.Infrastructure/Data/QmahDbContext.cs)。
+完整 `DbSet`、關聯與欄位對照詳見 [`QmahDbContext.cs`](https://github.com/MSIT173-03/QMAH/blob/main/QMAH.Infrastructure/Data/QmahDbContext.cs)。
 
 Entity 檔案位於 [`Models/Entities`](https://github.com/MSIT173-03/QMAH/tree/main/QMAH.Infrastructure/Models/Entities)。
 

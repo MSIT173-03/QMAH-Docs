@@ -1,0 +1,240 @@
+{
+  "version": "1",
+  "diagram": {
+    "title": "QMAH 五個功能系統的資料主線",
+    "direction": "TB",
+    "theme": "light",
+    "gap": 70,
+    "background": "#ffffff"
+  },
+  "groups": [
+    {"id": "shared", "label": " "},
+    {"id": "catalog", "label": " "},
+    {"id": "game", "label": " "},
+    {"id": "social", "label": " "},
+    {"id": "store", "label": " "}
+  ],
+  "nodes": [
+    {
+      "id": "shared-label",
+      "label": "共用",
+      "kind": "note",
+      "group": "shared",
+      "position": {"x": 110, "y": 80},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "catalog-label",
+      "label": "Catalog",
+      "kind": "note",
+      "group": "catalog",
+      "position": {"x": 110, "y": 400},
+      "size": {"width": 140, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "game-label",
+      "label": "Game",
+      "kind": "note",
+      "group": "game",
+      "position": {"x": 110, "y": 740},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "social-label",
+      "label": "Social",
+      "kind": "note",
+      "group": "social",
+      "position": {"x": 110, "y": 1070},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "store-label",
+      "label": "Store",
+      "kind": "note",
+      "group": "store",
+      "position": {"x": 110, "y": 1340},
+      "size": {"width": 120, "height": 36},
+      "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}
+    },
+    {
+      "id": "shared-users",
+      "label": "user.AspNetUsers",
+      "kind": "database",
+      "group": "shared",
+      "position": {"x": 120, "y": 140},
+      "size": {"width": 240, "height": 72}
+    },
+    {
+      "id": "daily-activities",
+      "label": "common.DailyMemberActivities",
+      "kind": "database",
+      "group": "shared",
+      "position": {"x": 500, "y": 110},
+      "size": {"width": 300, "height": 72}
+    },
+    {
+      "id": "user-profiles",
+      "label": "user.UserProfiles",
+      "kind": "database",
+      "group": "shared",
+      "position": {"x": 500, "y": 210},
+      "size": {"width": 240, "height": 72}
+    },
+
+    {
+      "id": "catalog-artifacts",
+      "label": "catalog.Artifacts",
+      "kind": "database",
+      "group": "catalog",
+      "position": {"x": 120, "y": 460},
+      "size": {"width": 240, "height": 72}
+    },
+    {
+      "id": "artifact-questions",
+      "label": "game.ArtifactQuestionEntries",
+      "kind": "database",
+      "group": "catalog",
+      "position": {"x": 520, "y": 430},
+      "size": {"width": 300, "height": 72}
+    },
+    {
+      "id": "artifact-unlocks",
+      "label": "catalog.ArtifactUnlocks",
+      "kind": "database",
+      "group": "catalog",
+      "position": {"x": 520, "y": 550},
+      "size": {"width": 260, "height": 72}
+    },
+
+    {
+      "id": "game-rooms",
+      "label": "game.GameRooms",
+      "kind": "database",
+      "group": "game",
+      "position": {"x": 120, "y": 840},
+      "size": {"width": 230, "height": 72}
+    },
+    {
+      "id": "game-players",
+      "label": "game.GamePlayers",
+      "kind": "database",
+      "group": "game",
+      "position": {"x": 500, "y": 770},
+      "size": {"width": 240, "height": 72}
+    },
+    {
+      "id": "game-rounds",
+      "label": "game.GameRounds",
+      "kind": "database",
+      "group": "game",
+      "position": {"x": 500, "y": 880},
+      "size": {"width": 230, "height": 72}
+    },
+    {
+      "id": "round-answers",
+      "label": "game.RoundAnswers",
+      "kind": "database",
+      "group": "game",
+      "position": {"x": 900, "y": 880},
+      "size": {"width": 250, "height": 72}
+    },
+    {
+      "id": "game-votes",
+      "label": "game.Votes",
+      "kind": "database",
+      "group": "game",
+      "position": {"x": 1270, "y": 880},
+      "size": {"width": 220, "height": 72}
+    },
+
+    {
+      "id": "social-users",
+      "label": "user.AspNetUsers",
+      "kind": "database",
+      "group": "social",
+      "position": {"x": 120, "y": 1150},
+      "size": {"width": 240, "height": 72}
+    },
+    {
+      "id": "social-posts",
+      "label": "social.SocialPosts",
+      "kind": "database",
+      "group": "social",
+      "position": {"x": 500, "y": 1150},
+      "size": {"width": 250, "height": 72}
+    },
+    {
+      "id": "social-comments",
+      "label": "social.SocialComments",
+      "kind": "database",
+      "group": "social",
+      "position": {"x": 900, "y": 1150},
+      "size": {"width": 270, "height": 72}
+    },
+    {
+      "id": "media-assets",
+      "label": "social.MediaAssets",
+      "kind": "database",
+      "group": "social",
+      "position": {"x": 1270, "y": 1150},
+      "size": {"width": 240, "height": 72}
+    },
+
+    {
+      "id": "store-users",
+      "label": "user.AspNetUsers",
+      "kind": "database",
+      "group": "store",
+      "position": {"x": 120, "y": 1420},
+      "size": {"width": 240, "height": 72}
+    },
+    {
+      "id": "store-orders",
+      "label": "store.StoreOrders",
+      "kind": "database",
+      "group": "store",
+      "position": {"x": 500, "y": 1420},
+      "size": {"width": 250, "height": 72}
+    },
+    {
+      "id": "order-details",
+      "label": "store.OrderDetails",
+      "kind": "database",
+      "group": "store",
+      "position": {"x": 900, "y": 1390},
+      "size": {"width": 250, "height": 72}
+    },
+    {
+      "id": "payments",
+      "label": "store.Payments",
+      "kind": "database",
+      "group": "store",
+      "position": {"x": 900, "y": 1510},
+      "size": {"width": 230, "height": 72}
+    }
+  ],
+  "edges": [
+    {"id": "user-daily", "from": "shared-users", "to": "daily-activities", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "user-profile", "from": "shared-users", "to": "user-profiles", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+
+    {"id": "artifact-question", "from": "catalog-artifacts", "to": "artifact-questions", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "artifact-unlock", "from": "catalog-artifacts", "to": "artifact-unlocks", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+
+    {"id": "room-player", "from": "game-rooms", "to": "game-players", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "room-round", "from": "game-rooms", "to": "game-rounds", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "round-answer", "from": "game-rounds", "to": "round-answers", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "answer-vote", "from": "round-answers", "to": "game-votes", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+
+    {"id": "social-user-post", "from": "social-users", "to": "social-posts", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "post-comment", "from": "social-posts", "to": "social-comments", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "post-media", "from": "social-posts", "to": "media-assets", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+
+    {"id": "store-user-order", "from": "store-users", "to": "store-orders", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "order-detail", "from": "store-orders", "to": "order-details", "kind": "data", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "order-payment", "from": "store-orders", "to": "payments", "kind": "data", "style": {"source_port": "east", "target_port": "west"}}
+  ]
+}

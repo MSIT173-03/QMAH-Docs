@@ -1,0 +1,39 @@
+{
+  "version": "1",
+  "diagram": {
+    "title": "QMAH 展示資料與 Snapshot 交付流程",
+    "direction": "TB",
+    "theme": "light",
+    "gap": 70,
+    "background": "#ffffff"
+  },
+  "groups": [
+    {"id": "build-isolated", "label": " "},
+    {"id": "validate-export", "label": " "},
+    {"id": "local-use", "label": " "}
+  ],
+  "nodes": [
+    {"id": "build-isolated-label", "label": "隔離資料建置", "kind": "note", "group": "build-isolated", "position": {"x": 80, "y": 80}, "size": {"width": 150, "height": 36}, "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}},
+    {"id": "validate-export-label", "label": "驗證與交付", "kind": "note", "group": "validate-export", "position": {"x": 80, "y": 660}, "size": {"width": 140, "height": 36}, "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}},
+    {"id": "local-use-label", "label": "本機使用", "kind": "note", "group": "local-use", "position": {"x": 80, "y": 1100}, "size": {"width": 140, "height": 36}, "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}},
+    {"id": "schema", "label": "Schema.sql／QmahDbContext", "description": "結構與 Entity 對照", "kind": "document", "group": "build-isolated", "position": {"x": 280, "y": 80}, "size": {"width": 360, "height": 76}},
+    {"id": "isolated-database", "label": "隔離 QMAH 資料庫", "description": "展示資料產生位置", "kind": "database", "group": "build-isolated", "position": {"x": 280, "y": 210}, "size": {"width": 360, "height": 76}},
+    {"id": "seed-users", "label": "seed-showcase-users", "description": "建立展示用帳號與角色", "kind": "process", "group": "build-isolated", "position": {"x": 280, "y": 340}, "size": {"width": 360, "height": 76}},
+    {"id": "showcase-data", "label": "generate-showcase-data", "description": "產生可重複的展示資料", "kind": "process", "group": "build-isolated", "position": {"x": 280, "y": 470}, "size": {"width": 360, "height": 76}},
+    {"id": "validate", "label": "結構／關聯／資料品質驗證", "description": "輸出前的檢查關卡", "kind": "process", "group": "validate-export", "position": {"x": 280, "y": 660}, "size": {"width": 360, "height": 76}},
+    {"id": "export", "label": "Export-ReferenceDatabase.ps1", "description": "產出 SQL Snapshot 與 manifest", "kind": "process", "group": "validate-export", "position": {"x": 280, "y": 790}, "size": {"width": 360, "height": 76}},
+    {"id": "snapshot", "label": "QMAH-Database Snapshot", "description": "QMAH.sql、manifest、版本標記", "kind": "document", "group": "validate-export", "position": {"x": 280, "y": 920}, "size": {"width": 360, "height": 76}},
+    {"id": "restore", "label": "本機 QMAH 副本", "description": "依本機設定自動尋找或指定資料庫", "kind": "database", "group": "local-use", "position": {"x": 280, "y": 1100}, "size": {"width": 360, "height": 76}},
+    {"id": "applications", "label": "QMAH.Web／QMAH.Api／QMAH.Client", "description": "使用同一份本機資料基線", "kind": "service", "group": "local-use", "position": {"x": 280, "y": 1230}, "size": {"width": 360, "height": 76}}
+  ],
+  "edges": [
+    {"id": "schema-isolated", "from": "schema", "to": "isolated-database", "kind": "data", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "isolated-seed", "from": "isolated-database", "to": "seed-users", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "seed-showcase", "from": "seed-users", "to": "showcase-data", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "showcase-validate", "from": "showcase-data", "to": "validate", "kind": "dependency", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "validate-to-export", "from": "validate", "to": "export", "kind": "dependency", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "export-snapshot", "from": "export", "to": "snapshot", "kind": "data", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "snapshot-restore", "from": "snapshot", "to": "restore", "kind": "data", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "restore-applications", "from": "restore", "to": "applications", "kind": "data", "style": {"source_port": "south", "target_port": "north"}}
+  ]
+}

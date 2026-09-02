@@ -6,26 +6,26 @@
 
 ## 文件閱讀順序
 
-文件先確認環境與共同資料，再確認系統邊界，最後查系統文件、契約與交付規則。首頁提供索引；下列清單列出建議順序：
+文件閱讀順序為環境與共同資料、系統邊界、系統文件、契約與交付規則。首頁提供索引；下列清單列出建議順序：
 
 1. [開發環境與啟動](getting-started/development-environment.md) 建立工具、服務與連線基線。
 2. [開發資料與本機展示](getting-started/development-data.md) 確認共同 Snapshot 的內容、關係與狀態。
 3. [系統架構總覽](architecture/system-overview.md) 了解三個 Repository、網站、API、前端與資料庫的邊界。
-4. 依功能範圍開啟 [六系統快速查詢索引](index.md#system-index)，再進入該頁列出的詳細文件。
-5. 需要精確欄位、HTTP 行為、工具參數或交付規則時，回到 [參考文件](reference/rest-api.md) 分類查詢。
+4. 依功能範圍開啟 [六個入口快速查詢索引](index.md#system-index)，六頁使用相同的欄位與列出順序，再進入該頁列出的詳細文件。
+5. 精確欄位、HTTP 行為、工具參數或交付規則集中於 [參考文件](reference/rest-api.md) 分類查詢。
 
-## 六系統快速查詢
+## 六個入口快速查詢
 
-六頁快速查詢各自列出系統需要的入口、契約、資料、畫面與檢查點。詳細規則以連結的文件為準。
+六頁快速查詢都依相同順序列出「系統範圍、資料表與關聯、開發規則與跨系統界線、查詢入口、變更前檢查、建議查閱順序」。詳細規則以連結的文件為準。
 
 | 系統 | 快速查詢頁 | 內容範圍 |
 | --- | --- | --- |
+| Shared | [共用基礎](quick-reference/shared.md) | 環境、資料表、API、資料存取、媒體、Snapshot、協作與跨系統界線 |
 | Catalog | [圖鑑與文物](quick-reference/catalog.md) | 文物、分類、年代、題庫設定、解鎖與匯入 |
 | Game | [遊戲與作答](quick-reference/game.md) | 房間、回合、選題、作答、投票與獎勵 |
 | Social | [社群與活動](quick-reference/social.md) | 貼文、留言、檢舉、活動、通知、地點與媒體 |
 | User | [會員與 Identity](quick-reference/user.md) | 帳號、登入、個人資料、地址與會員資產 |
 | Store | [商城與訂單](quick-reference/store.md) | 商品、購物車、折價券、訂單、付款與庫存 |
-| Shared | [共用基礎](quick-reference/shared.md) | API、DB-first、資料存取、媒體、跨系統登入與協作 |
 
 ## 完整文件目錄
 
@@ -40,6 +40,7 @@
 - [Area 責任與資料界線](architecture/area-boundaries.md)
 - [資料存取與 DB-first](architecture/data-access.md)
 - [資料庫 Diagram 對照](architecture/database-diagram.md)
+- [資料表參考](architecture/database-reference.md)
 
 ### 前端
 
@@ -79,7 +80,7 @@
 | Tutorial（教學） | 開發環境、開發資料、CRUD 與 Scaffold | 需要依順序完成一項基礎工作 |
 | How-to（操作） | Angular、管理後台、文物匯入、媒體、地圖、資料工具 | 已有明確目標，需要命令與檢查點 |
 | Reference（參考） | REST API、API 名詞、Git 協作 | 需要精確欄位、狀態、權限或流程規則 |
-| Explanation（說明） | 系統架構、Area 界線、資料存取、資料庫 Diagram、經濟與進程 | 需要先理解責任、關係與設計理由 |
+| Explanation（說明） | 系統架構、Area 界線、資料存取、資料庫 Diagram、資料表參考、經濟與進程 | 需要先理解責任、關係與設計理由 |
 
 ## Repo 與文件站
 
@@ -87,6 +88,7 @@
 - VitePress 直接讀取這些 Markdown，提供側欄、全文搜尋與瀏覽器網址。
 - `.vitepress/dist` 是建置產物，不回存成第二份文件；內容變更以 Markdown 的 Git 歷史為準。
 - 版面方向與元件限制記錄在 [`DESIGN.md`](DESIGN.md)；產品與文件站定位記錄在 [`PRODUCT.md`](PRODUCT.md)。
+- 文件站圖表的 Diagram IR、draw.io 編輯檔、SVG 產物與重新產出方式記錄在 [`diagrams/README.md`](diagrams/README.md)。
 
 ## 其他入口
 
@@ -95,4 +97,4 @@
 - [QMAH-Database GitHub](https://github.com/MSIT173-03/QMAH-Database)
 - [QMAH-Docs 文件站](https://msit173-03.github.io/QMAH-Docs/)
 
-文件內容若與產品程式、`Schema.sql` 或 API 執行結果不一致，先核對可驗證的程式與資料庫契約，再在同一個變更中修正文檔。
+文件內容若與產品程式、`Schema.sql` 或 API 執行結果不一致，應核對可驗證的程式與資料庫契約，並在同一個變更中修正文檔。

@@ -31,7 +31,7 @@
 | `CatalogImportService` | 產生 `/media/...` 邏輯路徑，並將匯入檔案寫入目前設定的本機媒體根目錄 |
 | `Media:RootPath` | 指定匯入與上傳時使用的實體檔案根目錄；這是檔案系統路徑，不是公開網址 |
 | `QmahMediaUrlResolver` | 將 `/media/...`、`/uploads/...` 轉成本機相對網址或 CDN 公開網址 |
-| API DTO | 回傳解析後的圖片網址，讓前台不需要自行拼接磁碟路徑 |
+| API DTO | 回傳解析後的圖片網址，讓前台不需拼接磁碟路徑 |
 | Razor `MediaUrlTagHelper` | 將 Web 頁面中的公開 `<img src>` 與 `<source src>` 套用相同的網址解析規則 |
 | CDN／Blob／R2 | 提供檔案的公開讀取與快取；不負責修改資料庫邏輯路徑 |
 
@@ -113,7 +113,7 @@ Token、SAS（共用存取簽章）與帳號密鑰不應放進版本庫或回傳
 - 不是 `/media` 或 `/uploads` 根目錄的值不會被當成公開媒體資產處理。
 - `DeliveryMode` 不是 `Cdn`、`PublicBaseUrl` 遺漏、網址格式錯誤、含 query string 或含 fragment 時，解析器會回傳正規化後的 Local 路徑。
 - 這個設定回復只處理「設定不合法」的情況。設定合法但 CDN 在網路上中斷時，已回傳的 `https://assets.example.com/...` 不會由解析器自動改回 `/media/...`。
-  可用的可用性方案是 CDN 的來源健康檢查、來源故障轉移或部署層級切換。不應讓每個圖片元件自行猜測第二個網址。
+  可用的可用性方案是 CDN 的來源健康檢查、來源故障轉移或部署層級切換。圖片元件不另行猜測第二個網址。
 
 ### 3.3 公開媒體與受保護媒體
 
@@ -150,7 +150,7 @@ Microsoft 的 [Blob Storage 搭配 Azure Front Door 說明](https://learn.micros
 
 ### 5.1 物件鍵設計
 
-建議使用一個媒體容器，讓物件鍵直接對應邏輯路徑去除開頭的 `/`：
+一個媒體容器即可讓物件鍵直接對應移除開頭 `/` 的邏輯路徑：
 
 ```text
 資料庫邏輯路徑：/media/catalog/bronze/item/display.jpg
@@ -244,7 +244,7 @@ Cloudflare 有兩種適合目前資料模型的做法：
 此方案不需要 R2，適合先驗證 CDN 路由與快取：
 
 1. 建立 `assets.example.com` DNS 記錄，指向可公開存取的 QMAH Web 來源，並開啟 Cloudflare proxy。
-2. 設定 SSL/TLS 為符合來源憑證的模式，建議使用完整且驗證來源憑證的設定。
+2. 設定 SSL/TLS 為符合來源憑證的模式，使用完整且驗證來源憑證的設定。
 3. 建立 Cache Rule（快取規則），只匹配 `assets.example.com` 且 URI path（URI 路徑）以 `/media/` 或 `/uploads/` 開頭的請求。
 4. 對 `/api/`、登入 Cookie、帶權限的回應與社群媒體 endpoint 設定 bypass（略過快取）。不可對整個網域直接套用 Cache Everything（全部快取）。
 5. 設定 API 與 Web 的 `Media` 值：
@@ -263,7 +263,7 @@ Cloudflare 有兩種適合目前資料模型的做法：
 
 ### 6.2 Cloudflare R2：物件儲存來源
 
-R2 的容器稱為 bucket（儲存桶），物件鍵仍建議與邏輯路徑一一對應：
+R2 的容器稱為 bucket（儲存桶），物件鍵仍與邏輯路徑一一對應：
 
 ```text
 media/catalog/bronze/item/display.jpg

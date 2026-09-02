@@ -1,0 +1,36 @@
+{
+  "version": "1",
+  "diagram": {
+    "title": "StoreOrders 訂單生命週期",
+    "direction": "LR",
+    "theme": "light",
+    "gap": 80,
+    "background": "#ffffff"
+  },
+  "groups": [
+    {"id": "normal-flow", "label": " "},
+    {"id": "cancel-flow", "label": " "}
+  ],
+  "nodes": [
+    {"id": "normal-flow-label", "label": "正常流程", "kind": "note", "group": "normal-flow", "position": {"x": 450, "y": 200}, "size": {"width": 120, "height": 36}, "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}},
+    {"id": "cancel-flow-label", "label": "取消分支", "kind": "note", "group": "cancel-flow", "position": {"x": 80, "y": 430}, "size": {"width": 130, "height": 36}, "style": {"fill": "#f8fafc", "stroke": "#64748b", "font": "#111827", "rounded": true}},
+    {"id": "start", "label": "開始", "kind": "decision", "position": {"x": 80, "y": 250}, "size": {"width": 100, "height": 80}},
+    {"id": "pending", "label": "待付款", "kind": "process", "group": "normal-flow", "position": {"x": 270, "y": 250}, "size": {"width": 160, "height": 72}},
+    {"id": "paid", "label": "已付款", "kind": "process", "group": "normal-flow", "position": {"x": 520, "y": 250}, "size": {"width": 160, "height": 72}},
+    {"id": "fulfilling", "label": "備貨中", "kind": "process", "group": "normal-flow", "position": {"x": 770, "y": 250}, "size": {"width": 160, "height": 72}},
+    {"id": "shipped", "label": "已出貨", "kind": "process", "group": "normal-flow", "position": {"x": 1020, "y": 250}, "size": {"width": 160, "height": 72}},
+    {"id": "completed", "label": "已完成", "kind": "process", "group": "normal-flow", "position": {"x": 1270, "y": 250}, "size": {"width": 160, "height": 72}},
+    {"id": "finish", "label": "結束", "kind": "decision", "position": {"x": 1510, "y": 250}, "size": {"width": 100, "height": 80}},
+    {"id": "cancelled", "label": "已取消", "kind": "process", "group": "cancel-flow", "position": {"x": 270, "y": 430}, "size": {"width": 160, "height": 72}}
+  ],
+  "edges": [
+    {"id": "start-pending", "from": "start", "to": "pending", "kind": "sync", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "pending-paid", "from": "pending", "to": "paid", "kind": "sync", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "pending-cancelled", "from": "pending", "to": "cancelled", "kind": "sync", "style": {"source_port": "south", "target_port": "north"}},
+    {"id": "paid-fulfilling", "from": "paid", "to": "fulfilling", "kind": "sync", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "fulfilling-shipped", "from": "fulfilling", "to": "shipped", "kind": "sync", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "shipped-completed", "from": "shipped", "to": "completed", "kind": "sync", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "completed-finish", "from": "completed", "to": "finish", "kind": "sync", "style": {"source_port": "east", "target_port": "west"}},
+    {"id": "cancelled-finish", "from": "cancelled", "to": "finish", "kind": "sync", "style": {"source_port": "east", "target_port": "south"}}
+  ]
+}

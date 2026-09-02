@@ -8,7 +8,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只保留版本導覽，不再提供 SQL／BAK 資產。
 
-兩種還原方式擇一即可。資料庫還原步驟請看[資料工具參考](../reference/data-tools.md)。
+兩種還原方式擇一即可。資料庫還原步驟詳見[資料工具參考](../reference/data-tools.md)。
 
 完成其中一種方式後即可直接用 Visual Studio 啟動網站。網站啟動時不會建表、重設資料、執行 Seed 或覆寫本機資料。
 
@@ -23,6 +23,8 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 下表數量以 QMAH-Database `db-v0.7.0` 的完整資料庫 Snapshot 為準。
 
+逐表確認用途、主鍵或外鍵時，詳見[資料表參考](../architecture/database-reference.md)。本節保留 Snapshot 的資料量、狀態與展示情境；不在這裡重複維護完整資料字典。
+
 還原後已包含社群、商城、遊戲與營運頁面需要的展示情境，不需要再執行增量資料工具。`generate-showcase-data` 只用於隔離資料庫重建資料，或在產生下一份 Snapshot 前準備資料。
 
 批次參數不代表另一個 Release，也不是還原後的必要步驟。`dbo.sysdiagrams` 是 SSMS 使用的系統表，不列入 QMAH 業務資料表數量。
@@ -31,6 +33,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 | Schema | 主要內容 | 目前資料概況 |
 | --- | --- | --- |
+| `common` | 每日會員活動與登入歷史 | 依展示會員的每日登入資料累積；每位會員每天最多一列 |
 | `admin` | 後台稽核操作與批次資產活動 | 1 筆稽核紀錄、2 筆官方／會員加碼規則；批次資產活動目前尚未執行 |
 | `catalog` | 文物、分類、年代、鑰匙、解鎖 | 8 類、12 個年代桶、256 件文物、20 筆鑰匙兌換規則與相關流水 |
 | `game` | 題庫設定、房間、玩家、回合、作答、投票與 Mini Game 契約 | 256 筆題庫設定、9 個房間、19 筆玩家紀錄、20 個回合與 4 個 Mini Game 模式 |
@@ -230,6 +233,12 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 
 ## 6. 訂單與付款規則
 
+![訂單生命週期](../diagrams/rendered/order-lifecycle.svg)
+
+*圖 4：訂單由待付款進入付款、備貨、出貨與完成；取消或付款失敗則進入已取消。*
+
+[圖表 IR 原始檔](../diagrams/order-lifecycle.json) · [draw.io 編輯檔（QMAH-Docs 專案）](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/order-lifecycle.drawio)
+
 一張訂單只對應一筆付款紀錄，`Payments.OrderId` 有唯一限制。付款失敗或取消時，訂單改成 `CANCELLED`；使用者要再買一次，就建立新的訂單與新的付款紀錄。
 
 這個規則使訂單、付款與後台列表容易判讀，也符合目前專題不處理同一張訂單多次付款重試的範圍。
@@ -287,7 +296,7 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 | `user@qmah.local` | 會員、地址與個人資料情境 |
 | `player-a@qmah.local`、`player-b@qmah.local` | 遊戲玩家情境 |
 
-`.local.csv` 與備份檔不應提交。忘記密碼時，使用資料工具的 `reset-password` 只重設指定的隔離資料庫；不要把密碼、Cookie、Token 或本機 log 放進 Git。
+`.local.csv` 與備份檔不應提交。忘記密碼時，使用資料工具的 `reset-password` 只重設指定的隔離資料庫；密碼、Cookie、Token 或本機 log 不放進 Git。
 
 ## 展示資料啟動
 
@@ -296,4 +305,4 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 3. 需要使用者前台時，再啟動 `QMAH.Api` 與 `QMAH.Client`。
 4. 測試圖片管理時，使用 API 上傳合規圖片；官方文物圖片與社群圖庫是不同資料邊界。
 
-完整命令與 Snapshot 交付檢查請看 [資料工具參考](../reference/data-tools.md)。
+完整命令與 Snapshot 交付檢查詳見 [資料工具參考](../reference/data-tools.md)。

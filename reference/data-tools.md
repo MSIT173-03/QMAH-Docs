@@ -1,6 +1,6 @@
 # QMAH 資料工具參考
 
-資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database](https://github.com/MSIT173-03/QMAH-Database) 取得相容的 `QMAH.sql`；不需要開啟本目錄的工具，也不需要手動執行增量 SQL。
+資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database](https://github.com/MSIT173-03/QMAH-Database) 取得相容的 `QMAH.sql`；不需開啟本目錄的工具，也不需手動執行增量 SQL。
 
 ## 工具分工
 
@@ -27,6 +27,12 @@
 
 exporter 預設寫入 sibling Repository 的 `QMAH-Database/QMAH.sql`。目標 Repository 或指定資料夾不存在時，腳本會在開始時停止，避免把大型 Snapshot 寫回產品程式 Repository。
 
+![Snapshot 交付流程](../diagrams/rendered/snapshot-pipeline.svg)
+
+*圖 5：隔離資料庫經過 Schema／資料驗證後，產出同源的 SQL、BAK、checksum 與報告，再交付至 QMAH-Database。*
+
+[圖表 IR 原始檔](../diagrams/snapshot-pipeline.json) · [draw.io 編輯檔（QMAH-Docs 專案）](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/snapshot-pipeline.drawio)
+
 若執行環境不是固定的 sibling 結構，可以明確指定 Snapshot 輸出位置；`-RepositorySqlPath` 是完整檔案路徑，或以 `-DatabaseRepositoryPath` 搭配 `-RepositorySqlFileName` 指定資料夾與檔名：
 
 ```powershell
@@ -49,11 +55,11 @@ generate-showcase-data --connection <connection> [--post-count <1-512>] [--order
 
 `seed-showcase-users` 會建立隔離展示用會員；`generate-showcase-data` 會以穩定識別碼產生彼此有關聯的貼文、留言、訂單、付款紀錄與商品評價。命令只更新工具管理的資料，不刪除其他資料。完成後仍要透過 Snapshot pipeline 輸出可直接還原的完整 SQL，啟動環境不需額外執行工具。
 
-本機展示帳號與密碼只存在於未提交的 credentials 檔案或密碼管理工具。不要把密碼貼入文件、Issue、Commit 或 Pull Request；遇到登入問題使用 `reset-password` 更新指定的隔離資料庫。
+本機展示帳號與密碼只存在於未提交的 credentials 檔案或密碼管理工具。密碼不貼入文件、Issue、Commit 或 Pull Request；登入問題使用 `reset-password` 更新指定的隔離資料庫。
 
 ## 文物匯入與圖片
 
-文物匯入的欄位、預覽 token、錯誤處理與重試規則請看 [文物資料匯入](../features/catalog-import.md)。NPM 資料來源、授權、圖片路徑與商品產生規則請看 [資料與圖片使用](../features/data-and-media.md)。匯入工具不負責把遠端圖片永久下載到產品 Repository，也不取代媒體交付設定。
+文物匯入的欄位、預覽 token、錯誤處理與重試規則詳見 [文物資料匯入](../features/catalog-import.md)。NPM 資料來源、授權、圖片路徑與商品產生規則詳見 [資料與圖片使用](../features/data-and-media.md)。匯入工具不負責把遠端圖片永久下載到產品 Repository，也不取代媒體交付設定。
 
 ## 交付邊界
 

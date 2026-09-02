@@ -32,7 +32,7 @@ catalog.Artifacts
 2. 上傳文物 JSON；需要同步商城時再上傳商品 JSON。圖片可用 ZIP，一起放入資料包指定的相對路徑。
 3. 確認「題庫同步」維持勾選。只有已確認不希望更新題庫時才取消。
 4. 依需求選擇「商城同步」。不勾選時，匯入只處理文物與題庫。
-5. 按「預覽匯入」，先確認候選、新增、更新、未變更、無效、無法對應、圖片與同步數量。
+5. 按「預覽匯入」，確認候選、新增、更新、未變更、無效、無法對應、圖片與同步數量。
 6. 預覽無誤後按「確認匯入」。系統使用同一次暫存資料包與確認碼，不接受修改資料後跳過預檢。
 
 上傳限制為文物／商品 JSON 各 32 MB、圖片 ZIP 256 MB。解壓縮後與單一檔案也有大小及檔案數限制。
@@ -85,7 +85,7 @@ dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.cspro
   --skip-products
 ```
 
-若題庫確實不應同步，才明確加上 `--no-question-bank`。要套用時，先複製同一次預檢輸出的確認碼：
+若題庫確實不應同步，才明確加上 `--no-question-bank`。套用時使用同一次預檢輸出的確認碼：
 
 ```powershell
 dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.csproj -- `
@@ -99,7 +99,7 @@ dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.cspro
 
 CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--product-file`、`--media`、`--connection-string` 與 `--approval-token`。
 
-正式文件以長名稱為主，別名只為銜接既有腳本；不要在不同腳本各自發明新參數。
+正式文件以長名稱為主，別名只為銜接既有腳本；不同腳本共用同一組參數命名。
 
 後台預設關閉商城同步。CLI 在提供商品檔且未使用 `--skip-products` 時才會同步商城。
 
@@ -107,12 +107,12 @@ CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--produc
 
 ## 失敗與重試
 
-- 預檢失敗：先修正資料包或圖片資產，再重新預檢；原確認碼不可沿用。
+- 預檢失敗：修正資料包或圖片資產後重新預檢；原確認碼不可沿用。
 - 確認碼過期或資料包被改動：重新執行預檢。
 - 年代無法對應：保留為無法對應，不用另一個年代硬湊。
-- 來源／授權／圖片不足：補齊來源資料，不要在 Controller 裡補假的值。
+- 來源／授權／圖片不足：補齊來源資料；Controller 不補入虛構值。
 - DB 交易失敗：確認資料庫 Schema、連線與圖片根目錄；工具會回滾資料庫並清理本次新增檔案。
 
 raw JSON、HTTP response、下載快取、圖片 ZIP 與匯入 log 放在 Repository 外或 `_工具輸出`，不提交到 Git。
 
-後台匯入完成後，資料庫才是共同結果；不要把個人機器的暫存檔當成正式資料包。
+後台匯入完成後，資料庫才是共同結果；個人機器的暫存檔不視為正式資料包。

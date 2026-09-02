@@ -12,7 +12,7 @@ web
 
 ## Product Purpose
 
-QMAH-Docs 集中 QMAH 的環境、架構、API、前端、管理後台、功能與資料工具規則。文件提供依序閱讀的目錄，也提供六個系統快速查詢頁；Snapshot 交付規則放在資料工具與開發資料文件中。
+QMAH-Docs 集中 QMAH 的環境、架構、API、前端、管理後台、功能與資料工具規則。文件提供依序閱讀的目錄，也提供一個 Shared 共用入口與五個功能系統入口；Snapshot 交付規則放在資料工具與開發資料文件中，逐表用途則集中在資料表參考。
 
 ## Positioning
 
@@ -52,4 +52,4 @@ QMAH 既有 logo 與 mark 位於產品 Repository 的 `QMAH.Web/wwwroot/images/b
 
 ## Accessibility & Inclusion
 
-文件站需支援鍵盤導覽、清楚的 focus 狀態、可讀的色彩對比、窄螢幕閱讀、語意標題層級與不依賴色彩的狀態辨識。程式碼、表格與 Mermaid 圖都要保留可讀的文字替代途徑。
+文件站需支援鍵盤導覽、清楚的 focus 狀態、可讀的色彩對比、窄螢幕閱讀、語意標題層級與不依賴色彩的狀態辨識。程式碼、表格與 Diagram SVG 圖表都要保留可讀的文字替代途徑。

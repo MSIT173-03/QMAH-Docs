@@ -1,20 +1,20 @@
 # 管理後台開發起點
 
-管理後台頁面先確認資料表、路由、ViewModel、授權與 CRUD，再依對應 Area 延伸。
+管理後台頁面依資料表、路由、ViewModel、授權與 CRUD 的順序建立，再依對應 Area 延伸。
 
 Razor 管理後台位於 `QMAH.Web`。Angular 使用者前台使用的 JSON 契約位於獨立的 `QMAH.Api`，兩者共用 `QMAH.Infrastructure`。
 
 List、Controller、ViewModel、Razor 表單與完整 CRUD 的最小範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。完成範例後，再依對應資料表調整。
 
-各 Area 開發前先閱讀[五個 Area 開發前檢查與執行界線](../architecture/area-boundaries.md)，確認開發順序、不可直接刪除的資料與跨表責任。
+各 Area 的開發順序、不可直接刪除的資料與跨表責任，統一整理於[五個 Area 開發前檢查與執行界線](../architecture/area-boundaries.md)。
 
 ## 開始前
 
 1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 2. 開啟 `QMAH.sln`，確認 `QMAH.Web` 與 `QMAH.Api` 至少各自可以啟動；Visual Studio 也可以選 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動兩者。
-3. 切到對應的 `feature/*` 分支並先 Pull。
-4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping。遠端版本更新後，依[資料工具參考](../reference/data-tools.md)用最新版完整快照重新建立資料庫；不直接修改舊資料庫，也不需要增量匯入。
-5. 用 SSMS Diagram 確認主鍵、外鍵、唯一索引、可否為 `NULL` 與 `rowversion`。
+3. 開發分支使用對應的 `feature/*` 分支，並在開始前同步遠端變更。
+4. `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping 應先完成閱讀。遠端版本更新後，依[資料工具參考](../reference/data-tools.md)用最新版完整快照重新建立資料庫；不直接修改舊資料庫，也不執行增量匯入。
+5. SSMS Diagram 用於核對主鍵、外鍵、唯一索引、可否為 `NULL` 與 `rowversion`。
 
 資料庫已存在，不需要建表或建立 Migration。
 
@@ -28,20 +28,44 @@ Visual Studio Scaffold 用於產生起始碼，產生後仍需完成 ViewModel�
 
 ## 檔案放置位置
 
-以 Catalog 的文物管理為例。資料夾可以先建立，ViewModel 則在第一個頁面真的需要時再新增：
+目前程式的 Area 目錄與類型分布如下；新功能可依相同責任分區增加檔案：
 
 ```text
 QMAH.Web/Areas/Catalog/
-├─ Controllers/ArtifactController.cs
-├─ ViewModel/ArtifactEditViewModel.cs
-└─ Views/Artifact/
-   ├─ Index.cshtml
-   ├─ Details.cshtml
-   ├─ Create.cshtml
-   └─ Edit.cshtml
+├─ Controllers/{Artifact,Home,Import,Key,KeyBackpack,KeyExchange,KeyTransactions}Controller.cs
+├─ ViewModel/{CatalogDashboardViewModel,CatalogImportViewModel,KeyAdjustViewModel,...}.cs
+└─ Views/{Artifact,Home,Import,Key,KeyBackpack,KeyExchange,KeyTransactions}/
+
+QMAH.Web/Areas/Game/
+├─ Controllers/{Answers,GameEconomy,Home,Players,QuestionEntries,Rooms,Rounds,Votes}Controller.cs
+├─ ViewModels/*.cs
+└─ Views/{Answers,Home,Players,QuestionEntries,Rooms,Rounds,Votes}/
+
+QMAH.Web/Areas/Social/
+├─ Controllers/*.cs
+├─ Models/*.cs
+├─ Services/{ICurrentUserService,HttpContextCurrentUserService,MockCurrentUserService}.cs
+└─ Views/{Home,SocialAdmin}/
+
+QMAH.Web/Areas/Store/
+├─ Controllers/*.cs
+├─ ViewModels/*.cs
+└─ Views/{Coupon,CouponBackpack,CouponTransactions,Home,Order,Product}/
+
+QMAH.Web/Areas/User/
+├─ Controllers/*.cs
+├─ ViewModels/*.cs
+└─ Views/{Account,Achievements,Home,Members,PointBackpack,PointTransactions,Profile}/
+
+QMAH.Web/Controllers/{AdminEmergency,Home,Operations}Controller.cs
+QMAH.Web/Views/Shared/Admin/_AdminLayout.cshtml
+QMAH.Web/wwwroot/css/areas/{catalog,game,social,store,user}.css
+QMAH.Web/wwwroot/js/areas/{catalog,game,social,store,user}.js
 ```
 
 - Controller、ViewModel 與 View 放在對應的 Area。
+- Catalog 目前使用 `ViewModel` 目錄；Game、Store、User 使用 `ViewModels`；Social 的畫面模型放在 `Models`，服務放在 `Services`。新功能可沿用所屬 Area 的既有命名。
+- 目前 Catalog 的 `ArtifactController` 編輯 Action 直接繫結 `QMAH.Infrastructure.Models.Entities.Artifact`；新表單若需限制輸入欄位，應新增 Area 專用 ViewModel，不應把尚不存在的 `ArtifactEditViewModel` 視為既有檔案。
 - Area 專用 CSS 放 `wwwroot/css/areas/<area>.css`。
 - Area 專用 JavaScript 放 `wwwroot/js/areas/<area>.js`。
 - Entity 代表資料表，只在 Controller／Service 與 EF Core 之間使用；View 一律使用 ViewModel。
@@ -61,7 +85,22 @@ QMAH.Web/Areas/Catalog/
 | `User` | Identity 帳號、Profile、地址、成就與會員成就 | 使用 Identity API 維護 Email、鎖定與角色；使用 DbContext CRUD Profile、地址與成就資料 | 帳號使用鎖定或停用；密碼、角色與 Token 不直接修改資料表；未被使用的地址或測試成就可依外鍵規則刪除 |
 | `Store` | 商品、購物車、優惠券、訂單、付款與點數 | 新增與修改商品、庫存、優惠券；訂單與付款提供詳細頁與合法狀態操作 | 商品使用上架／下架；訂單、明細、付款與點數流水保留歷史，不做實體刪除 |
 
-每個管理項目至少處理下列情況：有資料與空資料的 List、存在與不存在 Id 的 Details、合法與錯誤輸入、重複值、外鍵限制、未授權存取，以及 POST 完成後重新導向。
+每個管理項目至少涵蓋有資料與空資料的 List、存在與不存在 Id 的 Details、合法與錯誤輸入、重複值、外鍵限制、未授權存取，以及 POST 完成後重新導向。
+
+## 導覽、授權與共用管線
+
+後台側欄由 `AdminNavigationService` 產生。只有標記 `[AdminNavigation]` 且具備 `Index` Action 的 Controller 會列入側欄，排序依 attribute 的 `Order`，顯示名稱依 attribute 的 `Label`；只有 Details 或操作型 Action 的 Controller 可由其他頁面連結進入，但不會自動出現在側欄。
+
+目前根控制器與 `Catalog`、`Game`、`Store`、`User` Area 主要使用 `[Authorize(Roles = "Admin")]`。`Social` 依功能使用下列 Policy：
+
+| Policy | 允許角色 | 用途 |
+| --- | --- | --- |
+| `Policy.SocialAdmin.Access` | `Admin`、`AnnouncementEditor`、`ContentModerator`、`EventModerator` | 社群管理入口 |
+| `Policy.Social.ManagePosts` | `Admin`、`AnnouncementEditor`、`ContentModerator` | 貼文管理 |
+| `Policy.Social.ManageReports` | `Admin`、`ContentModerator` | 檢舉管理 |
+| `Policy.Social.ManageEvents` | `Admin`、`EventModerator` | 活動管理 |
+
+`QMAH.Web` 的登入、登出與拒絕存取路徑分別為 `/Account/Login`、`/User/Account/Logout` 與 `/User/Account/AccessDenied`。`Program.cs` 已全域加入 `AutoValidateAntiforgeryTokenAttribute` 與 `AdminAuditLogFilter`；所有非 GET MVC Action 都會進行 Anti-forgery 驗證與管理操作稽核。
 
 完整單表範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。
 
@@ -85,7 +124,7 @@ public async Task<IActionResult> Index(CancellationToken cancellationToken)
 }
 ```
 
-列表與詳細頁若不會修改資料，使用 `AsNoTracking()`。需要顯示關聯資料時使用 `Include()`；不要在 View 裡另外查資料庫。
+列表與詳細頁若不會修改資料，使用 `AsNoTracking()`。需要顯示關聯資料時使用 `Include()`；View 不直接查詢資料庫。
 
 ### 2. 再做新增與編輯
 
@@ -143,7 +182,7 @@ public async Task<IActionResult> Create(
 
 `Required` 與 `StringLength` 需要 `System.ComponentModel.DataAnnotations`；`AnyAsync` 需要 `Microsoft.EntityFrameworkCore`。
 
-實際 ViewModel 請建立完整類別與 namespace，不要把屬性直接放在 Controller。
+實際 ViewModel 應建立完整類別與 namespace；屬性不直接放在 Controller。
 
 ### 3. 加入驗證與錯誤處理
 
@@ -156,8 +195,8 @@ public async Task<IActionResult> Create(
 
 ### 4. 寫入功能接上授權，再處理跨表流程
 
-- 需要登入的 Controller 或 Action 加上 `[Authorize]`；不要等到所有 CRUD 寫完才補授權。
-- 管理功能使用角色或 Policy，不只在畫面隱藏按鈕。
+- 需要登入的 Controller 或 Action 加上 `[Authorize]`；授權列入 CRUD 的起始設計。
+- 管理功能使用角色或 Policy，畫面上的按鈕隱藏不能取代伺服器授權。
 - 目前登入者使用 `UserManager<ApplicationUser>` 取得，不解析顯示名稱代替 UserId。
 - 點數、庫存、訂單、付款或遊戲結算若同時更新多張表，使用同一個 scoped DbContext 與交易。
 

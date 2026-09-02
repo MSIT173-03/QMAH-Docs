@@ -4,15 +4,15 @@
 
 ## 新頁面的套用方式
 
-1. 先同步最新版 `main`。五個 Area 都已經有 `Areas/<Area>/Views/_ViewStart.cshtml`，不必重複建立，也不必在每一頁重寫 `Layout`。
-2. Controller 對應的完整 View 只放該頁的 CRUD 內容，例如標題資料、搜尋表單、Card、Table 與按鈕；不要再加入 `page`、`page-wrapper`、Sidebar、Navbar 或整份 HTML 外框。
+1. 同步最新版 `main`。五個 Area 都已經有 `Areas/<Area>/Views/_ViewStart.cshtml`，不重複建立，也不在每一頁重寫 `Layout`。
+2. Controller 對應的完整 View 只放該頁的 CRUD 內容，例如標題資料、搜尋表單、Card、Table 與按鈕；不加入 `page`、`page-wrapper`、Sidebar、Navbar 或整份 HTML 外框。
 3. 頁面標題使用 `ViewData["Title"]`，說明使用 `ViewData["AdminDescription"]`，右上角按鈕放在 `@section PageActions`。
-4. Scaffold 後若看到 `Layout = null`，請移除。Partial View 本身不會產生 Layout，應由一般 View 引用。
-5. View 專用 CSS 請加上功能專用 class 作為範圍，例如 `.social-post-list`，不要直接改 `.page`、`.navbar`、`.page-wrapper`、`header` 或 `body`，否則可能蓋掉共用外框。
+4. Scaffold 後若出現 `Layout = null`，移除該設定。Partial View 本身不會產生 Layout，應由一般 View 引用。
+5. View 專用 CSS 加上功能專用 class 作為範圍，例如 `.social-post-list`；不直接改 `.page`、`.navbar`、`.page-wrapper`、`header` 或 `body`，避免覆蓋共用外框。
 
 最小完整 View 範例：
 
-```cshtml
+```html
 @{
     ViewData["Title"] = "社群討論區";
     ViewData["AdminDescription"] = "管理社群貼文與討論內容";
@@ -33,14 +33,14 @@
 
 1. Catalog、Game、Social、Store、User 已各自建立 `Views/_ViewStart.cshtml`，並指定 `/Views/Shared/Admin/_AdminLayout.cshtml`。
 2. 在這五個 Area 新建的完整 View 會自動擁有 Tabler CSS／JavaScript、Sidebar、Navbar、頁首、提示訊息、頁尾與右側主要內容區。
-3. 個別 View 只需提供要放進 `@RenderBody()` 的 CRUD 內容，不需要自行建立外框或預留側邊欄寬度。
-4. Scaffold 產生的 View 可能有 `Layout = null`，這會覆蓋 `_ViewStart.cshtml`；產生後請檢查並移除，或在 Scaffold 視窗選擇使用 Layout。
+3. 個別 View 只提供放進 `@RenderBody()` 的 CRUD 內容，不建立外框或預留側邊欄寬度。
+4. Scaffold 產生的 View 可能有 `Layout = null`，這會覆蓋 `_ViewStart.cshtml`；產生後移除該設定，或在 Scaffold 視窗選擇使用 Layout。
 5. Admin Layout 只會自動提供後台外框。View 內的 Card、Table、Form 和按鈕仍要使用本文範例或 Tabler 官方 class。
 6. 專案目前沒有自訂 Scaffold templates，所以 Visual Studio 不會自動產生 QMAH Tabler CRUD markup；未來若要自動化，可再新增 project-local `Templates/ViewGenerator/Bootstrap5` templates。
 
 桌機畫面由左側固定側邊欄和右側主要內容區組成。新增 View 的 CRUD UI 會放在右側內容區。
 
-如果側邊欄撐滿整個畫面，或 Navbar 與 CRUD 內容被排到頁面下方，這不是 `_ViewStart.cshtml` 的正常結果。先確認 `wwwroot/admin/vendor/tabler/tabler.min.css` 是否完整載入，再處理 CSS 問題；不要在個別 View 加 margin，也不要複製 Layout 來補救。
+若側邊欄撐滿整個畫面，或 Navbar 與 CRUD 內容被排到頁面下方，這不是 `_ViewStart.cshtml` 的正常結果。應先檢查 `wwwroot/admin/vendor/tabler/tabler.min.css` 是否完整載入，再處理 CSS 問題；個別 View 不增加補償性 margin，也不複製 Layout。
 
 專案已內建 Tabler 1.4.0，並完成共用側邊欄、頂部工具列、QMAH 配色、明暗模式與手機版導覽。一般功能開發不需要安裝 Node.js，也不需要另外下載 Tabler。
 
@@ -66,7 +66,7 @@
 
 明暗模式按鈕會以按鈕位置為中心播放圓形光圈轉場。使用者若在系統開啟「減少動態效果」，或瀏覽器不支援 View Transition API，會自動改用無動畫切換，不影響功能。
 
-Sidebar 的五個主要按鈕會切換 Catalog、Game、Social、Store 與 User。CRUD Controller 可自行選擇是否加入目前 Area 的次級選單；加入後，共用 Sidebar 會自動建立連結並標示目前 Controller。
+Sidebar 的五個主要按鈕會切換 Catalog、Game、Social、Store 與 User。CRUD Controller 可依功能決定是否加入目前 Area 的次級選單；加入後，共用 Sidebar 會自動建立連結並標示目前 Controller。
 
 CRUD Controller 可使用 `AdminNavigation` 指定次級選單的中文名稱與順序：
 
@@ -81,11 +81,11 @@ public class ArtifactCategoryController : Controller
 }
 ```
 
-只有加上 `AdminNavigation` 且具有 `Index` Action 的 Controller 才會出現在次級選單。未加 Attribute 不會影響 Controller、路由、Scaffold 或 View；各 Area 可自行決定要顯示哪些 CRUD 功能。
+只有加上 `AdminNavigation` 且具有 `Index` Action 的 Controller 才會出現在次級選單。未加 Attribute 不會影響 Controller、路由、Scaffold 或 View；各 Area 依功能決定顯示的 CRUD 項目。
 
 上述內容會由共用 Layout 自動產生，不需要複製到系統 View。這裡的「自動」只指後台外框；載入 Tabler CSS 與 JavaScript 不會自動將 Scaffold 產生的 HTML 改成 Tabler Card、Table 或 Form。
 
-`@RenderBody()` 對應的主要內容區已由 Layout 預留。桌機版位於固定側邊欄右側，手機版則移到導覽列下方；個別 View 不需要自行預留側邊欄寬度，也不應再加入 `page` 或 `page-wrapper`。
+`@RenderBody()` 對應的主要內容區已由 Layout 預留。桌機版位於固定側邊欄右側，手機版則移到導覽列下方；個別 View 不預留側邊欄寬度，也不加入 `page` 或 `page-wrapper`。
 
 Visual Studio Scaffold 預設只會產生一般 CRUD 骨架。`card`、`table-vcenter`、`card-table`、`form-label` 與頁面排列等 Tabler markup，目前仍需依本文範例調整。
 
@@ -95,7 +95,7 @@ Visual Studio Scaffold 預設只會產生一般 CRUD 骨架。`card`、`table-vc
 
 在 `.cshtml` 最上方加入：
 
-```cshtml
+```html
 @{
     Layout = "/Views/Shared/Admin/_AdminLayout.cshtml";
     ViewData["Title"] = "頁面名稱";
@@ -105,7 +105,7 @@ Visual Studio Scaffold 預設只會產生一般 CRUD 骨架。`card`、`table-vc
 
 Layout 設定完成後，即可加入該頁面的實際內容：
 
-```cshtml
+```html
 @{
     Layout = "/Views/Shared/Admin/_AdminLayout.cshtml";
     ViewData["Title"] = "文物分類管理";
@@ -136,7 +136,7 @@ QMAH.Web/Areas/User/Views/_ViewStart.cshtml
 3. 選 **Razor View - Empty**，檔名輸入 `_ViewStart.cshtml`。
 4. 將內容改為：
 
-```cshtml
+```html
 @{
     Layout = "/Views/Shared/Admin/_AdminLayout.cshtml";
 }
@@ -148,7 +148,7 @@ QMAH.Web/Areas/User/Views/_ViewStart.cshtml
 
 若五個 Area 未來確定全部只有後台 View，團隊也可以統一將 `QMAH.Web/Areas/_ViewStart.cshtml` 改成 Admin Layout，省略五份相同檔案。這項決定會影響所有 Area，必須在 PR 說明影響範圍。
 
-如果同一個 Area 同時有前台與後台頁面，請將 `_ViewStart.cshtml` 放在更小的 View 資料夾，或逐頁指定 Layout，不要讓整個 Area 都使用 Admin Layout。
+若同一個 Area 同時有前台與後台頁面，將 `_ViewStart.cshtml` 放在更小的 View 資料夾，或逐頁指定 Layout；整個 Area 不統一套用 Admin Layout。
 
 Scaffold 產生的完整 View 可能直接寫入 `Layout = null`。View 內的 Layout 設定會覆蓋 `_ViewStart.cshtml`，所以產生後要移除 `Layout = null`，或在 Scaffold 視窗選擇使用 Layout。
 
@@ -158,7 +158,7 @@ Partial View 不會執行 `_ViewStart.cshtml`。它被完整後台 View 引用�
 
 使用 `PageActions`：
 
-```cshtml
+```html
 @section PageActions {
     <a class="btn btn-primary" asp-action="Create">新增文物分類</a>
 }
@@ -188,20 +188,20 @@ Layout 會處理桌面排列與手機換行。一般頁面不應在 View 內另�
 | 分頁 | [Pagination](https://docs.tabler.io/ui/components/pagination/) | 樣式可參考 Tabler；頁碼、查詢條件與總頁數仍由該系統的後端資料決定。 |
 | 狀態 | [Statuses](https://docs.tabler.io/ui/components/statuses/) | 顯示啟用、停用、成功、警告或錯誤。相同狀態應維持相同顏色與名稱。 |
 | 沒有資料 | [Empty states](https://docs.tabler.io/ui/components/empty/) | 空資料畫面應說明目前沒有資料，並提供適當的下一步操作。 |
-| 圖示 | [Icons](https://docs.tabler.io/ui/components/icons/) | 使用一致的 Tabler 線條圖示。請勿使用 emoji 或單一中文字代替介面圖示。 |
+| 圖示 | [Icons](https://docs.tabler.io/ui/components/icons/) | 使用一致的 Tabler 線條圖示；不以 emoji 或單一中文字代替介面圖示。 |
 | 調整 Tabler | [Customize Tabler](https://docs.tabler.io/ui/getting-started/customize/) | 可了解 CSS variables 的做法。QMAH 共用配色已設定完成，個別 Area 不應重新設定全域主色。 |
 
-[Installation](https://docs.tabler.io/ui/getting-started/installation) 會示範 CDN 安裝，但 QMAH 已完成本機資產配置。該頁僅供了解 Tabler 的 CSS／JavaScript 結構，請勿將 CDN `<link>` 或 `<script>` 加入 View。
+[Installation](https://docs.tabler.io/ui/getting-started/installation) 會示範 CDN 安裝，但 QMAH 已完成本機資產配置。該頁僅用於了解 Tabler 的 CSS／JavaScript 結構；CDN `<link>` 或 `<script>` 不加入 View。
 
 ## 常用頁面範例
 
-以下使用專案既有的 `catalog.ArtifactCategories` 與第 5 份 CRUD 教學示範 Tabler 寫法。範例中的 ViewModel 名稱、欄位與 Action 都和該教學一致，不另外假設資料庫有審核欄位。
+以下使用專案 Schema 既有的 `catalog.ArtifactCategories` 與 CRUD 教學示範 Tabler 寫法。範例中的 ViewModel 名稱、欄位與 Action 都和該教學一致，不另外假設資料庫有審核欄位。
 
-完整 Controller、ViewModel 與資料存取流程請接續閱讀[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。本文件只補充共用 Layout 與 Tabler 元件的組合方式。
+完整 Controller、ViewModel 與資料存取流程詳見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。本文件只補充共用 Layout 與 Tabler 元件的組合方式。
 
 ### 查詢列
 
-```cshtml
+```html
 @{
     var keyword = ViewData["Keyword"] as string;
 }
@@ -242,11 +242,11 @@ GET 查詢應把條件放在網址中，重新整理或分享網址時才不會�
 | 會員 `ApplicationUser` | `Status` |
 | 會員成就 `Achievement` | `Status` |
 
-例如商品的 `IsActive` 可以在畫面顯示為「上架／下架」，文物的 `IsActive` 可以顯示為「啟用／停用」。不要把兩者都改成資料庫不存在的「待審核／已通過」。
+例如商品的 `IsActive` 可以在畫面顯示為「上架／下架」，文物的 `IsActive` 可以顯示為「啟用／停用」。兩者不改成資料庫不存在的「待審核／已通過」。
 
 ### 資料表
 
-```cshtml
+```html
 @model IReadOnlyList<QMAH.Web.Areas.Catalog.ViewModel.ArtifactCategoryListItemViewModel>
 
 <div class="card">
@@ -294,7 +294,7 @@ GET 查詢應把條件放在網址中，重新整理或分享網址時才不會�
 
 ### 編輯表單
 
-```cshtml
+```html
 @model QMAH.Web.Areas.Catalog.ViewModel.ArtifactCategoryFormViewModel
 
 <form asp-action="Edit" method="post" class="card">
@@ -333,14 +333,14 @@ POST Action 仍要檢查 `ModelState.IsValid`。Tabler 只負責畫面，不會�
 
 ### 空資料
 
-```cshtml
+```html
 @if (Model.Count == 0)
 {
     <div class="card">
         <div class="empty">
             <p class="empty-title">目前沒有資料</p>
             <p class="empty-subtitle text-secondary">
-                請調整搜尋條件，或新增第一筆文物分類。
+                可調整搜尋條件，或新增第一筆文物分類。
             </p>
             <div class="empty-action">
                 <a class="btn btn-primary" asp-action="Create">新增文物分類</a>
@@ -373,7 +373,7 @@ QMAH.Web/wwwroot/js/areas/
 
 例如 Catalog View 使用 Razor section 載入：
 
-```cshtml
+```html
 @section Styles {
     <link rel="stylesheet" href="~/css/areas/catalog.css" asp-append-version="true" />
 }
@@ -439,14 +439,14 @@ return RedirectToAction(nameof(Index));
 
 ## 共用介面使用限制
 
-- 請勿重新實作 Sidebar、Navbar、頁首、頁尾或明暗模式。
-- 請勿在 View 內再次載入 Bootstrap 或 Tabler。
-- 不要在個別 View 另載 Tabler CDN；目前共用 Layout 只引用 Repository 內固定版本的 Tabler CSS、JavaScript 與 icon font。
-- 請勿修改 `tabler.min.css` 或 `tabler.min.js`。
-- 若只需調整單一元件，請勿複製整份 Tabler CSS。
+- 不重新實作 Sidebar、Navbar、頁首、頁尾或明暗模式。
+- 不在 View 內再次載入 Bootstrap 或 Tabler。
+- 個別 View 不另載 Tabler CDN；目前共用 Layout 只引用 Repository 內固定版本的 Tabler CSS、JavaScript 與 icon font。
+- 不修改 `tabler.min.css` 或 `tabler.min.js`。
+- 單一元件的調整不複製整份 Tabler CSS。
 - Area 業務樣式不應寫入共用後台 CSS。
 - 一個系統的功能變更不得未經說明就新增或修改其他系統的 Area 檔案。
-- 介面圖示請勿使用 emoji、中文字圓圈或自行製作的大型色塊代替。
+- 介面圖示不以 emoji、中文字圓圈或非必要的大型色塊代替。
 - 資料列不應逐筆包成獨立 Card，應依資料用途選擇表格或清單。
 - 頁面必須確認手機版可操作，且整體版面不會出現非預期的水平捲動。
 
@@ -456,21 +456,21 @@ return RedirectToAction(nameof(Index));
 
 確認 View 或該 Area 的 `_ViewStart.cshtml` 是否指定：
 
-```cshtml
+```html
 Layout = "/Views/Shared/Admin/_AdminLayout.cshtml";
 ```
 
 如果是 Scaffold 產生的 View，再檢查檔案內是否有：
 
-```cshtml
+```html
 Layout = null;
 ```
 
-有的話會覆蓋 `_ViewStart.cshtml`，請移除這行或改成 Admin Layout。如果 Controller 回傳的是 Partial View，則本來就不會包含完整後台外框。
+有的話會覆蓋 `_ViewStart.cshtml`，移除這行或改成 Admin Layout。若 Controller 回傳的是 Partial View，則本來就不會包含完整後台外框。
 
 ### 樣式完全沒有出現
 
-先確認頁面使用 `_AdminLayout.cshtml`，再確認瀏覽器 Network 沒有出現以下檔案的 404：
+確認頁面使用 `_AdminLayout.cshtml`，再確認瀏覽器 Network 沒有出現以下檔案的 404：
 
 ```text
 /admin/vendor/tabler/tabler.min.css
@@ -480,11 +480,11 @@ Layout = null;
 
 ### Dropdown 或 Modal 按了沒反應
 
-請勿加入另一份 Bootstrap JavaScript。請確認按鈕保留官方範例需要的 `data-bs-toggle` 與 `data-bs-target`，並確認 `/admin/vendor/tabler/tabler.min.js` 沒有載入失敗。
+不加入另一份 Bootstrap JavaScript。按鈕保留官方範例需要的 `data-bs-toggle` 與 `data-bs-target`，並確認 `/admin/vendor/tabler/tabler.min.js` 沒有載入失敗。
 
 ### 深色模式顏色異常
 
-常見原因是 Area CSS 寫死白色、黑色或背景色。請將硬編碼顏色改為 `--qmah-*` 變數，並沿用共用明暗模式，不應另建第二套切換器。
+常見原因是 Area CSS 寫死白色、黑色或背景色。硬編碼顏色改為 `--qmah-*` 變數，並沿用共用明暗模式，不另建第二套切換器。
 
 ### 手機版表格超出畫面
 
@@ -523,7 +523,7 @@ Layout = null;
 - [ ] 只修改所負責的 Area 與該 Area 專用的 CSS／JavaScript。
 - [ ] 頁面已透過 View 或 Area 的 `_ViewStart.cshtml` 套用 `_AdminLayout.cshtml`。
 - [ ] 有設定 `ViewData["Title"]`。
-- [ ] 畫面欄位、狀態與操作都對應目前的 Entity、ViewModel 與業務規則，沒有自行新增資料庫不存在的欄位或狀態。
+- [ ] 畫面欄位、狀態與操作都對應目前的 Entity、ViewModel 與業務規則，沒有新增資料庫不存在的欄位或狀態。
 - [ ] 頁首有操作按鈕時，使用 `PageActions`。
 - [ ] 優先使用 Tabler 官方元件與 class。
 - [ ] 有 POST 表單時，後端會檢查 ModelState 並顯示欄位錯誤。
@@ -569,12 +569,12 @@ Layout = null;
 
 一般會員使用者前台位於 `QMAH.Client`，透過 `QMAH.Api` 的 REST API 取得 JSON。兩者共用資料與權限規則，但不共用 Layout、ViewModel 或前端 bundle。
 
-Bootstrap、jQuery、驗證套件與 Tabler 資產已固定在 `QMAH.Web/wwwroot/lib`、`QMAH.Web/wwwroot/admin/vendor` 與共用 Layout。Area View 不要再次載入 Bootstrap、Tabler 或未固定版本的 CDN。
+Bootstrap、jQuery、驗證套件與 Tabler 資產已固定在 `QMAH.Web/wwwroot/lib`、`QMAH.Web/wwwroot/admin/vendor` 與共用 Layout。Area View 不再次載入 Bootstrap、Tabler 或未固定版本的 CDN。
 
 Area 需要專屬樣式或腳本時，放在 `wwwroot/css/areas/<area>.css` 或 `wwwroot/js/areas/<area>.js`。只有兩個以上 Area 共用的行為才提升到 `site.css`／`site.js`。
 
 Razor 表單同時依賴前端提示與後端驗證。使用 `asp-validation-summary`、`asp-validation-for`、`_ValidationScriptsPartial`、`[ValidateAntiForgeryToken]` 與 ModelState。
 
-送出成功後使用 PRG（POST → Redirect → GET），避免重新整理造成重複提交。不要把使用者輸入直接交給 `Html.Raw()`。
+送出成功後使用 PRG（POST → Redirect → GET），避免重新整理造成重複提交。使用者輸入不直接交給 `Html.Raw()`。
 
 圖片使用資料庫的邏輯路徑與適當 `alt`；社群上傳檔案則走受控 Endpoint，不當成公開靜態資源。

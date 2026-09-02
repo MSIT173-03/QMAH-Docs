@@ -16,7 +16,7 @@
 
 Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、TypeScript 與 RxJS 相容範圍內。實際版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準。
 
-版本變更需同時更新相依鎖定檔、檢查課程要求與重新執行安全性檢查。不在單一功能分支自行升降版本。[Angular 版本相容性](https://angular.dev/reference/versions)／[Angular 版本發布與支援週期](https://angular.dev/reference/releases)
+版本變更需同時更新相依鎖定檔、檢查課程要求與重新執行安全性檢查。不在單一功能分支升降版本。[Angular 版本相容性](https://angular.dev/reference/versions)／[Angular 版本發布與支援週期](https://angular.dev/reference/releases)
 
 ## 四個詞的分工
 
@@ -52,6 +52,23 @@ API 與 Angular 可以透過下列方式啟動：
 瀏覽器開啟 `http://localhost:4200/`。Angular 前端使用 `/api/v1` 相對路徑，開發伺服器由 `QMAH.Client/proxy.conf.json` 將 `/api`、`/openapi` 與 `/scalar` 轉送到後端 API。
 
 因此 component（畫面元件）不保存固定 API 連接埠。建置與測試命令見本頁後方的[固定版本與本機工作流](#固定版本與本機工作流)。
+
+## 目前前台基線
+
+`QMAH.Client` 目前是前台骨架，尚未放入圖鑑、社群、遊戲、會員或商城的正式畫面：
+
+| 檔案 | 目前內容 | 新增功能時的責任 |
+| --- | --- | --- |
+| `src/app/app.ts` | 根元件只載入 `RouterOutlet` | 保持根元件只負責應用程式外框與路由出口 |
+| `src/app/app.html` | 只有 `<router-outlet />` | 不在此檔案堆放功能畫面 |
+| `src/app/app.routes.ts` | `export const routes: Routes = [];`，目前沒有功能路由 | 以 lazy loading 集中註冊功能入口 |
+| `src/app/app.config.ts` | 註冊 Router、HttpClient、API Cookie 與 XSRF 設定 | 維持全站 HTTP 基線；功能服務不各自重複設定 |
+| `src/environments/environment*.ts` | `apiBaseUrl` 都是 `/api/v1` | 依環境設定 API 根路徑，不在 component 寫死連接埠 |
+| `proxy.conf.json` | 將 `/api`、`/openapi`、`/scalar` 轉送至 `https://localhost:7249` | 只供 Angular 開發伺服器使用，不帶入正式建置設定 |
+
+目前不存在的 `core`、`shared` 與 `features` 資料夾屬於建議的新增結構，不代表 Repository 已經有對應功能。文件中列出的功能 API 是後端已存在的接手契約；前台畫面、路由與服務仍需依功能範圍逐項建立。
+
+`app.config.ts` 的目前設定具體包含 `provideRouter(routes, withComponentInputBinding())`、針對 `/api/v1` request 設定 `withCredentials: true`，以及以 `XSRF-TOKEN-API` Cookie 讀取 request token、送出 `X-XSRF-TOKEN` Header 的 XSRF 設定。API 的 `GET /api/v1/account/antiforgery-token` 會建立這個可讀取的 request token；API 內部的 HttpOnly Cookie 仍由 ASP.NET Core 保護。
 
 ## 登入後的第一條資料流程
 
@@ -124,7 +141,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 QMAH 不需在使用者前台或資料庫保存地圖圖磚資料。完整欄位與簡單串接方式見 [`地點與地圖串接說明`](../features/map-integration.md)。
 
-## 建議的 Angular 分層
+## Angular 分層
 
 ```text
 src/app/
@@ -139,7 +156,18 @@ src/app/
 
 `core` 只放全站共用服務，`shared` 只放可重用的顯示元件，業務規則放在對應的 `features` service。
 
-使用者前台功能先以後端 API DTO 建立型別，再由 service 轉成畫面需要的資料。不用把資料庫 Entity 複製到 Angular。
+使用者前台功能以後端 API DTO 建立型別，再由 service 轉成畫面需要的資料。不將資料庫 Entity 複製到 Angular。
+
+## 新增功能的最小交付順序
+
+1. 先在 `src/app/features/<feature>/` 建立 standalone component、型別與 service；`<feature>` 使用 `catalog`、`social`、`game`、`member` 或 `store` 等功能名稱。
+2. 在 `app.routes.ts` 增加 lazy route，路由元件只負責組合頁面，不直接散落 HTTP、狀態代碼或資料轉換。
+3. Service 以 `environment.apiBaseUrl` 組合 API 路徑，將 request／response 型別與 `ProblemDetails` 轉成畫面可處理的狀態。
+4. 清單與詳情頁同時定義 loading、空資料、錯誤、未登入、無權限、流程衝突與重試狀態；寫入表單保留驗證錯誤與送出中的 disabled 狀態。
+5. 圖片使用 API 回傳的解析後 URL；選項與狀態標籤使用 `/api/v1/metadata`，不在元件內複製資料庫代碼。
+6. 先以 API Scalar 或 OpenAPI 契約確認 request／response，再用瀏覽器 Network 檢查 Cookie、XSRF Header、狀態碼與實際 payload，最後執行 Angular build 與測試。
+
+前台目前沒有 feature component 或 route，因此上述順序是實作邊界，不是對現有頁面狀態的描述。後端契約變更時，DTO、OpenAPI 文字、Angular 型別與受影響頁面應在同一項變更中核對。
 
 ## 完成功能前的檢查
 
@@ -184,6 +212,6 @@ npm run build
 npm test -- --watch=false
 ```
 
-Angular 21 的版本選擇維持在同一個 major version。套件版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準，不在各分支自行升降版本。
+Angular 21 的版本選擇維持在同一個 major version。套件版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準，不在各分支升降版本。
 
 編譯成功後仍要用瀏覽器檢查 API、登入、錯誤畫面、鍵盤操作與窄螢幕版面。

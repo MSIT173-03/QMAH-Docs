@@ -34,9 +34,9 @@ export default defineConfig({
 THESIS: QMAH-Docs makes the next development action visible without hiding the system boundary.
 OWN-WORLD: Ink navy, porcelain blue, verdigris, and a restrained cinnabar mark; ruled index lines and accession-style labels.
 STORY: A reader enters through a task, follows one canonical page, then returns to code, API, or the shared snapshot with less ambiguity.
-OPENING SEQUENCE: The opening sequence shows the reading route, six system quick-reference pages, and the full directory in that order.
-FORM: An accession-ledger field index with a visible task rail; direction seed 06ffa6b9.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+OPENING SEQUENCE: The opening sequence shows the reading route, six quick-reference pages in Shared, Catalog, Game, Social, User, Store order, and the full directory in that order.
+FORM: An accession-ledger field index with a visible task rail, a fixed quick-reference template, and readable dense-data fallbacks.
+FINISH: The build is checked for content order, internal links, narrow-screen reflow, keyboard focus, and reduced motion; the current review is recorded in DESIGN.md.
 -->`
     return code.replace(/<body([^>]*)>/, `<body$1>${designContract}`)
   },
@@ -52,15 +52,15 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     },
     sidebar: [
       {
-        text: '六系統快速查詢',
+        text: '六個入口快速查詢',
         collapsed: false,
         items: [
+          { text: 'Shared｜共用基礎', link: '/quick-reference/shared' },
           { text: 'Catalog｜圖鑑與文物', link: '/quick-reference/catalog' },
           { text: 'Game｜遊戲與作答', link: '/quick-reference/game' },
           { text: 'Social｜社群與活動', link: '/quick-reference/social' },
           { text: 'User｜會員與 Identity', link: '/quick-reference/user' },
-          { text: 'Store｜商城與訂單', link: '/quick-reference/store' },
-          { text: 'Shared｜共用基礎', link: '/quick-reference/shared' }
+          { text: 'Store｜商城與訂單', link: '/quick-reference/store' }
         ]
       },
       {
@@ -76,7 +76,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           { text: '系統架構總覽', link: '/architecture/system-overview' },
           { text: 'Area 責任與資料界線', link: '/architecture/area-boundaries' },
           { text: '資料存取與 DB-first', link: '/architecture/data-access' },
-          { text: '資料庫 Diagram 對照', link: '/architecture/database-diagram' }
+          { text: '資料庫 Diagram 對照', link: '/architecture/database-diagram' },
+          { text: '資料表參考', link: '/architecture/database-reference' }
         ]
       },
       {

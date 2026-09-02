@@ -2,7 +2,7 @@
 
 `Catalog`、`Game`、`Social`、`User`、`Store` 共用以下開發檢查表。
 
-每開始一個頁面或流程，先確認三件事：
+每個頁面或流程的範圍由三項資訊界定：
 
 1. 這個功能讀取或修改哪一份資料
 2. 哪些人可以查看或修改
@@ -12,37 +12,37 @@
 
 ## 共用開發步驟
 
-### 開始前先做
+### 開始前的檢查
 
 - 從最新 `develop` 建立或更新對應的 `feature/<area>` 分支
-- 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`，確認網站能啟動，並先完成一次 Build
+- 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`，確認網站能啟動，並完成一次 Build
 - 閱讀該功能使用的 Entity、`DbSet`、外鍵、唯一索引、`CHECK`、`NOT NULL`、Default 與 `rowversion`
-- 先決定這個頁面是清單、詳細資料、新增、編輯、狀態操作，還是跨表流程
+- 界定頁面屬於清單、詳細資料、新增、編輯、狀態操作或跨表流程
 - 列出 ViewModel 允許輸入的欄位，不把 Entity 全部直接當成表單模型
-- 先在 Controller 或 Action 加上 `[Authorize]`；登入頁和確實需要公開的 Action 才使用 `[AllowAnonymous]`
-- 清單與詳細頁先完成正常資料、空資料、查無資料與未授權情況
+- Controller 或 Action 加上 `[Authorize]`；登入頁和確實需要公開的 Action 才使用 `[AllowAnonymous]`
+- 清單與詳細頁涵蓋正常資料、空資料、查無資料與未授權情況
 - 查詢使用注入的 scoped `QmahDbContext`，唯讀查詢使用 `AsNoTracking()`；POST 查回受追蹤 Entity 後逐欄更新
 - 寫入前檢查 ModelState、外鍵、唯一值、狀態轉換與資料庫限制，成功後使用 Post/Redirect/Get
 - 測試不存在的 Id、重複值、錯誤輸入、未登入、非管理員、外鍵限制和重新整理 POST
 - PR 說明列出使用的資料表、路由、共用檔案、是否有跨表寫入，以及實際驗證方式
 
-### 目前不要做
+### 目前不納入範圍
 
 - 不建立第二個資料庫、第二個 `QmahDbContext`、Migration、`Database.Migrate()` 或 `EnsureCreated()`
-- 不自行建立 SQL 連線，不使用 `new QmahDbContext()`
+- 不另行建立 SQL 連線，不使用 `new QmahDbContext()`
 - 不把 EF Entity 直接交給 View 或當作可任意修改的 POST Model
 - 不為每張表先建立 Wrapper、Generic Repository 或空白 Service；只有跨表流程、重複商業規則或需要封裝外部物件時才建立具體類別
 - 不直接寫入 `AspNetUsers`、`AspNetRoles`、`AspNetUserRoles`、`PasswordHash`、Token 或 Claim；帳號與角色使用 Identity API
 - 不只在 View 隱藏按鈕就當成授權，Controller 或 Action 必須實際套用 `[Authorize]`
-- 不相信表單送回的 `UserId`、權限、價格、訂單金額、庫存、狀態或外鍵；需要的值由登入身分、資料庫或伺服器規則決定
+- 表單送回的 `UserId`、權限、價格、訂單金額、庫存、狀態或外鍵不視為可信資料；相關值由登入身分、資料庫或伺服器規則決定
 - 不直接刪除訂單、付款、點數流水、遊戲回合、作答、投票、檢舉或已有關聯的文物；使用取消、隱藏、停用或封存
 - 不在 View 的迴圈裡逐筆查詢資料庫，也不為了顯示欄位一次 `Include` 所有導覽屬性
-- 不在未確認需求前加入第三方登入、金流正式串接、SignalR、背景工作或新的前端框架
-- 不直接修改 `Program.cs`、`QmahDbContext`、共用 Layout、Schema 或套件版本而沒有在 PR 說明影響範圍
+- 第三方登入、金流正式串接、SignalR、背景工作或新的前端框架尚未納入範圍
+- `Program.cs`、`QmahDbContext`、共用 Layout、Schema 或套件版本的修改需在 PR 說明影響範圍
 
 ## 共用資料存取規則
 
-Controller 透過建構式取得 `QmahDbContext`。`DbContext` 是同一個 HTTP request 內的資料工作單位，不是每個 Action 都要自行建立的連線。
+Controller 透過建構式取得 `QmahDbContext`。`DbContext` 是同一個 HTTP request 內的資料工作單位，不是每個 Action 另行建立的連線。
 
 ```csharp
 public sealed class ItemsController : Controller
@@ -88,33 +88,33 @@ product.UpdatedAt = DateTime.UtcNow;
 await _db.SaveChangesAsync(cancellationToken);
 ```
 
-查詢用 ViewModel 或投影，寫入用受追蹤 Entity。`SaveChangesAsync` 之前不要把資料庫產生的時間、`rowversion`、外鍵或歷史快照交給表單決定。
+查詢用 ViewModel 或投影，寫入用受追蹤 Entity。`SaveChangesAsync` 之前，資料庫產生的時間、`rowversion`、外鍵或歷史快照不交給表單決定。
 
 ## Catalog 圖鑑與解鎖
 
 ### 開發時會遇到的資料關係
 
-- 文物名稱、原始年代或來源文字可能缺漏或無法辨識，原始資料要保留，不要為了畫面好看自行猜測
+- 文物名稱、原始年代或來源文字可能缺漏或無法辨識，原始資料要保留；不因畫面呈現而猜測內容
 - `Artifacts` 以 `CategoryId`、`EraBucketId` 連到分類和年代；題庫與商城商品則用 `ArtifactId` 對應同一件文物
 - 文物圖片、來源網址、授權代碼與 `AttributionText` 是資料來源的一部分，不能在 CRUD 中隨意改成其他商城素材
 - 題庫是一件文物一筆設定，難度限制為 1 至 5；是否啟用要和文物是否可出題的規則一起檢查
 - 鑰匙定義可能是一般、分類、年代或通用範圍，範圍欄位和對應的 Category／Era 不能互相矛盾
 - `ArtifactUnlocks`、遊戲回合與商城商品都可能引用文物
 
-### 開始前先做
+### 開始前的檢查
 
-- 先完成文物清單和詳細頁，再決定哪些欄位可由後台編輯
+- 完成文物清單和詳細頁後，界定可由後台編輯的欄位
 - 題庫編輯頁用 `ArtifactId` 選擇既有文物，不用文物名稱比對
 - 顯示分類、年代和圖片時使用 `Include` 或投影，不在 View 重新查資料
-- 修改分類或年代前，先查是否有文物、鑰匙、題庫或價格規則引用
+- 修改分類或年代前，查核是否有文物、鑰匙、題庫或價格規則引用
 - 解鎖、題庫設定和圖片來源的修改要記錄實際影響範圍
 
-### 目前不要做
+### 目前不納入範圍
 
 - 不刪除已被題庫、商品、遊戲回合或解鎖資料引用的文物
 - 不用商品名稱、圖片檔名或拆解字串找回 `ArtifactId`
 - 不把原始授權文字改寫成自訂宣稱，也不把來源商城圖片直接放入公開 Repository
-- 不在 Catalog Controller 內直接修改 Store 商品價格、Game 題目或 Social 貼文
+- Catalog Controller 不直接修改 Store 商品價格、Game 題目或 Social 貼文
 - 不為了增加資料量而重新分類、重編 ArtifactRef 或覆蓋原始匯入資料
 
 ## Game 遊戲
@@ -127,15 +127,15 @@ await _db.SaveChangesAsync(cancellationToken);
 - `GameRoom`、`GamePlayer`、`GameRound`、`RoundAnswer`、`Vote` 都有 `RowVersion`；多人同時修改時可能發生並行更新
 - 回合結算會同時處理作答、投票、分數或解鎖，是跨表交易，不適合拆成多個互不相關的 SaveChanges
 
-### 開始前先做
+### 開始前的檢查
 
-- 先定義房間狀態轉換和每個狀態可修改的欄位
-- 先做管理用的房間、回合和玩家清單與詳細頁，確認時間欄位和關聯能正確顯示
+- 定義房間狀態轉換和每個狀態可修改的欄位
+- 完成管理用的房間、回合和玩家清單與詳細頁，確認時間欄位和關聯能正確顯示
 - 修改房間、回合或玩家時帶回 `RowVersion`，捕捉 `DbUpdateConcurrencyException`
-- 由登入者或既有 GamePlayer 決定 UserId，不接受表單自行指定其他玩家
+- 由登入者或既有 GamePlayer 決定 UserId；表單不指定其他玩家
 - 結算流程使用同一個 scoped `DbContext` 和交易，成功或失敗要能整體回復
 
-### 目前不要做
+### 目前不納入範圍
 
 - 不把已完成房間、回合、作答或投票當成可任意刪除的 CRUD 資料
 - 不讓前端決定答案是否正確、回合是否結算或玩家是否是 Host
@@ -149,25 +149,25 @@ await _db.SaveChangesAsync(cancellationToken);
 
 - 貼文和留言有 `PUBLISHED`、`HIDDEN`、`DELETED` 狀態，檢舉有 `PENDING`、`RESOLVED`、`REJECTED` 狀態
 - 留言有自我外鍵 `ParentCommentId`，刪除或隱藏父留言時要考慮子留言
-- `ContentReports` 使用 `TargetType`＋`TargetId` 表示貼文或留言，資料庫無法用單一外鍵替這種多型目標保證存在，因此查詢和處理時要自行驗證目標
+- `ContentReports` 使用 `TargetType`＋`TargetId` 表示貼文或留言，資料庫無法用單一外鍵替這種多型目標保證存在，因此查詢和處理時由程式驗證目標
 - 活動同時有審核狀態、發布狀態、開始結束時間、報名截止時間和人數上限
 - 通知屬於特定會員，已讀狀態不能由其他會員任意修改
 
-### 開始前先做
+### 開始前的檢查
 
-- 先區分「內容作者可修改」和「管理員可審核／隱藏」的 Action
+- 區分「內容作者可修改」和「管理員可審核／隱藏」的 Action
 - 檢舉詳細頁同時顯示目標內容、檢舉理由、處理人和處理時間
-- 活動表單先驗證 `EndAt > StartAt`、報名截止時間和容量，再處理報名人數
+- 活動表單驗證 `EndAt > StartAt`、報名截止時間和容量，再處理報名人數
 - 貼文（含官方公告類型）、留言和活動清單預設只顯示符合目前發布狀態的資料
 - 通知查詢以目前登入者的 UserId 為條件，更新已讀時只更新該登入者可存取的通知
 
-### 目前不要做
+### 目前不納入範圍
 
 - 不讓會員修改別人的貼文、留言、檢舉結果或通知
 - 不用實體刪除取代貼文和留言的隱藏／刪除狀態
-- 不把 `TargetId` 當成可信資料直接更新，必須依 `TargetType` 查驗貼文或留言
-- 不在未完成審核規則前讓所有活動直接變成已發布
-- 不為了做留言樹一次載入所有留言；先限制頁面範圍、排序與分頁
+- `TargetId` 不視為可信資料直接更新，必須依 `TargetType` 查驗貼文或留言
+- 審核規則完成前不讓所有活動直接變成已發布
+- 留言樹不一次載入所有留言；限制頁面範圍、排序與分頁
 
 ## User 會員與 Identity
 
@@ -179,20 +179,20 @@ await _db.SaveChangesAsync(cancellationToken);
 - `UserProfile` 和 `UserAddress` 有 `RowVersion`；地址還有每位會員只能有一個預設地址的唯一規則
 - 未登入者不能查看需要會員身分的後台，管理功能需要 `[Authorize(Roles = "Admin")]`
 
-### 開始前先做
+### 開始前的檢查
 
-- 先把 Login、Logout、AccessDenied 的路由和 `[AllowAnonymous]` 界線確認好
+- 界定 Login、Logout、AccessDenied 的路由和 `[AllowAnonymous]` 範圍
 - 會員清單透過 `UserManager<ApplicationUser>` 取得帳號資訊，再以 UserId 查詢 Profile 或地址
 - Profile、地址與通知表單使用各自的專用 ViewModel，不把 `ApplicationUser` 或 Identity 內部欄位交給表單
 - 編輯目前會員資料時，UserId 由登入 Cookie 取得；管理員編輯其他會員時，Id 由路由查回並再次確認權限
 - 帳號停用使用 Identity lockout API；修改 Email 或密碼使用 Identity API
 
-### 目前不要做
+### 目前不納入範圍
 
 - 不直接對 `AspNetUsers.PasswordHash`、`AspNetUserRoles`、`AspNetUserLogins` 或 `AspNetUserTokens` 做一般 CRUD
 - 不新增 `GoogleId`、`MicrosoftId` 等供應商專用欄位來預留第三方登入
 - 不用 Email、暱稱或表單文字代替 UserId
-- 不讓使用者自行送出另一個 UserId 來讀取或修改私人資料
+- 不接受使用者送出另一個 UserId 讀取或修改私人資料
 - 不把會員帳號直接實體刪除來取代停用或鎖定
 
 ## Store 商城與訂單
@@ -206,15 +206,15 @@ await _db.SaveChangesAsync(cancellationToken);
 - 付款狀態是 `PENDING`、`PAID`、`FAILED`、`CANCELLED`，同一張訂單目前只有一筆付款紀錄
 - 商品、訂單、付款、優惠券、庫存和點數的寫入常會跨表，不能把每一步當成互不相關的 CRUD
 
-### 開始前先做
+### 開始前的檢查
 
-- 商品清單先區分啟用／停用、庫存和是否已有訂單引用
+- 商品清單區分啟用／停用、庫存和是否已有訂單引用
 - 結帳前由伺服器重新查商品價格、庫存、優惠券和點數，不使用瀏覽器送回的總金額
 - 建立訂單時同一個流程完成明細快照、金額計算、優惠券使用、庫存與點數異動，必要時使用交易
 - 目前程式沒有正式金流供應商的付款 callback Endpoint（回呼路徑）；`Payments` 的 `PENDING`、`PAID`、`FAILED`、`CANCELLED` 是資料模型可保存的狀態，不代表已接入供應商
 - 訂單詳細頁顯示快照欄位，不能因商品後續改名或改價而改寫歷史訂單
 
-### 目前不要做
+### 目前不納入範圍
 
 - 不讓前端直接提交訂單狀態、付款狀態、價格、折扣、庫存或點數餘額
 - 不修改已有訂單明細的成交品名、單價和數量來同步目前商品

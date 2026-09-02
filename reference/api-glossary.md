@@ -2,7 +2,7 @@
 
 本名詞表列出 QMAH API 文件使用的專業用語、英文原文與台灣繁體中文說明。
 
-每個 OpenAPI operation（一次 API 呼叫）仍會在自己的 `summary`（清單短摘要）或 `description`（完整行為說明）補上括號，不要求先讀完整份名詞表。
+每個 OpenAPI operation（一次 API 呼叫）仍會在自己的 `summary`（清單短摘要）或 `description`（完整行為說明）補上括號；名詞表可依查詢需要使用。
 
 ## 使用規則
 
