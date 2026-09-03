@@ -1,6 +1,6 @@
 # QMAH 資料工具參考
 
-資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database](https://github.com/MSIT173-03/QMAH-Database) 取得相容的 `QMAH.sql`；不需開啟本目錄的工具，也不需手動執行增量 SQL。
+資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 取得相容的 `QMAH.sql` 或 `.bak`；不需開啟本目錄的工具，也不需手動執行增量 SQL。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
 
 ## 工具分工
 

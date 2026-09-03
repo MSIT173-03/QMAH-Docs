@@ -4,7 +4,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 ## 1. 取得共同資料
 
-目前相容的完整 Snapshot 是 QMAH-Database tag `db-v0.7.0` 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，可直接在 SSMS 執行。
+目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql) 可直接在 SSMS 執行。
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只保留版本導覽，不再提供 SQL／BAK 資產。
 

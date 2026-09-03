@@ -8,6 +8,20 @@ export default defineConfig({
   description: 'QMAH 開發文件｜環境、架構、API、前端、管理後台與功能設計',
   base: docsBase,
   cleanUrls: true,
+  markdown: {
+    config(md) {
+      const renderTableOpen = md.renderer.rules.table_open ||
+        ((tokens, index, options, env, self) => self.renderToken(tokens, index, options))
+      const renderTableClose = md.renderer.rules.table_close ||
+        ((tokens, index, options, env, self) => self.renderToken(tokens, index, options))
+
+      md.renderer.rules.table_open = (tokens, index, options, env, self) =>
+        '<div class="qmah-table-scroll" tabindex="0" role="region" aria-label="可左右捲動的資料表">\n' +
+        renderTableOpen(tokens, index, options, env, self)
+      md.renderer.rules.table_close = (tokens, index, options, env, self) =>
+        renderTableClose(tokens, index, options, env, self) + '\n</div>\n'
+    }
+  },
   head: [
     ['link', { rel: 'icon', href: `${docsBase}favicon.svg`, type: 'image/svg+xml' }]
   ],

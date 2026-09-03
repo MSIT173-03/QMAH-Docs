@@ -161,26 +161,41 @@ body {
   text-decoration-color: currentColor;
 }
 
-.vp-doc table {
-  box-sizing: border-box;
-  display: block;
+.qmah-table-scroll {
   max-width: 100%;
-  min-width: 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  width: 100%;
+  scrollbar-color: var(--qmah-line) transparent;
 }
 
-.vp-doc table > thead,
-.vp-doc table > tbody {
+.qmah-table-scroll:focus-visible {
+  outline: 2px solid var(--qmah-cinnabar);
+  outline-offset: 0.25rem;
+}
+
+.qmah-table-scroll table {
+  box-sizing: border-box;
   display: table;
   min-width: 100%;
   width: max-content;
+  max-width: none;
+  table-layout: auto;
 }
 
-.vp-doc th,
-.vp-doc td {
+.qmah-table-scroll thead {
+  display: table-header-group;
+}
+
+.qmah-table-scroll tbody {
+  display: table-row-group;
+}
+
+.qmah-table-scroll th,
+.qmah-table-scroll td {
   vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .vp-doc :not(pre) > code {
