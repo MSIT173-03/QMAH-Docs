@@ -15,7 +15,7 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 | `user.AspNetUserClaims`、`user.AspNetUserLogins`、`user.AspNetUserTokens` | 會員 Claim、外部登入與持久 Token | 目前 Snapshot 可為空；功能啟用後由 Identity 流程寫入 |
 | `user.UserProfiles`、`user.UserAddresses` | 會員公開資料與收件地址 | Profile 以 `UserId` 一對一；地址的預設值與並行修改需依 Schema／`RowVersion` 驗證 |
 | `user.Achievements`、`user.UserAchievements`、`user.EquippedTitles` | 成就定義、會員取得紀錄與目前稱號 | 成就取得是歷史資料；稱號再連到會員取得的成就 |
-| `common.DailyMemberActivities` | 每日會員活動與登入歷史 | 每位會員每天最多一列；統計值由歷史資料計算，不直接當作固定欄位更新 |
+| `common.DailyMemberActivities` | 每日會員活動與登入歷史 | 每位會員每天每種活動類型最多一列；統計值由歷史資料計算，不直接當作固定欄位更新 |
 | `social.UserNotifications` | 會員通知與已讀狀態 | 表位於 `social` Schema；更新範圍限於目前登入者 |
 | `store.PointBalances`、`store.PointTransactions`、`catalog.UserKeyBalances`、`catalog.KeyTransactions` | 會員點數、鑰匙餘額與異動流水 | User 使用資產，但各資料由 Store／Catalog 流程主責；查帳以流水為準 |
 | `store.UserCoupons` | 會員持有的優惠券 | 優惠券定義、使用、撤銷與批次發放有各自狀態和關聯 |

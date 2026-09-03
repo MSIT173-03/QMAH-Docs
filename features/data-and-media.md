@@ -77,7 +77,7 @@ store.Products.PrimaryImagePath
 
 三張表都以同一個 Artifact Id 串接。題庫與商品各自都有唯一索引，因此一件文物最多只會有一筆題庫設定與一件對應商品。
 
-資料工具會先建立文物與題庫，再由 `ArtifactProductGenerator` 依同一批文物產生商品。所有寫入都使用資料庫交易，任一步驟失敗時不會留下半套資料。
+QMAH-Database 的資料工具會先建立文物與題庫，再由 `ArtifactProductGenerator` 依同一批文物產生商品。所有寫入都使用資料庫交易，任一步驟失敗時不會留下半套資料。
 
 完成後應核對文物、啟用題庫與已連結商品的數量。
 
@@ -97,7 +97,7 @@ Catalog 後台實作這個動作時，先在該 Controller 寫清楚交易。如
 
 `Artifacts.SizeText` 保存官方尺寸文字；`Products.SizeText` 保存工具換算後的商品尺寸。官方資料寫「待測量」或未提供時照實標示，不產生推測數字。
 
-示意價格由 `tools/QmahDataTools/ArtifactProductGenerator` 產生，預設自動使用全部合格文物，也可設定商品數量、最低價格、最高價格與 seed。
+示意價格由 [QMAH-Database 的 `ArtifactProductGenerator`](https://github.com/MSIT173-03/QMAH-Database/tree/main/tools/QmahDataTools/ArtifactProductGenerator) 產生，預設自動使用全部合格文物，也可設定商品數量、最低價格、最高價格與 seed。
 
 價格依年代久遠程度、分類製作複雜度及固定 seed 變化值加權。同一組資料與參數會得到相同結果，方便重建測試資料。
 

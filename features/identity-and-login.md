@@ -123,7 +123,7 @@ Release 參考資料庫的展示初始化工具會建立 24 個會員與 `Admin`
 | `player-a@qmah.local` | `User` | 遊戲玩家情境 |
 | `player-b@qmah.local` | `User` | 遊戲玩家情境 |
 
-`QmahDatabaseRelease seed-showcase-users` 會讀取 Repository 根目錄的 `QMAH.DemoCredentials.local.csv`，並將備份寫到同一位置。
+QMAH-Database 的 `QmahDatabaseRelease seed-showcase-users` 會以資料庫工具 Repository 的上一層作為預設位置，讀取 `<Repository 上一層>/QMAH.DemoCredentials.local.csv`，並將備份寫到同一層；不依賴固定工作區名稱。工作台也能在內建視窗載入 `QMAH.DemoCredentials.csv` 範本並填入密碼。
 
 根目錄的 `QMAH.DemoCredentials.csv` 是可提交的空白密碼範本。若檔案不存在，或任一展示帳號的 Password 留白，工具會直接停止，不會自動產生密碼。
 

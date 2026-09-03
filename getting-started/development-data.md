@@ -33,7 +33,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 | Schema | 主要內容 | 目前資料概況 |
 | --- | --- | --- |
-| `common` | 每日會員活動與登入歷史 | 依展示會員的每日登入資料累積；每位會員每天最多一列 |
+| `common` | 每日會員活動與登入歷史 | 依展示會員的每日登入／簽到資料累積；每位會員每天每種活動類型最多一列 |
 | `admin` | 後台稽核操作與批次資產活動 | 1 筆稽核紀錄、2 筆官方／會員加碼規則；批次資產活動目前尚未執行 |
 | `catalog` | 文物、分類、年代、鑰匙、解鎖 | 8 類、12 個年代桶、256 件文物、20 筆鑰匙兌換規則與相關流水 |
 | `game` | 題庫設定、房間、玩家、回合、作答、投票與 Mini Game 契約 | 256 筆題庫設定、9 個房間、19 筆玩家紀錄、20 個回合與 4 個 Mini Game 模式 |
@@ -118,7 +118,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 | `UserAddresses` | 27 | 不同收件用途的地址情境；不使用真實個資 |
 | `Achievements` | 20 個啟用中、7 個停用 | 圖鑑、多人遊戲、Mini Game、社群與活動成就 |
 | `UserAchievements` | 68 | 會員取得成就情境 |
-| `DailyMemberActivities` | 目前展示會員的每日登入歷史 | 每位會員每天最多一列；登入天數、連續天數與登入率由歷史資料即時計算 |
+| `DailyMemberActivities` | 目前展示會員的每日登入／簽到歷史 | 每位會員每天每種活動類型最多一列；登入天數、連續天數與登入率由登入歷史即時計算 |
 | `AspNetRoleClaims` | 0 | 尚未建立角色 Claim |
 | `AspNetUserClaims` | 0 | 尚未建立會員 Claim |
 | `AspNetUserLogins` | 0 | 第三方登入尚未啟用 |
@@ -196,9 +196,9 @@ catalog.Artifacts.Id
 
 產生下一份完整 Snapshot 時，先在隔離的 canonical database 使用 `QmahDatabaseRelease seed-showcase-users` 建立或更新 24 個展示帳號。
 
-接著使用資料工具產生與文物、商品及會員互相連結的內容。完成後重新執行 `Export-ReferenceDatabase.ps1`，產出同一份 `.bak`／`.sql`。
+接著使用 QMAH-Database 的資料工具產生與文物、商品及會員互相連結的內容。完成後在 QMAH-Database 根目錄執行 `Export-ReferenceDatabase.ps1`，產出同一份 `.bak`／`.sql`。
 
-這些命令不是一般還原步驟：
+這些命令不是一般還原步驟；以下命令從 QMAH-Database Repository 根目錄執行：
 
 ```powershell
 dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelease.csproj -- `
@@ -206,6 +206,10 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
   --connection "Server=(localdb)\MSSQLLocalDB;Database=QMAH;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False" `
   --post-count 288 `
   --order-count 160 `
+  --activity-days 30 `
+  --point-transaction-count 80 `
+  --key-transaction-count 80 `
+  --key-progress-transaction-count 80 `
   --seed 173
 ```
 
@@ -221,7 +225,30 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 
 文物專題只取部分文物。遊戲貼文只有部分回合連到文物，不會把 256 件文物全部安排進討論。社群文章依固定順序取用獨立素材，不以亂數拼接句子或重複文章；文章、文物、活動、商品與會員關係仍由實際外鍵維持。
 
-`--post-count`、`--order-count` 與 `--seed` 可在隔離資料庫調整。相同參數會更新同一批工具資料，不會產生重複資料。
+`--post-count`、`--order-count`、活動天數、三種資產流水筆數與 `--seed` 可在隔離資料庫調整。相同參數會更新同一批工具資料，不會產生重複資料。只需要補產生每日活動、點數、鑰匙、鑰匙進度與登入成就時，可改執行 `generate-showcase-ledger`，不會新增貼文或訂單。
+
+```powershell
+dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelease.csproj -- `
+  generate-showcase-ledger `
+  --connection "Server=(localdb)\MSSQLLocalDB;Database=QMAH;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=False" `
+  --activity-days 30 `
+  --point-transaction-count 80 `
+  --key-transaction-count 80 `
+  --key-progress-transaction-count 80 `
+  --seed 173
+```
+
+流水與成就的資料來源如下：
+
+| 資料 | 產生方式 |
+| --- | --- |
+| 每日活動 | 依展示會員與 `--activity-days` 建立 `LOGIN`，部分日期建立 `CHECK_IN`；日期只到執行日前一天 |
+| 點數流水 | 固定 seed 產生取得／使用紀錄，並以 `SHOWCASE_GENERATED` 標記；餘額保留非工具資料的基準 |
+| 鑰匙流水 | 讀取啟用中的 `KeyDefinitions` 後分配，不把鑰匙代碼寫死在命令列 |
+| 鑰匙進度流水 | 建立獨立的進度取得／使用紀錄與餘額 |
+| 登入成就 | 讀取啟用中的 `DAILY_LOGIN_COUNT`／`DAILY_LOGIN_STREAK` 定義與門檻，登入歷史達標才建立取得紀錄 |
+
+`seed-showcase-users` 的少量固定成就列只用來讓展示帳號初始畫面有資料；產品實際成就判定仍由 `DailyActivityService` 依資料庫定義計算。工具流水使用穩定識別碼，重跑只更新工具管理列，不刪除其他來源資料。
 
 這些數字是工具批次數量，最後快照的總數以本節前段的實際資料表統計為準。命令不建立 Schema、不執行 Migration，也不刪除非工具產生的資料。
 

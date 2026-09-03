@@ -11,7 +11,7 @@ Shared 不是資料庫中的獨立 Schema，也不是第六個產品 Area；它�
 | 資料表或資料群 | 在此入口的用途 | 主要關聯／限制 |
 | --- | --- | --- |
 | `user.AspNetUsers` 及 Identity 附屬表 | 所有需要會員身分的流程共用的登入主體 | Identity 表由 Identity API 管理；其他系統以目前登入者或明確外鍵引用 |
-| `common.DailyMemberActivities` | 每日會員活動與登入歷史 | 連到 `user.AspNetUsers`；每位會員每天最多一列，統計由歷史資料計算 |
+| `common.DailyMemberActivities` | 每日會員活動與登入歷史 | 連到 `user.AspNetUsers`；每位會員每天每種活動類型最多一列，統計由歷史資料計算 |
 | `catalog.Artifacts` | 五個功能系統共同辨識文物的主資料 | Game 題庫／回合、Store 商品、Social 貼文以 `ArtifactId` 引用；Catalog 主責來源與授權 |
 | `admin.AuditLogs` | 管理操作的時間、操作者、目標與結果 | 連管理操作者；不保存密碼、Cookie、Token 或完整 request body |
 | `admin.EconomyAdjustmentBatches`、`admin.CommunityRewardCampaigns` | 批次資產與活動／房間獎勵的跨系統規則 | 可能連到 User、Store、Catalog、Game 或 Social；變更前要核對交易與稽核 |
