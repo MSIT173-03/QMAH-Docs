@@ -34,6 +34,28 @@ Controller 負責輸入與 HTTP 回應；需要共用的規則放 Service。單�
 
 ## 共用元件由哪些功能使用
 
+### 管理員增加三把鑰匙的實際呼叫
+
+在會員鑰匙背包選定會員與鑰匙，增減量填 `3`、原因填「活動補發」。表單只傳目標與原因，管理員身分由 Controller 讀取登入資料：
+
+```csharp
+var admin = await _userManager.GetUserAsync(User);
+if (admin is null)
+    return Forbid();
+
+var result = await _economyService.AdjustKeysAsync(
+    admin.Id,
+    model.UserId,
+    model.KeyDefinitionId,
+    model.Amount,
+    model.Reason,
+    cancellationToken: cancellationToken);
+```
+
+這段出自 [KeyBackpackController](https://github.com/MSIT173-03/QMAH/blob/main/QMAH.Web/Areas/Catalog/Controllers/KeyBackpackController.cs) 的 `Adjust`。Web 的 `Program.cs` 以 `AddScoped<EconomyService>()` 註冊服務，Controller 透過建構式取得它。
+
+[EconomyService](https://github.com/MSIT173-03/QMAH/blob/main/QMAH.Infrastructure/Services/Economy/EconomyService.cs) 檢查原因、鑰匙狀態及結果餘額後，在交易內增加 `UserKeyBalances.Balance`，並新增含 `Amount=3`、原因及 `CreatedByAdminUserId` 的 `KeyTransaction`。失敗時表單顯示錯誤，不應先在畫面加上三把。成功後可從該會員的鑰匙流水回查這筆操作。
+
 | 共用元件 | 實際呼叫位置 | 擴充時的做法 |
 | --- | --- | --- |
 | QmahDatabaseConnectionResolver | Web、API Program | 重用探索規則，不另猜伺服器名稱 |

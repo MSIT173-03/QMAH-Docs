@@ -1,10 +1,10 @@
 # QMAH SSMS Diagram 建立參考
 
-QMAH 依責任維護 `Diagram_User`、`Diagram_Catalog`、`Diagram_Game`、`Diagram_Social`、`Diagram_Store`、`Diagram_Admin` 和 `Diagram_Common` 七張圖。`.bak` 與 `.sql` 不包含這些版面，真正的表格結構仍以 Schema 為準。
+QMAH 依責任將資料表分為七張 SSMS 關聯圖，名稱與加入方式列於下方。共同 Release 會排除圖表版面，還原後可在 SSMS 自行建立；表格結構以 Schema 為準。
 
 這一頁只處理 SSMS Diagram 的建立與閱讀。資料表用途、主鍵、外鍵和跨 Schema 關係詳見[資料表參考](database-reference.md)；Diagram 不等同於完整資料字典。
 
-SSMS Diagram 保存的是資料表關聯的版面，不屬於 QMAH 資料庫結構。`.bak` 與完整 `.sql` 也不包含 Diagram。需要查看關聯時，在指定的 `QMAH` 資料庫建立 Diagram 即可，這不會改變資料表設計。
+SSMS 圖表版面可存於資料庫的 `dbo.sysdiagrams`。QMAH-Database 的 `Export-ReferenceDatabase.ps1` 在隔離的交付資料庫移除這張表及相關物件，再建立 Release 備份；SQL 匯出工具也排除圖表物件。因此共同 Release 不附版面，但不能推論所有 SQL Server 備份都不含圖表。自行備份的內容取決於來源資料庫。
 
 ## Diagram 名稱與範圍
 

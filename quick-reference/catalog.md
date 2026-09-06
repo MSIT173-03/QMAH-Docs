@@ -1,6 +1,6 @@
 # Catalog｜圖鑑與文物
 
-`catalog.Artifacts` 是文物主資料，透過 `CategoryId`、`EraBucketId` 和 `ArtifactId` 連到分類、年代、題庫、商品與 `ArtifactUnlocks`；圖片欄位保存邏輯路徑，網址由媒體 resolver 產生。會員使用鑰匙時，伺服器依鑰匙類型從啟用且尚未解鎖的文物建立候選，只有 `UNIVERSAL` 可以由前端指定文物。
+圖鑑保存文物內容、分類、年代與圖片來源。遊戲用這些文物出題，商城可將商品連到同一件文物，會員則透過鑰匙取得解鎖紀錄。下方先說明資料如何共用，再說明一次解鎖會改哪些資料。
 
 ## 系統範圍
 
@@ -43,19 +43,14 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 
 ## 查詢入口
 
-| 查詢目的 | 文件入口 | 這一頁要核對的內容 |
-| --- | --- | --- |
-| 確認系統責任與跨系統界線 | [Area 責任與資料界線](../architecture/area-boundaries.md) | 誰負責修改資料、哪些系統只能引用 |
-| 查資料表、主鍵與外鍵 | [資料表參考](../architecture/database-reference.md) | 表格用途、主鍵、外鍵與跨 Schema 關係 |
-| 查資料讀寫、交易與併發 | [資料存取與 DB-first](../architecture/data-access.md) | `QmahDbContext`、投影、追蹤、交易與並行控制 |
-| 查 API 路徑、DTO 與狀態 | [REST API 契約](../reference/rest-api.md) | 路徑、DTO、驗證、狀態碼與錯誤回應 |
-| 查 Angular 前台串接 | [Angular 使用者前台開發](../frontend/angular-development.md) | Route、HttpClient、Cookie、防偽與載入／錯誤狀態 |
-| 查 Razor 後台串接 | [管理後台開發起點](../admin/backend-development.md) | Area、Controller、ViewModel、授權與表單處理 |
-| 查功能規則與操作流程 | [文物資料匯入](../features/catalog-import.md)、[資料與圖片使用](../features/data-and-media.md) | 本頁範圍內的狀態、輸入、流程與歷史資料規則 |
-| 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
-| 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
-| 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
+| 要完成的工作 | 直接查閱 |
+| --- | --- |
+| 上傳文物並確認題庫或商品關聯 | [文物資料匯入](../features/catalog-import.md) |
+| 串接解鎖請求與回應 | [顯示圖鑑並使用鑰匙](../reference/rest-api.md#顯示圖鑑並使用鑰匙) |
+| 管理員補發鑰匙並查流水 | [增加鑰匙的實際呼叫](../architecture/runtime-and-shared-services.md#管理員增加三把鑰匙的實際呼叫) |
+| 確認兌換、回收與可調數值 | [經濟與進程基準](../features/economy-progression.md) |
+| 修正圖片或切換 CDN | [媒體交付設定](../frontend/media-delivery.md) |
+| 核對欄位與關聯 | [資料表參考](../architecture/database-reference.md) |
 
 ## 前台接手建議
 
