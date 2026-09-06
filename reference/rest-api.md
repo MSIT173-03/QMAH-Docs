@@ -339,6 +339,8 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 
 稱號使用的是會員取得紀錄 `UserAchievements.Id`，不是成就定義 `Achievements.Id`。服務同時核對這筆取得紀錄屬於目前會員，不能只從公開成就清單挑一個 ID 送出。
 
+查詢未配戴的稱號或成功清除稱號時，回傳 `200` 與 JSON `null`。這與登入成功的 `204` 空本文不同：稱號回應可以解析為 JSON，再依結果是否為 `null` 顯示未配戴狀態。
+
 延伸閱讀：[資料表與關聯](../architecture/database-reference.md)可核對持券、稱號及流水的識別；[經濟與進程](../features/economy-progression.md)說明資產規則；[API 名詞表](api-glossary.md)說明 DTO、防偽權杖及錯誤回應。
 
 鑑定點數、鑰匙與優惠券的異動資料是資產歷史的主要來源。`admin.AuditLogs` 不記錄每個 API 讀取或 request body（請求本文）。
