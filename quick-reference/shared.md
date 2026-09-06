@@ -1,6 +1,14 @@
 # Shared｜共用基礎
 
-本頁提供共用基礎的快速查閱入口，先看下表，再依工作需要閱讀實際運作方式與資料表。完整規則以連結的正規文件為準。
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | API、Razor 後台、Angular 前台和資料工具都會用到登入、資料庫連線、媒體 URL、資產異動或共用資料。這些規則若各系統各寫一份，設定順序、錯誤處理和流水格式很快就會分叉。 |
+| What（現在實際怎麼運作） | `QMAH.Infrastructure` 集中 Entity、`QmahDbContext`、資料庫探索、Identity 共用能力、媒體 resolver、資產流水與跨系統服務；`common` Schema 保存共用資料，`QMAH-Database` 保存可還原 Snapshot。Shared 是共用基礎入口，不取代五個功能系統或 Operations 的資料主責。 |
+| How（要新增跨系統功能怎麼走） | 先判斷規則是否真的會被多個系統使用，再查本頁找到既有服務、註冊位置和資料表；若已有共用能力就直接注入，不在 Controller 另寫一套。只有業務資料仍由 Catalog、Game、Social、Store、User 或 Operations 自己維護，完成後同時測試 API、Web 和前台需要的共用行為。 |
+
+**適用情境：** 需要新增跨系統服務、排查資料庫連線／媒體 URL／資產流水，或判斷一段規則該不該放進 `QMAH.Infrastructure` 時，先看本頁的共用責任和使用者；業務資料的欄位與狀態仍回到五個功能系統或 Operations 文件。
 
 ## 快速查閱
 

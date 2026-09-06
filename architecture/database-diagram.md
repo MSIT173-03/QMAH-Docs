@@ -1,5 +1,15 @@
 # QMAH SSMS Diagram 建立參考
 
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | SSMS Diagram 適合快速看外鍵關係，但它只保存圖上的表格位置和連線。若把圖當成 Schema 或資料內容，會誤以為備份還原後一定帶有同一張圖，也可能漏看欄位限制。 |
+| What（現在實際怎麼做） | QMAH 依責任維護 `Diagram_User`、`Diagram_Catalog`、`Diagram_Game`、`Diagram_Social`、`Diagram_Store`、`Diagram_Admin` 和 `Diagram_Common` 七張圖。`.bak` 與 `.sql` 不包含這些版面，真正的表格結構仍以 Schema 為準。 |
+| How（要查看或更新時怎麼走） | 先在 SSMS 連到指定的 `QMAH` 資料庫，使用 **New Database Diagram**，再用 **Add Table...** 加入既有表格，不使用 **New Table**。圖只用來確認關聯方向；欄位、索引、`NULL`、`CHECK` 和 `rowversion` 回到資料表參考與 Schema 核對。 |
+
+**適用情境：** 需要用 SSMS 看會員、圖鑑、遊戲、社群、商城或稽核資料怎麼連在一起時，先開對應的 Diagram；如果問題是欄位是否存在、資料內容是否正確或備份是否包含圖表，請改查 Schema、資料表參考或 Snapshot。
+
 這一頁只處理 SSMS Diagram 的建立與閱讀。資料表用途、主鍵、外鍵和跨 Schema 關係詳見[資料表參考](database-reference.md)；Diagram 不等同於完整資料字典。
 
 SSMS Diagram 保存的是資料表關聯的版面，不屬於 QMAH 資料庫結構。`.bak` 與完整 `.sql` 也不包含 Diagram。需要查看關聯時，在指定的 `QMAH` 資料庫建立 Diagram 即可，這不會改變資料表設計。

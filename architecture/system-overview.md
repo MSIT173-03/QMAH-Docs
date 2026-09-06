@@ -1,5 +1,15 @@
 # 系統架構總覽
 
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | QMAH 的程式、完整資料和文件不在同一個 Repository；同一個功能又可能同時經過 API、管理後台、Angular 前台與共用程式庫。先定位責任，才不會在錯的專案修改或把 Snapshot 當成程式來源。 |
+| What（現在實際怎麼分） | `QMAH` 保存 `QMAH.Api`、`QMAH.Web`、`QMAH.Client`、`QMAH.Infrastructure` 與 `Schema.sql`；`QMAH-Database` 保存 `db-v0.8.0` 完整 Snapshot；`QMAH-Docs` 保存這些元件的操作、契約、架構與查閱路線。 |
+| How（開始一項工作怎麼走） | 先從系統圖判斷是 API、Web、Client、Infrastructure、Schema 或 Snapshot 的問題，再讀對應的系統邊界與資料表文件。需要跨層修改時，沿著 API／ViewModel、Service、DbContext、Schema 和文件逐層核對，最後用實際啟動流程確認前台或後台拿到的結果。 |
+
+**適用情境：** 不確定該改 `QMAH`、`QMAH-Database` 還是 `QMAH-Docs`，或一個錯誤同時出現在 API、Razor 後台、Angular 前台和資料庫時，先用本頁定位 Repository、專案與資料流，再進入對應文件。
+
 本頁說明 QMAH 的執行面，以及資料庫、文件和資料工具的責任關係。五個功能系統與營運中心可以平行開發；開始單一工作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。跨文件的名詞定義見[文件閱讀與名詞基準](../reference/terminology.md)。
 
 ## 系統如何運作

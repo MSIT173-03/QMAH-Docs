@@ -1,5 +1,15 @@
 # Angular 使用者前台開發
 
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | 使用者前台的畫面只是最後一層，真正會先卡住的是 Angular 版本、開發伺服器 proxy、Cookie、XSRF 和 API 錯誤處理。先把這些基線接對，功能元件才不會在完成後才發現請求送錯主機或登入狀態沒有帶上。 |
+| What（現在實際怎麼做） | `QMAH.Client` 使用 Angular 21.2.22，已有 Router、HttpClient、Cookie／XSRF 與 proxy 設定；API 契約由 `QMAH.Api` 的 `/api/v1` 提供，`app.routes.ts` 目前保留為前台功能接手入口，尚未放入功能路由。 |
+| How（新增一個前台功能怎麼走） | 先啟動 API 和 Angular，確認 proxy 能取得 `/api/v1` 回應與登入 Cookie；再從 REST API 契約選定資料，建立 lazy route、service、component 與狀態處理。最後依序測試載入中、空資料、`401`／`403`、驗證錯誤、重複送出、圖片失敗和離開頁面後的清理。 |
+
+**適用情境：** 準備開始第一個 Angular 使用者前台頁面、想確認 VS Code 或 Visual Studio 的啟動方式、或已經有 API 但不知道 route、service、component 要怎麼分時，先從這頁建立可呼叫 API 的最小骨架。
+
 本頁是 QMAH 使用者前台的 Angular 開發入口。`QMAH.Client` 使用 Angular 21.2.22，透過 `QMAH.Api` 的 `/api/v1` JSON 契約取得資料與執行操作。前端、後端、前台與後台的固定用法見[文件閱讀與名詞基準](../reference/terminology.md)。
 
 資料庫、Identity（登入與會員驗證元件）、圖片網址與跨系統規則由 `QMAH.Infrastructure` 共用。

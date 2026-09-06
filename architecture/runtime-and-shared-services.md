@@ -1,5 +1,15 @@
 # 應用程式啟動與共用服務
 
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | 登入是否成立、資料庫連到哪裡、圖片網址怎麼產生、資產流水由誰寫入，往往在 Controller 執行前就已經決定。只看單一 Action 容易把共用行為重做一遍，或在錯的主機上修問題。 |
+| What（現在實際怎麼跑） | `Program.cs` 讀取設定、尋找 `QMAH` 資料庫、註冊 Identity、DbContext、resolver、Service 與 Middleware；請求進入後由 Controller 呼叫 Service，再由 `QmahDbContext` 存取資料庫，回應才交回 API 或 Razor View。 |
+| How（遇到共用問題怎麼查） | 先確認啟動主機與設定來源，再沿著資料庫 resolver、DI 註冊、Middleware、Controller、Service 到 DbContext 逐段追查。要新增共用能力時先確認是否被多個系統使用，將註冊放在共同入口，讓各 Controller 只呼叫服務，不各自解析連線、媒體網址或資產異動。 |
+
+**適用情境：** 啟動時連不到 `QMAH`、API 與 Web 行為不同、圖片 URL 不對、資產流水漏寫，或新增的共用 Service 沒有被注入時，從 `Program.cs` 和實際註冊順序開始追，不先在各個 Controller 加重複邏輯。
+
 本頁說明網站啟動、請求進入 Controller 後如何使用共用服務，以及資產流水和媒體設定的責任。一次完整流程的白話例子見 [5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)；跨文件名詞見[文件閱讀與名詞基準](../reference/terminology.md)。
 
 ## Program.cs：從設定到接收請求

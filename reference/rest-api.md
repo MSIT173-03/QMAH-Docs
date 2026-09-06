@@ -1,5 +1,15 @@
 # REST API 契約
 
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | 使用者前台只需要知道「呼叫哪個路徑、送哪些欄位、成功會收到什麼、失敗要怎麼顯示」。Entity、資料表和 Controller 是後端實作，不能拿來猜 API 的公開格式，否則前台會綁死內部結構。 |
+| What（現在實際記錄什麼） | 本頁以 `/api/v1` 為範圍，記錄 HTTP method、path、登入與 Cookie／XSRF 要求、Request／Response DTO、`summary`／`description`、成功狀態和 `400`、`401`、`403`、`404`、`409`、`413` 等流程錯誤；啟動中的 `/openapi/v1.json` 與 `/scalar/v1` 是可直接驗證的機器契約和測試頁。 |
+| How（前台接一個 Endpoint 怎麼走） | 先在 Endpoint 清單找到功能，再讀該條目的輸入、權限、成功回應與錯誤狀態；啟動 API 後用 Scalar 或 OpenAPI 核對實際 Schema。寫入請求先取得 anti-forgery token、沿用登入 Cookie，收到回應後依狀態碼更新畫面，不用前端自行推算資產、訂單、解鎖或遊戲結果。 |
+
+**適用情境：** 前台要開始串接一個 API、後端修改 Controller 回應，或 Scalar 看起來和文件不一致時，先在本頁找到完整 Endpoint 條目，再用 `/openapi/v1.json` 和 `/scalar/v1` 對照實際輸入、回應、權限與狀態碼。
+
 QMAH API 位於獨立的 `QMAH.Api` 專案，所有版本化 Endpoint（API 可呼叫的路徑）以 `/api/v1` 開頭。
 
 API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.Infrastructure`、Identity（登入與會員驗證元件）與 SQL Server（資料庫服務）。API 不複製 Entity（資料庫對應模型），也不建立第二個資料庫。

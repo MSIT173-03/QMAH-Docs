@@ -1,6 +1,14 @@
 # User｜會員與 Identity
 
-本頁提供 User（會員與 Identity）的快速查閱入口，先看下表，再依工作需要閱讀實際運作方式與資料表。完整規則以連結的正規文件為準。
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | 會員目前持有多少、過去為什麼變動、是否登入過、是否取得成就和目前配戴哪個稱號，分別由不同資料回答。把 Balance 當成完整歷史，或把管理員登入當成會員每日登入，會得到錯誤的成就和營運統計。 |
+| What（現在實際怎麼分） | User 管理 Identity 帳號與角色、`UserProfiles`、地址、登入活動、`UserAchievements`、Equipped Title，以及點數、鑰匙和優惠券背包的會員視角；資產目前狀態在 Balance，異動在 Transaction，優惠券每次取得是獨立的 `UserCoupon`。每日登入活動只由使用者前台明確登記。 |
+| How（查會員或開發前台怎麼走） | 先用 Identity 確認 `UserId` 和權限，再依需求查 Profile、登入活動、成就／稱號或資產；查帳時先看 Balance，再用 Transaction、Batch、Audit log 或 UserCoupon 追原因和時間。切換稱號前確認會員已取得對應 Achievement，資產與優惠券操作則只走既有 Service 和 API，不直接改 Identity 或資產表。 |
+
+**適用情境：** 需要查會員目前狀態、登入活動、成就稱號、點數、鑰匙或優惠券背包時，先用本頁決定要查目前狀態還是歷史流水；遇到登入或每日登入成就問題，另外核對 Identity 與每日活動的觸發條件。
 
 ## 快速查閱
 

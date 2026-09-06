@@ -1,6 +1,14 @@
 # Operations｜營運中心
 
-本頁提供營運中心的快速查閱入口。營運中心是 `QMAH.Web/Controllers/OperationsController.cs` 提供的跨系統管理與統計入口，不取代 Catalog、Game、Social、Store 或 User 的資料主責；完整流程見[5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)。
+## 快速理解
+
+| 先問自己 | 文件直接回答 |
+| --- | --- |
+| Why（為什麼要看這頁） | 營運卡片回答期間統計，會員詳情回答單一帳號，批次活動回答一次營運措施影響了誰；三者不能用同一個數字代替。先分清統計母體和資產流水，才知道卡片數字與個人帳務為什麼不同。 |
+| What（現在實際怎麼運作） | `OperationsController` 提供跨系統統計、日期篩選、會員與資產查詢，以及點數／鑰匙／優惠券批次操作。批次會保存篩選條件、增減量、必填原因、管理員 ID、執行時間、成功／失敗結果；真正的會員 Balance 變更仍由資產 Service 寫入各自 Transaction。 |
+| How（查統計或執行批次怎麼走） | 先選期間或預設的七天、一個月、一季、一年範圍，確認指標的母體與去重規則；需要改資產時先填條件並預覽對象和數量，再確認一次後執行，不能跳過預覽。完成後從批次結果、管理員稽核紀錄和 Point／Key／Coupon 流水回查，遇到日期或卡片不符先檢查範圍是否已切成自訂。 |
+
+**適用情境：** 需要解讀營運卡片、切換日期範圍、查會員流水，或執行點數／鑰匙／優惠券批次活動時，先看本頁的統計母體和預覽流程。營運中心是 `QMAH.Web/Controllers/OperationsController.cs` 的跨系統入口，不取代 Catalog、Game、Social、Store 或 User 的資料主責；跨系統流程再看[5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)。
 
 ## 快速查閱
 

@@ -3,12 +3,13 @@
 <div class="qmah-home">
   <section class="qmah-index-header" aria-labelledby="qmah-home-title">
     <h1 id="qmah-home-title">QMAH 開發文件</h1>
-    <p class="qmah-index-lead">各系統可以平行開發。從負責的功能進入，查操作流程、API 與資料；需要共用登入、文物或資產時，再確認跨系統約定。</p>
+    <p class="qmah-index-lead"><strong>Why</strong>：不同工作要查的來源不同，先定位入口才能避免在 API、資料庫、前台和後台之間來回猜。<strong>What</strong>：本站把環境、共同資料、API、使用者前台、管理後台、資料庫、五個功能系統、營運中心與工具分開整理。<strong>How</strong>：先按工作索引選入口，再在快速查閱頁確認責任和流程，最後進入實際契約、程式位置或操作步驟。</p>
     <div class="qmah-index-meta" aria-label="文件站資訊">
       <span>QMAH / DOCUMENTATION</span>
       <span>Markdown source · VitePress build</span>
       <span>DB-first · API · Snapshot</span>
     </div>
+    <p class="qmah-index-usage"><strong>適用情境</strong>：第一次進入專案先從準備環境開始；已知道工作內容就直接選系統或查詢入口，不需要依側欄順序閱讀。</p>
   </section>
 
   <section id="reading-route" class="qmah-work-index" aria-labelledby="qmah-route-title">
