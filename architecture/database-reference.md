@@ -1,6 +1,6 @@
 # 資料表參考
 
-`QMAH/database/Schema.sql` 是表格、欄位、索引與外鍵的結構來源；`QmahDbContext` 和 Entity 是 C# 對照；REST API 文件是前台可見欄位；QMAH-Database 的 `db-v0.8.0` Snapshot 才是共同展示資料列。
+要查「資料存在哪張表」「兩張表如何連接」，先看本頁的表格用途與關聯。若問題是「前台會收到哪些欄位」，則查 API 契約：資料庫欄位不一定全部對外回傳。
 
 本頁是 QMAH 資料表的文字字典，補充 [SSMS Diagram 建立參考](database-diagram.md) 不適合放進圖表的用途、主鍵、外鍵和開發注意事項。資料庫結構以 `QMAH/database/Schema.sql` 為準，Entity 與關聯映射以 `QMAH.Infrastructure/Data/QmahDbContext.cs` 為準；完整資料列則以 [QMAH-Database 的 Snapshot](https://github.com/MSIT173-03/QMAH-Database) 為準。
 

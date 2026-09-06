@@ -3,19 +3,19 @@
 <div class="qmah-home">
   <section class="qmah-index-header" aria-labelledby="qmah-home-title">
     <h1 id="qmah-home-title">QMAH 開發文件</h1>
-    <p class="qmah-index-lead"><strong>Why</strong>：不同工作要查的來源不同，先定位入口才能避免在 API、資料庫、前台和後台之間來回猜。<strong>What</strong>：本站把環境、共同資料、API、使用者前台、管理後台、資料庫、五個功能系統、營運中心與工具分開整理。<strong>How</strong>：先按工作索引選入口，再在快速查閱頁確認責任和流程，最後進入實際契約、程式位置或操作步驟。</p>
+    <p class="qmah-index-lead">查啟動方式、串接 API、理解功能流程或排查資料問題，都可以從下方工作入口開始。各系統頁說明功能如何運作，詳細文件提供操作步驟、程式位置與資料規則。</p>
     <div class="qmah-index-meta" aria-label="文件站資訊">
       <span>QMAH / DOCUMENTATION</span>
       <span>Markdown source · VitePress build</span>
       <span>DB-first · API · Snapshot</span>
     </div>
-    <p class="qmah-index-usage"><strong>適用情境</strong>：第一次進入專案先從準備環境開始；已知道工作內容就直接選系統或查詢入口，不需要依側欄順序閱讀。</p>
+    <p class="qmah-index-usage">已有明確問題可直接查「按工作找文件」；知道 API 路徑、資料表或錯誤訊息時，可使用頂端搜尋。各系統可以平行開發，跨系統資料再依文件中的關聯確認。</p>
   </section>
 
   <section id="reading-route" class="qmah-work-index" aria-labelledby="qmah-route-title">
     <nav class="qmah-index-rail" aria-label="工作索引">
       <p class="qmah-index-label">工作索引</p>
-      <a class="qmah-rail-item" href="#reading-route">
+      <a class="qmah-rail-item" href="./getting-started/development-environment">
         <span class="qmah-rail-marker" aria-hidden="true"></span>
         <span><strong>準備環境</strong><small>工具、資料庫與服務</small></span>
       </a>
@@ -25,13 +25,13 @@
       </a>
       <a class="qmah-rail-item" href="#complete-directory">
         <span class="qmah-rail-marker" aria-hidden="true"></span>
-        <span><strong>查交付規則</strong><small>契約、工具與協作</small></span>
+        <span><strong>完整文件目錄</strong><small>依主題查操作、規則與參考資料</small></span>
       </a>
     </nav>
     <div class="qmah-index-sheet">
       <p class="qmah-index-label">讀取方式</p>
       <h2 id="qmah-route-title">共同基準與功能範圍</h2>
-      <p>第一次開啟專案可先確認環境與資料庫。各系統開發彼此獨立；文件排列只是查閱入口，沒有要求依序完成各系統。</p>
+      <p>要啟動專案，先確認工具與資料庫；要修改功能，可直接進入對應系統頁。這些入口可依工作選用。</p>
       <ol class="qmah-route-list">
         <li><a href="./getting-started/development-environment">準備開發環境</a><span>工具、啟動、連線與共同 Snapshot</span></li>
         <li><a href="./getting-started/development-data">確認共同資料</a><span>Snapshot、資料表、狀態與展示資料</span></li>
@@ -69,8 +69,12 @@
 | 開發管理後台 | [管理後台開發起點](admin/backend-development.md) | [Razor 與 Tabler 管理後台介面](admin/razor-admin-ui.md) |
 | 查 API 要送什麼、會收到什麼 | [REST API 契約](reference/rest-api.md) | [API 名詞表](reference/api-glossary.md)、啟動後的 Scalar |
 | 查資料表、外鍵或交易 | [資料表參考](architecture/database-reference.md) | [資料存取與 DB-first](architecture/data-access.md) |
-| 修改圖片、地圖或外部來源 | [媒體交付設定](frontend/media-delivery.md) | [地點與地圖串接說明](features/map-integration.md)、[資料與圖片使用說明](features/data-and-media.md) |
-| 匯入資料或建立展示 Snapshot | [開發資料與本機展示](getting-started/development-data.md) | [QMAH 資料工具參考](reference/data-tools.md) |
+| 圖片顯示不出來，或準備改用 CDN | [媒體交付設定](frontend/media-delivery.md) | [資料與圖片使用說明](features/data-and-media.md) |
+| 在活動或地址欄位顯示地圖 | [地點與地圖串接說明](features/map-integration.md) | 確認地址、座標留空及地圖連結的處理 |
+| 登入失敗，或 API 回傳 401／403 | [Identity 與登入](features/identity-and-login.md) | [登入後讀取會員資料](reference/rest-api.md#登入後讀取會員資料) |
+| 資產數量不對，想查誰做了異動 | [經濟與進程基準](features/economy-progression.md) | [管理員補發鑰匙實例](architecture/runtime-and-shared-services.md#管理員增加三把鑰匙的實際呼叫) |
+| 匯入文物與圖片 | [文物資料匯入](features/catalog-import.md) | 預覽、確認套用與匯入結果 |
+| 還原、升級或製作資料庫版本 | [還原、升級或匯入的差別](reference/data-tools.md#選擇還原、升級或匯入) | [開發資料與本機展示](getting-started/development-data.md) |
 | 查資產、批次活動與稽核 | [Operations｜營運中心](quick-reference/operations.md) | [經濟與進程基準](features/economy-progression.md)、[資料表參考](architecture/database-reference.md) |
 | 協作、分支與交付 | [Git 與 GitHub 協作手冊](reference/git-workflow.md) | [QMAH-Docs 協作規則](CONTRIBUTING.md) |
 

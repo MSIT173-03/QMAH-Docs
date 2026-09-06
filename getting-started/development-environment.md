@@ -1,8 +1,8 @@
 # 開發環境與啟動
 
-本頁整理 SDK、NuGet、SQL Server／LocalDB、共同 Snapshot、Visual Studio、Visual Studio Code、命令列、Hot Reload、Scaffold，以及 API／Web／Angular 的單獨或多個啟動設定。資料庫連線會優先使用檔案設定，找不到時才依本機候選尋找 `QMAH`。
+要在本機執行 QMAH，需要開發工具、可連線的 `QMAH` 資料庫，以及要執行的專案。本頁提供 Visual Studio、VS Code 和命令列的啟動方式；可單獨啟動 API 或管理後台，也可同時啟動。
 
-本頁說明 QMAH 的開發環境、資料庫還原、NuGet 套件、雙主機啟動、Hot Reload、Angular 使用者前台與 CRUD Scaffold。
+資料庫連線優先使用設定檔；啟用本機探索時，指定連線無法使用才尋找其他本機候選。共同 Snapshot 是組員使用的資料庫快照，包含結構與展示資料。
 
 完成資料庫還原後，可直接用 Visual Studio 開啟方案並按 `F5`，不需要先執行命令列。
 
