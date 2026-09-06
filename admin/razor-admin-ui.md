@@ -53,7 +53,7 @@
 使用共用後台 Layout 後，頁面會自動擁有：
 
 - QMAH Logo
-- 總覽與五大系統導覽
+- 總覽、五個功能系統與營運中心導覽
 - 目前 Area 的選單標示
 - 頁面標題與說明
 - 頁首右上方操作按鈕區
@@ -129,7 +129,7 @@ Layout 設定完成後，即可加入該頁面的實際內容：
 QMAH.Web/Areas/User/Views/_ViewStart.cshtml
 ```
 
-目前 Catalog、Game、Social、Store、User 都已經有這份 Area 專用檔案，不需要重複建立。若未來新增第六個後台 Area，建立方式如下：
+目前 Catalog、Game、Social、Store、User 都已經有這份 Area 專用檔案，不需要重複建立。營運中心位於根目錄 Controller，不以第六個 Area 表示；若未來新增其他後台 Area，建立方式如下：
 
 1. 在 Solution Explorer 對 `Areas/<Area>/Views` 資料夾按右鍵。
 2. 選 **Add** → **New Item...**。

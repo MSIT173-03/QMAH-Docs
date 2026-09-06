@@ -1,6 +1,6 @@
 # Angular 使用者前台開發
 
-本頁是 QMAH 使用者前台的 Angular 開發入口。`QMAH.Client` 使用 Angular 21.2.22，透過 `QMAH.Api` 的 `/api/v1` JSON 契約取得資料與執行操作。
+本頁是 QMAH 使用者前台的 Angular 開發入口。`QMAH.Client` 使用 Angular 21.2.22，透過 `QMAH.Api` 的 `/api/v1` JSON 契約取得資料與執行操作。前端、後端、前台與後台的固定用法見[文件閱讀與名詞基準](../reference/terminology.md)。
 
 資料庫、Identity（登入與會員驗證元件）、圖片網址與跨系統規則由 `QMAH.Infrastructure` 共用。
 
@@ -18,7 +18,7 @@ Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、
 
 版本變更需同時更新相依鎖定檔、檢查課程要求與重新執行安全性檢查。不在單一功能分支升降版本。[Angular 版本相容性](https://angular.dev/reference/versions)／[Angular 版本發布與支援週期](https://angular.dev/reference/releases)
 
-## 四個詞的分工
+## 前端、後端、前台與後台
 
 後端（backend）與前端（frontend）描述技術層；前台（front office）與後台（back office）描述使用對象。QMAH 的對應如下：
 
@@ -90,7 +90,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 各系統可獨立開發的頁面、API 與跨系統確認事項整理在[前台功能接手指南](feature-development-guide.md)。開始單一功能時，可先讀該系統的快速參考頁，再依接手指南完成第一條可操作流程。
 
-下表列出各系統需要的 API，列出的順序不代表開發順序：
+下表列出各系統需要的 API；表格排列只為方便查找，不代表開發先後：
 
 | 功能 | 主要 API | 前台需要組合的資料 |
 | --- | --- | --- |
@@ -160,7 +160,7 @@ src/app/
 
 使用者前台功能以後端 API DTO 建立型別，再由 service 轉成畫面需要的資料。不將資料庫 Entity 複製到 Angular。
 
-## 新增功能的最小交付順序
+## 新增功能的最小交付流程
 
 1. 先在 `src/app/features/<feature>/` 建立 standalone component、型別與 service；`<feature>` 使用 `catalog`、`social`、`game`、`member` 或 `store` 等功能名稱。
 2. 在 `app.routes.ts` 增加 lazy route，路由元件只負責組合頁面，不直接散落 HTTP、狀態代碼或資料轉換。

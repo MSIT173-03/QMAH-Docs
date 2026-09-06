@@ -256,7 +256,7 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 
 隔離資料庫執行 `seed-showcase-users` 與 `generate-showcase-data` 後，必須再透過單一 Snapshot pipeline 產生完整 `.bak`／`.sql`。還原時只使用這份快照。
 
-工具命令、參數、帳號檔案邊界與 Snapshot 交付順序，集中記錄在 [資料工具參考](../reference/data-tools.md)。本文件保留共同資料的內容與關係，將資料維護操作和網站啟動步驟分開說明。
+工具命令、參數、帳號檔案邊界與 Snapshot 交付檢查，集中記錄在 [資料工具參考](../reference/data-tools.md)。本文件保留共同資料的內容與關係，將資料維護操作和網站啟動步驟分開說明。
 
 ## 6. 訂單與付款規則
 

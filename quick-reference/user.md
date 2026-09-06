@@ -1,6 +1,6 @@
 # User｜會員與 Identity
 
-快速定位工作可先看下表，再閱讀實際流程與資料表。
+本頁提供 User（會員與 Identity）的快速查閱入口，先看下表，再依工作需要閱讀實際運作方式與資料表。完整規則以連結的正規文件為準。
 
 ## 快速查閱
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | 先理解怎麼運作 | [登入活動、日數、登入成就及稱號](../getting-started/system-walkthrough.md#會員：何時算登入一天) |
 | 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [啟動與共用元件](../architecture/runtime-and-shared-services.md) |
+| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
 
 ## 系統範圍
 
@@ -55,7 +55,7 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
 
 ## 前台接手建議
 
@@ -72,7 +72,9 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 - 私人資料查詢是否以目前登入者的 `UserId` 限制；並行修改是否檢查 `RowVersion`。
 - API 的 Cookie／防偽設定、前台 `credentials`、OpenAPI security metadata、Identity 設定與文件是否同步。
 
-## 建議查閱順序
+## 後續查閱
+
+以下是查文件的路線，不是系統實作先後。
 
 1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
 2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。

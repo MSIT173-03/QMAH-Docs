@@ -1,10 +1,10 @@
 # 應用程式啟動與共用服務
 
-第一次接手可先閱讀 [5＋1 系統快速查閱與操作流程](../getting-started/system-walkthrough.md)，從查看背包、增加鑰匙到查帳逐步了解功能。本頁補充程式啟動及擴充位置。
+本頁說明網站啟動、請求進入 Controller 後如何使用共用服務，以及資產流水和媒體設定的責任。一次完整流程的白話例子見 [5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)；跨文件名詞見[文件閱讀與名詞基準](../reference/terminology.md)。
 
-## Program.cs 的兩個階段
+## Program.cs：從設定到接收請求
 
-網站啟動時先註冊服務，再設定請求經過的處理順序。註冊服務不等於執行業務操作，例如註冊 EconomyService 不會立刻發放點數。
+網站啟動時會先讀取設定並註冊服務，再建立請求會經過的處理管線。註冊服務不等於執行業務操作，例如註冊 `EconomyService` 不會立刻發放點數。以下是網站啟動與單次請求的執行順序，不是功能系統的開發順序。
 
 1. 讀取共同設定、環境別設定、環境變數等來源，最後加入 `appsettings.Local.json`，同名值由 Local 覆寫。資料庫目標等在啟動時讀成固定值，修改後需重新啟動。
 2. 允許探索時，`QmahDatabaseConnectionResolver` 檢查指定連線及本機候選，採第一個符合條件者。必要表檢查不等於完整版本驗證；關閉探索時直接使用指定連線。
@@ -20,7 +20,7 @@
 
 Controller 負責輸入與 HTTP 回應；需要共用的規則放 Service。單一系統的既有 CRUD 不必只為形式一致搬進共用層。
 
-## 哪些功能使用共用元件
+## 共用元件由哪些功能使用
 
 | 共用元件 | 實際呼叫位置 | 擴充時的做法 |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ Program 啟用 SQL 短暫錯誤重試後，手動交易需要把整段操作放�
 
 此圖表示查帳用途，不表示 SQL 外鍵。Balance 查目前數量，Transaction 查增減來源，UserCoupons 查券生命週期，批次主檔查活動整體，AuditLogs 查管理操作結果。
 
-[可編輯圖檔](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/asset-ledger-map.drawio) · [逐步查帳說明](../getting-started/system-walkthrough.md#查帳快速對照)
+[可編輯圖檔](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/asset-ledger-map.drawio) · [查帳快速對照](../getting-started/system-walkthrough.md#查帳快速對照)
 
 ## 圖片與部署設定
 

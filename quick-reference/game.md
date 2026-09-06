@@ -1,6 +1,6 @@
 # Game｜遊戲與作答
 
-快速定位工作可先看下表，再閱讀實際流程與資料表。
+本頁提供 Game（遊戲與作答）的快速查閱入口，先看下表，再依工作需要閱讀實際運作方式與資料表。完整規則以連結的正規文件為準。
 
 ## 快速查閱
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | 先理解怎麼運作 | [房間、回合、領獎及 Mini Game 驗證範圍](../getting-started/system-walkthrough.md#遊戲：作答、投票、領獎分開處理) |
 | 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [啟動與共用元件](../architecture/runtime-and-shared-services.md) |
+| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
 
 ## 系統範圍
 
@@ -56,7 +56,7 @@ Game 負責遊戲房間、玩家、回合、選題、作答、投票、邀請與
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
 
 ## 前台接手建議
 
@@ -73,7 +73,9 @@ Game 負責遊戲房間、玩家、回合、選題、作答、投票、邀請與
 - `RowVersion`、資料庫唯一限制與 `DbUpdateConcurrencyException` 是否一起驗證；完成資料是否禁止任意刪除。
 - API DTO、OpenAPI catalog、前台畫面、管理後台、經濟規則與展示資料是否同步。
 
-## 建議查閱順序
+## 後續查閱
+
+以下是查文件的路線，不是系統實作先後。
 
 1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
 2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。

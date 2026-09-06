@@ -1,6 +1,6 @@
 # Shared｜共用基礎
 
-快速定位工作可先看下表，再閱讀實際流程與資料表。
+本頁提供共用基礎的快速查閱入口，先看下表，再依工作需要閱讀實際運作方式與資料表。完整規則以連結的正規文件為準。
 
 ## 快速查閱
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | 先理解怎麼運作 | [共用服務、批次活動與營運查詢](../getting-started/system-walkthrough.md#營運中心：看整體與發起批次資產活動) |
 | 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [啟動與共用元件](../architecture/runtime-and-shared-services.md) |
+| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
 
 ## 系統範圍
 
@@ -16,7 +16,7 @@ Shared 不是資料庫中的獨立 Schema，也不是第六個產品 Area；它�
 
 ## 實際運作方式
 
-Web 與 API 啟動時先載入環境設定，再由共用 resolver 選擇資料庫與媒體網址。HTTP request 進入後依序經過路由、限流、Cookie 修復、跨來源規則、登入與授權，Controller 才會呼叫 scoped Service。涉及資產或跨表狀態的 Service 在同一交易內寫入目前值與歷史來源；管理後台另外由 Audit filter 保存操作者與操作結果。完整呼叫關係與擴充位置見[應用程式啟動與六大系統流程](../architecture/runtime-and-shared-services.md)。
+Web 與 API 啟動時先載入環境設定，再由共用 resolver 選擇資料庫與媒體網址。HTTP request 進入後依序經過路由、限流、Cookie 修復、跨來源規則、登入與授權，Controller 才會呼叫 scoped Service。涉及資產或跨表狀態的 Service 在同一交易內寫入目前值與歷史來源；管理後台另外由 Audit filter 保存操作者與操作結果。完整呼叫關係與擴充位置見[應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md)。
 
 ## 資料表與關聯
 
@@ -55,7 +55,7 @@ Web 與 API 啟動時先載入環境設定，再由共用 resolver 選擇資料�
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
 
 ## 前台接手建議
 
@@ -72,7 +72,9 @@ Web 與 API 啟動時先載入環境設定，再由共用 resolver 選擇資料�
 - 跨系統寫入是否有明確主責、交易、冪等、併發、失敗回復、稽核與歷史保留方式。
 - 文件、工具輸出、Snapshot、媒體檔與本機憑證是否放在正確 Repository 或未提交的本機位置。
 
-## 建議查閱順序
+## 後續查閱
+
+以下是查文件的路線，不是系統實作先後。
 
 1. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
 2. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。

@@ -48,7 +48,7 @@ export default defineConfig({
 THESIS: QMAH-Docs makes the next development action visible without hiding the system boundary.
 OWN-WORLD: Ink navy, porcelain blue, verdigris, and a restrained cinnabar mark; ruled index lines and accession-style labels.
 STORY: A reader enters through a task, follows one canonical page, then returns to code, API, or the shared snapshot with less ambiguity.
-OPENING SEQUENCE: The opening sequence shows the reading route, six quick-reference pages in Shared, Catalog, Game, Social, User, Store order, and the full directory in that order.
+OPENING SEQUENCE: The opening sequence shows the reading route, seven quick-reference pages grouped as Shared, Operations, Catalog, Game, Social, User, and Store, and the full directory in that order.
 FORM: An accession-ledger field index with a visible task rail, a fixed quick-reference template, and readable dense-data fallbacks.
 FINISH: The build is checked for content order, internal links, narrow-screen reflow, keyboard focus, and reduced motion; the current review is recorded in DESIGN.md.
 -->`
@@ -66,10 +66,17 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
     },
     sidebar: [
       {
-        text: '六個入口快速查詢',
+        text: '共用與營運',
         collapsed: false,
         items: [
           { text: 'Shared｜共用基礎', link: '/quick-reference/shared' },
+          { text: 'Operations｜營運中心', link: '/quick-reference/operations' }
+        ]
+      },
+      {
+        text: '五個功能系統',
+        collapsed: false,
+        items: [
           { text: 'Catalog｜圖鑑與文物', link: '/quick-reference/catalog' },
           { text: 'Game｜遊戲與作答', link: '/quick-reference/game' },
           { text: 'Social｜社群與活動', link: '/quick-reference/social' },
@@ -80,7 +87,7 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
       {
         text: '開始開發',
         items: [
-          { text: '5＋1 系統快速查閱與流程', link: '/getting-started/system-walkthrough' },
+          { text: '5＋1 系統：快速查閱與操作流程', link: '/getting-started/system-walkthrough' },
           { text: '開發環境與啟動', link: '/getting-started/development-environment' },
           { text: '開發資料與本機展示', link: '/getting-started/development-data' }
         ]
@@ -89,10 +96,10 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '架構',
         items: [
           { text: '系統架構總覽', link: '/architecture/system-overview' },
-          { text: '啟動與六大系統流程', link: '/architecture/runtime-and-shared-services' },
+          { text: '應用程式啟動與共用服務', link: '/architecture/runtime-and-shared-services' },
           { text: 'Area 責任與資料界線', link: '/architecture/area-boundaries' },
           { text: '資料存取與 DB-first', link: '/architecture/data-access' },
-          { text: '資料庫 Diagram 對照', link: '/architecture/database-diagram' },
+          { text: 'QMAH SSMS Diagram 建立參考', link: '/architecture/database-diagram' },
           { text: '資料表參考', link: '/architecture/database-reference' }
         ]
       },
@@ -108,27 +115,28 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '管理後台',
         items: [
           { text: '管理後台開發起點', link: '/admin/backend-development' },
-          { text: 'Razor 與 Tabler 介面', link: '/admin/razor-admin-ui' }
+          { text: 'Razor 與 Tabler 管理後台介面', link: '/admin/razor-admin-ui' }
         ]
       },
       {
         text: '功能',
         items: [
           { text: '文物資料匯入', link: '/features/catalog-import' },
-          { text: '資料與圖片使用', link: '/features/data-and-media' },
-          { text: '經濟與進程', link: '/features/economy-progression' },
+          { text: '資料與圖片使用說明', link: '/features/data-and-media' },
+          { text: '經濟與進程基準', link: '/features/economy-progression' },
           { text: 'Identity 與登入', link: '/features/identity-and-login' },
-          { text: '地點與地圖串接', link: '/features/map-integration' }
+          { text: '地點與地圖串接說明', link: '/features/map-integration' }
         ]
       },
       {
         text: '參考',
         items: [
+          { text: '文件閱讀與名詞基準', link: '/reference/terminology' },
           { text: 'REST API 契約', link: '/reference/rest-api' },
           { text: 'API 名詞表', link: '/reference/api-glossary' },
           { text: 'CRUD 與 Scaffold', link: '/reference/crud-and-scaffolding' },
-          { text: '資料工具', link: '/reference/data-tools' },
-          { text: 'Git 與 GitHub 協作', link: '/reference/git-workflow' },
+          { text: 'QMAH 資料工具參考', link: '/reference/data-tools' },
+          { text: 'Git 與 GitHub 協作手冊', link: '/reference/git-workflow' },
           { text: '官方參考索引', link: '/reference/official-references' }
         ]
       }

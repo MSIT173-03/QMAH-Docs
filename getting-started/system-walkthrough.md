@@ -1,8 +1,23 @@
 # 5＋1 系統：快速查閱與操作流程
 
-五個功能系統是圖鑑、遊戲、社群、商城、會員，第六個是營運中心。Shared 是共用文件入口，`QMAH.Infrastructure` 是共用程式庫，都不是第六個業務系統。
+QMAH 的 5＋1 是五個功能系統（圖鑑、遊戲、社群、商城、會員）與一個跨系統營運入口。Shared 是共用文件入口，`QMAH.Infrastructure` 是共用程式庫，兩者都不是業務系統。
 
-各系統可同時開發，以下步驟用來解釋一次操作如何執行，不是各系統的開發排程。分工與跨系統確認項目見[前台功能接手指南](../frontend/feature-development-guide.md#平行開發快速對照)。
+各系統可同時開發，以下步驟用來解釋一次操作如何執行，不是各系統的開發排程。分工與跨系統確認項目見[前台功能接手指南](../frontend/feature-development-guide.md#平行開發對照)；跨文件名詞見[文件閱讀與名詞基準](../reference/terminology.md)。
+
+## 目前專題狀態
+
+本文件同時說明目前已存在的程式與前台接手時會用到的契約。先看下表，可以知道哪些內容已經有實作位置，哪些內容目前仍是接手基線：
+
+| 目前可確認的內容 | 實作位置／目前狀態 |
+| --- | --- |
+| API 與對外資料契約 | `QMAH.Api` 的 V1 Controller、DTO、OpenAPI 與 Scalar 測試入口 |
+| 管理後台與營運中心 | `QMAH.Web` 的 Razor 管理頁面；營運統計與批次資產入口為 `Controllers/OperationsController.cs` |
+| 共用資料與規則 | `QMAH.Infrastructure` 的 `QmahDbContext`、Identity 與共用 Service |
+| 本機資料基線 | `QMAH-Database` 的 `db-v0.8.0` Snapshot；主 Repository 的 `database/Schema.sql` 是結構契約 |
+| 使用者前台 | `QMAH.Client` 已建立 Angular 啟動、HttpClient、Cookie、XSRF 與代理設定；`src/app/app.routes.ts` 目前仍是空路由，正式功能畫面由前台開發逐項接手 |
+| Mini Game | 模式、Attempt、開始／完成契約與獎勵欄位已預留；各玩法的拼圖、翻牌等原始結果驗證仍需由後續功能實作 |
+
+這個狀態表是閱讀定位，不是功能承諾或開發先後。詳細欄位、權限與限制仍以程式、資料庫契約及[REST API 契約](../reference/rest-api.md)為準。
 
 ## 一分鐘快速查閱
 
@@ -108,13 +123,13 @@ Angular 是使用者前台的前端，`QMAH.Api` 是它呼叫的後端。`QMAH.W
 
 ## 營運中心：看整體與發起批次資產活動
 
-營運中心是第六大系統，入口為 `OperationsController`，使用各系統的既有資料查詢與統計。
+營運中心是 5＋1 中的跨系統入口，入口為 `OperationsController`，使用各系統的既有資料查詢與統計。
 
 1. 選日期範圍，再看會員、付款、遊戲與活動指標。各指標使用的日期欄位不同，須連同定義閱讀。
 2. 期間登入率計算登入過的不重複會員占會員母體的比例。同一人登入十次仍是一人，與會員頁的個人登入日數比例不同。
 3. `BulkEconomyService.PreviewAsync` 顯示篩選人數，此時尚未異動資產。
 4. 正式執行重新查詢會員，所以預覽後資料有變動時，人數可能不同。
-5. `EconomyAdjustmentBatches` 保存條件、原因、管理員、目標及結果數量。目前批次支援點數與券。
+5. `EconomyAdjustmentBatches` 保存條件、原因、管理員、目標及結果數量。目前批次支援點數與券，正式執行採全有或全無。
 6. 活動整體看批次，某會員實際變更看流水或持券；`AuditLogs` 保存管理操作入口與結果，不記每個 API 的完整內容。
 
 ## 查帳快速對照

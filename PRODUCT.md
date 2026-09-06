@@ -8,11 +8,11 @@ web
 
 ## Users
 
-文件涵蓋開發環境、Angular 使用者前台、Razor 管理後台、五個功能系統與 SQL Server Snapshot。所有頁面使用中性說明，不預設讀者的身分或工具。
+文件涵蓋開發環境、Angular 使用者前台、Razor 管理後台、五個功能系統、營運中心與 SQL Server Snapshot。所有頁面使用中性說明，不預設讀者的身分或工具。
 
 ## Product Purpose
 
-QMAH-Docs 集中 QMAH 的環境、架構、API、前端、管理後台、功能與資料工具規則。文件提供依序閱讀的目錄，也提供一個 Shared 共用入口與五個功能系統入口；Snapshot 交付規則放在資料工具與開發資料文件中，逐表用途則集中在資料表參考。
+QMAH-Docs 集中 QMAH 的環境、架構、API、前端、管理後台、功能與資料工具規則。文件提供依任務查找的目錄、一個 Shared 共用入口、五個功能系統入口與營運中心入口；Snapshot 交付規則放在資料工具與開發資料文件中，逐表用途則集中在資料表參考。
 
 ## Positioning
 

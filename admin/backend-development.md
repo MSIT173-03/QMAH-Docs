@@ -1,12 +1,12 @@
 # 管理後台開發起點
 
-管理後台頁面依資料表、路由、ViewModel、授權與 CRUD 的順序建立，再依對應 Area 延伸。
+管理後台頁面由資料表、路由、ViewModel、授權與 CRUD 組成。這些內容可以平行準備；完成單一操作流程時，再依資料依賴逐項驗證。
 
 Razor 管理後台位於 `QMAH.Web`。Angular 使用者前台使用的 JSON 契約位於獨立的 `QMAH.Api`，兩者共用 `QMAH.Infrastructure`。
 
 List、Controller、ViewModel、Razor 表單與完整 CRUD 的最小範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。完成範例後，再依對應資料表調整。
 
-各 Area 的開發順序、不可直接刪除的資料與跨表責任，統一整理於[五個 Area 開發前檢查與執行界線](../architecture/area-boundaries.md)。
+各 Area 的資料責任、不可直接刪除的資料與跨表界線，統一整理於[Area 責任與資料界線](../architecture/area-boundaries.md)。
 
 ## 開始前
 
@@ -104,11 +104,11 @@ QMAH.Web/wwwroot/js/areas/{catalog,game,social,store,user}.js
 
 完整單表範例見[從清單到完整 CRUD](../reference/crud-and-scaffolding.md)。
 
-## 開發順序
+## 單一後台功能的實作流程
 
-### 1. 先做唯讀頁面
+### 1. 建立唯讀基線
 
-先完成 Index 與 Details，確認關聯與資料內容理解正確。
+先完成 Index 與 Details，確認關聯與資料內容正確；這是單一功能的檢查順序，不代表其他 Area 必須等待。
 
 ```csharp
 public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -126,7 +126,7 @@ public async Task<IActionResult> Index(CancellationToken cancellationToken)
 
 列表與詳細頁若不會修改資料，使用 `AsNoTracking()`。需要顯示關聯資料時使用 `Include()`；View 不直接查詢資料庫。
 
-### 2. 再做新增與編輯
+### 2. 加入新增與編輯
 
 表單使用 ViewModel，只接收允許修改的欄位。POST Action 先檢查 `ModelState`，成功後再寫入資料庫。
 
@@ -193,7 +193,7 @@ public async Task<IActionResult> Create(
 - 有 `rowversion` 的資料表，才需要帶回表單並處理 `DbUpdateConcurrencyException`。
 - 刪除前確認外鍵與業務狀態；多數後台資料較適合改狀態，不適合直接刪除。
 
-### 4. 寫入功能接上授權，再處理跨表流程
+### 4. 加入授權與跨表流程
 
 - 需要登入的 Controller 或 Action 加上 `[Authorize]`；授權列入 CRUD 的起始設計。
 - 管理功能使用角色或 Policy，畫面上的按鈕隱藏不能取代伺服器授權。

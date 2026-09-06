@@ -1,8 +1,8 @@
 # 系統架構總覽
 
-本頁列出 QMAH 的三個執行面，以及資料庫、文件和資料工具的責任關係。開始實作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。
+本頁說明 QMAH 的執行面，以及資料庫、文件和資料工具的責任關係。五個功能系統與營運中心可以平行開發；開始單一工作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。跨文件的名詞定義見[文件閱讀與名詞基準](../reference/terminology.md)。
 
-## 系統流向
+## 系統如何運作
 
 ![QMAH 執行面與文件交付架構](../diagrams/rendered/system-architecture.svg)
 
@@ -35,7 +35,7 @@ SQL Server Schema 是共同契約。新增或修改資料表、欄位、索引�
 ## 依責任查閱文件
 
 - Area 內的資料表、狀態與跨區域規則： [Area 責任與資料界線](area-boundaries.md)
-- 從啟動、Controller 到共用 Service 與流水的流程： [應用程式啟動與六大系統流程](runtime-and-shared-services.md)
+- 從啟動、Controller 到共用 Service 與流水的流程： [應用程式啟動與共用服務](runtime-and-shared-services.md)
 - 逐表用途、主鍵、外鍵與 Schema 分區： [資料表參考](database-reference.md)
 - 查詢、交易、`RowVersion` 與服務判斷： [資料存取與 DB-first](data-access.md)
 - API 與前台欄位： [REST API 契約](../reference/rest-api.md)

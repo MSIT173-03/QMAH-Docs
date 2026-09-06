@@ -8,7 +8,7 @@
 2. 哪些人可以查看或修改
 3. 這筆資料之後是否仍要保留成歷史
 
-資料庫結構以 SQL Server 為準，程式以既有 Entity、`QmahDbContext` 與 Identity 對照。資料表、`QmahDbContext` 與 CRUD 細節仍以各自文件為準；本表只規定開發順序、資料責任與跨 Area 的修改界線。
+資料庫結構以 SQL Server 為準，程式以既有 Entity、`QmahDbContext` 與 Identity 對照。資料表、`QmahDbContext` 與 CRUD 細節仍以各自文件為準；本頁只規定資料責任、跨 Area 的修改界線與單一功能的檢查項目。
 
 ## 共用開發步驟
 

@@ -1,6 +1,6 @@
 # Store｜商城與訂單
 
-快速定位工作可先看下表，再閱讀實際流程與資料表。
+本頁提供 Store（商城與訂單）的快速查閱入口，先看下表，再依工作需要閱讀實際運作方式與資料表。完整規則以連結的正規文件為準。
 
 ## 快速查閱
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | 先理解怎麼運作 | [商品、訂單、兌券及發放撤銷](../getting-started/system-walkthrough.md#商城：券的規格與手上的一張券) |
 | 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [啟動與共用元件](../architecture/runtime-and-shared-services.md) |
+| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
 
 ## 系統範圍
 
@@ -55,7 +55,7 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
 
 ## 前台接手建議
 
@@ -72,7 +72,9 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 - 權限、目前會員、金額、折扣、庫存與點數是否由伺服器重新計算；目前沒有正式金流供應商 callback Endpoint。
 - API、資料庫限制、展示資料、管理後台、前台錯誤狀態與未來金流 callback 契約是否同步。
 
-## 建議查閱順序
+## 後續查閱
+
+以下是查文件的路線，不是系統實作先後。
 
 1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
 2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。

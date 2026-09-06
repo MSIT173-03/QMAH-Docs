@@ -1,8 +1,8 @@
 # API 名詞表
 
-本名詞表列出 QMAH API 文件使用的專業用語、英文原文與台灣繁體中文說明。
+本名詞表列出 QMAH API 文件使用的專業用語、英文原文與台灣繁體中文說明。跨 API 與一般文件共用的前端、後端、前台、後台、系統與資料層名詞，統一見[文件閱讀與名詞基準](./terminology.md)。
 
-每個 OpenAPI operation（一次 API 呼叫）仍會在自己的 `summary`（清單短摘要）或 `description`（完整行為說明）補上括號；名詞表可依查詢需要使用。
+每個 OpenAPI operation（一次 API 呼叫）都以自己的 `summary`（清單短摘要）和 `description`（完整行為說明）描述實際行為；名詞表提供統一用法，讓單一 API 條目也能獨立閱讀。
 
 ## 使用規則
 
@@ -90,4 +90,4 @@ OpenAPI 的 `summary` 與 `description` 使用 [OpenAPI 3.1 Operation Object](ht
 
 HTTP 狀態碼使用 [RFC 9110 HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) 的語意。
 
-新增術語時先補入本表，再在對應的 operation 描述、參數或 Schema 補上同一組括號說明。
+新增 API 術語時先補入本表，再在對應的 operation 描述、參數或 Schema 補上同一組括號說明。跨文件術語則先補入[文件閱讀與名詞基準](./terminology.md)，避免 API 名詞表承擔一般文件的全部定義。

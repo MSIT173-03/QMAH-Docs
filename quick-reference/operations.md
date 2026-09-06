@@ -1,0 +1,79 @@
+# Operations｜營運中心
+
+本頁提供營運中心的快速查閱入口。營運中心是 `QMAH.Web/Controllers/OperationsController.cs` 提供的跨系統管理與統計入口，不取代 Catalog、Game、Social、Store 或 User 的資料主責；完整流程見[5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)。
+
+## 快速查閱
+
+| 查閱目的 | 入口 |
+| --- | --- |
+| 先理解怎麼運作 | [營運中心：看整體與發起批次資產活動](../getting-started/system-walkthrough.md#營運中心：看整體與發起批次資產活動) |
+| 查資產調整與流水 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子)、[經濟與進程](../features/economy-progression.md) |
+| 查啟動與共用元件 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+
+## 系統範圍
+
+營運中心使用各系統的既有資料做期間統計，並提供管理員調整點數、鑰匙與優惠券的入口。它保存「這次批次操作的條件、原因、操作者與結果」，不把各會員的 Balance 直接改成指定數字，也不把資產流水或交易歷史搬到另一套資料表。
+
+## 實際運作方式
+
+1. 選擇日期範圍與統計指標。會員登入率使用期間內登入過的不重複會員數除以會員母體；同一會員重複登入只算一人。
+2. 需要調整資產時先輸入篩選條件、增減量與必填原因，執行預覽。預覽只查詢符合條件的人數與範例，不寫入資料。
+3. 正式執行時重新依條件查詢會員，建立 `EconomyAdjustmentBatches`，再由 `BulkEconomyService` 逐一建立對應的資產明細。
+4. 點數批次為每位會員建立 `PointTransaction`；優惠券批次為每張券建立或更新 `UserCoupon`。批次主檔記錄目標數量、成功數量、失敗數量與失敗原因。
+5. 管理員 ID 與操作結果由 `AuditLogs` 保存；資產的實際增減、券的發放或撤銷則回到各自流水與生命週期資料查詢。
+
+目前正式批次採全有或全無：預覽完成到正式執行之間，會員狀態可能改變，因此預覽結果不代表一定能執行；只要整批點數不足、券數不足、券定義不符或超過上限，批次會保存 `FAILED` 結果且不寫入任何資產異動。成功時整批一起提交，避免只完成一部分而難以對帳。
+
+## 資料表與關聯
+
+| 資料表或資料群 | 在此入口的用途 | 主要關聯／限制 |
+| --- | --- | --- |
+| `admin.EconomyAdjustmentBatches` | 批次條件、原因、管理員與執行結果 | 連到建立批次的管理員；會員實際變更由流水或持券列回溯 |
+| `admin.AuditLogs` | 管理操作入口、操作者、目標與結果 | 不記錄每次前台讀取，也不以完整 request body 取代資產流水 |
+| `store.PointBalances`、`store.PointTransactions` | 點數目前餘額與增減歷史 | 不可產生負數；人工調整必須有原因與操作管理員 ID |
+| `catalog.UserKeyBalances`、`catalog.KeyTransactions` | 鑰匙目前餘額與增減歷史 | 不可產生負數；管理員調整由資產服務寫入流水 |
+| `store.CouponDefinitions`、`store.UserCoupons` | 優惠券規格與每次發放的實體券 | Grant／Revoke 保留管理員、原因與批次；過期改為 `EXPIRED` 不刪除 |
+| `common.DailyMemberActivities` | 期間登入率與登入活動統計 | 以會員、日期與活動類型的歷史資料即時計算，不保存每月統計快照 |
+
+## 開發規則與跨系統界線
+
+- 營運中心可讀取各系統的統計來源，但資產寫入必須經由 `EconomyService`、`BulkEconomyService` 或對應的券服務。
+- 管理員輸入的是增減量，不是新餘額；原因、管理員 ID、交易與失敗結果都要保留。
+- 批次條件與個別會員結果分開保存。批次主檔回答「這場活動影響誰」；流水回答「這位會員實際改了多少」。
+- 統計查詢依實際日期欄位與狀態定義計算；不同卡片不共用一個未說明的日期或母體。
+- 營運中心的管理後台操作受角色與 Anti-forgery（防偽請求驗證）保護；畫面隱藏按鈕不能取代伺服器授權。
+
+## 查詢入口
+
+| 查詢目的 | 文件入口 | 這一頁要核對的內容 |
+| --- | --- | --- |
+| 查統計卡片與日期定義 | [營運中心流程](../getting-started/system-walkthrough.md#營運中心：看整體與發起批次資產活動) | 指標母體、日期欄位、去重方式與狀態 |
+| 查資產規則 | [經濟與進程](../features/economy-progression.md) | 點數、鑰匙、券、批次與稽核界線 |
+| 查 API | [REST API 契約](../reference/rest-api.md) | 管理摘要、會員資產、錯誤回應與權限 |
+| 查資料表 | [資料表參考](../architecture/database-reference.md) | 主鍵、外鍵、欄位、索引與歷史保留 |
+| 查後台頁面 | [管理後台開發起點](../admin/backend-development.md)、[Razor 與 Tabler 管理後台介面](../admin/razor-admin-ui.md) | Area／Controller、表單、授權與共用版型 |
+
+## 管理後台接手建議
+
+- 統計卡片的標題、主數值與補充文字固定回答同一組問題，日期範圍改變時只更新數值，不把「目前」或特定日期寫死在文案。
+- 批次操作使用「條件 → 預覽 → 確認執行 → 結果」的流程；預覽頁清楚顯示預計人數、資產種類、增減量與原因。
+- 結果頁同時提供批次摘要與失敗原因，並連到會員流水；不把所有會員明細塞在統計卡片中。
+- 資產活動與一般個人背包操作使用相同的 Service 和流水規則，差別只在批次來源與篩選條件。
+
+## 變更前檢查
+
+- 指標是否說明母體、日期欄位、去重方式與排除條件。
+- 預覽是否只讀取；正式執行是否重新查詢並保存批次結果。
+- 點數、鑰匙、優惠券是否由正確 Service 寫入，且每筆變更都有原因、管理員 ID 與歷史紀錄。
+- 失敗批次是否保留原因與目標數量；目前全有或全無，不產生部分成功的資產結果。
+- 卡片、明細頁、API、資料表與文件是否使用同一名稱與計算定義。
+
+## 後續查閱
+
+以下是查文件的路線，不是系統實作先後。
+
+1. [Shared｜共用基礎](shared.md)：確認共用服務、資產流水與資料存取邊界。
+2. [5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)：看一次統計與批次調整如何流動。
+3. [經濟與進程](../features/economy-progression.md)：確認資產與優惠券規則。
+4. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認結構、交易與歷史資料。
+5. [REST API 契約](../reference/rest-api.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外契約與管理頁面實作。
