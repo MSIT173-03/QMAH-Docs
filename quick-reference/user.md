@@ -1,22 +1,6 @@
 # User｜會員與 Identity
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 會員目前持有多少、過去為什麼變動、是否登入過、是否取得成就和目前配戴哪個稱號，分別由不同資料回答。把 Balance 當成完整歷史，或把管理員登入當成會員每日登入，會得到錯誤的成就和營運統計。 |
-| What（現在實際怎麼分） | User 管理 Identity 帳號與角色、`UserProfiles`、地址、登入活動、`UserAchievements`、Equipped Title，以及點數、鑰匙和優惠券背包的會員視角；資產目前狀態在 Balance，異動在 Transaction，優惠券每次取得是獨立的 `UserCoupon`。每日登入活動只由使用者前台明確登記。 |
-| How（查會員或開發前台怎麼走） | 先用 Identity 確認 `UserId` 和權限，再依需求查 Profile、登入活動、成就／稱號或資產；查帳時先看 Balance，再用 Transaction、Batch、Audit log 或 UserCoupon 追原因和時間。切換稱號前確認會員已取得對應 Achievement，資產與優惠券操作則只走既有 Service 和 API，不直接改 Identity 或資產表。 |
-
-**適用情境：** 需要查會員目前狀態、登入活動、成就稱號、點數、鑰匙或優惠券背包時，先用本頁決定要查目前狀態還是歷史流水；遇到登入或每日登入成就問題，另外核對 Identity 與每日活動的觸發條件。
-
-## 快速查閱
-
-| 查閱目的 | 入口 |
-| --- | --- |
-| 先理解怎麼運作 | [登入活動、日數、登入成就及稱號](../getting-started/system-walkthrough.md#會員：何時算登入一天) |
-| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+User 管理 Identity 帳號與角色、`UserProfiles`、地址、登入活動、`UserAchievements`、Equipped Title，以及點數、鑰匙和優惠券背包的會員視角；資產目前狀態在 Balance，異動在 Transaction，優惠券每次取得是獨立的 `UserCoupon`。每日登入活動只由使用者前台明確登記。
 
 ## 系統範圍
 
@@ -24,7 +8,12 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 
 ## 實際運作方式
 
-登入由 Identity 驗證帳密、鎖定與 Security Stamp，再由 Web 或 API 各自簽發受保護 Cookie。會員資料以同一 `UserId` 連到 Profile、地址、成就、稱號與其他系統紀錄。API 的每日登入活動只在使用者前台流程寫入同會員、同日期、同類型的一列，後台登入不觸發；累積天數與登入率由這些每日列即時計算。登入活動服務會判斷登入成就；其他成就需確認各自的觸發入口，會員只能配戴自己已取得的稱號。
+1. Identity 處理帳密、鎖定與登入驗證。Web 與 API 各自建立登入 Cookie，因此後台登入不等同 API 已登入。
+2. API 依登入身分取得 `UserId`，查詢 Profile、地址與資產。前台不透過表單切換其他會員的 `UserId`。
+3. 使用者前台明確呼叫每日登入 API，才記錄當日活動；後台登入不觸發。同會員、同日期、同類型最多一列，累積天數與登入率由每日資料計算。
+4. 登入活動服務檢查登入成就，稱號選擇則驗證會員已取得該成就。其他成就需要各自的功能觸發入口。
+
+查會員資產時，Balance 回答目前剩多少，Transaction 回答哪次操作增加或扣除。折價券以每張 `UserCoupon` 的狀態與發放、撤銷欄位查閱，不以一個餘額代表全部券。
 
 ## 資料表與關聯
 
@@ -79,16 +68,3 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 - Email、密碼、角色、Profile、地址、通知、成就與資產是否由正確 API 或資料邊界處理。
 - 私人資料查詢是否以目前登入者的 `UserId` 限制；並行修改是否檢查 `RowVersion`。
 - API 的 Cookie／防偽設定、前台 `credentials`、OpenAPI security metadata、Identity 設定與文件是否同步。
-
-## 後續查閱
-
-以下是查文件的路線，不是系統實作先後。
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 User 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [Identity 與登入](../features/identity-and-login.md)、[經濟與進程](../features/economy-progression.md)：依工作目標查身分與資產規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

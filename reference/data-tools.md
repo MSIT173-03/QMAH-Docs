@@ -1,16 +1,17 @@
 # QMAH 資料工具參考
 
-## 快速理解
+`NpmDataWorkbench` 整理來源，`QmahCatalogImport` 解析與匯入 Catalog，`QmahDatabaseRelease` 產生展示資料、還原與驗證 Snapshot；`Export-ReferenceDatabase.ps1` 負責隔離資料庫到 QMAH-Database 的交付流程。工具輸出集中在各工作區的 `_工具輸出`，不由網站啟動流程自動執行。
 
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 下載來源、匯入文物、產生展示資料和交付完整資料庫是四種不同工作。工具選錯時，可能把測試資料直接寫進本機資料庫，或把大型 Snapshot 放進產品程式 Repository。 |
-| What（現在實際有哪些工具） | `NpmDataWorkbench` 整理來源，`QmahCatalogImport` 解析與匯入 Catalog，`QmahDatabaseRelease` 產生展示資料、還原與驗證 Snapshot；`Export-ReferenceDatabase.ps1` 負責隔離資料庫到 QMAH-Database 的交付流程。工具輸出集中在各工作區的 `_工具輸出`，不由網站啟動流程自動執行。 |
-| How（要處理資料怎麼走） | 先依工作選工具和輸入資料，再在隔離位置產生或預檢；要交付共同資料時，完成 Schema、資料關聯與啟動驗證後才輸出 `QMAH.sql`、`.bak`、manifest 和報告。網站本機只還原已驗證且相容的 Snapshot，不用啟動時補 seed 或清空資料。 |
+資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動可從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得相容的 `QMAH.sql` 或 `.bak`；既有 `db-v0.7.0` 需要保留資料時，才使用 Release 內標明起訖版本的升級 SQL。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
 
-**適用情境：** 不確定該下載來源、匯入文物、產生展示流水、重建本機資料庫，還是輸出 QMAH-Database Release 時，先用本頁的工具分工選入口，再看該工具的參數與交付檢查，不把工具輸出當成網站啟動步驟。
+## 選擇還原、升級或匯入
 
-資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得相容的 `QMAH.sql` 或 `.bak`；既有 `db-v0.7.0` 可改用 Release 內的升級 SQL 保留資料更新。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
+| 工作 | 使用方式 | 原有資料 |
+| --- | --- | --- |
+| 建立全新本機環境 | 還原 Release 的 `.bak`，或執行完整 `QMAH.sql` | 目標資料庫依完整 Snapshot 建立，不保留舊內容 |
+| 將既有資料庫升到新版本 | 執行 Release 中與目前版本相符的升級 SQL | 依腳本設計保留既有資料；執行前仍需備份 |
+| 增加或更新文物資料 | 使用 Catalog 匯入的預覽與套用流程 | 只處理匯入包涵蓋的功能資料，不取代 Schema 升級 |
+| 製作新的共同資料版本 | 使用 Snapshot pipeline 在隔離資料庫驗證後匯出 | 產出新的 `.sql`、`.bak`、manifest 與報告 |
 
 ## 工具分工
 

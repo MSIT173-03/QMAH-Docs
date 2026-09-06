@@ -1,14 +1,6 @@
 # CRUD 與 Scaffold
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 管理後台的 CRUD（新增、查詢、修改、刪除）適合用 Scaffold 起步，但產生的程式不會知道 QMAH 的 Area、授權、ViewModel 或歷史保留規則。先看一個小而完整的例子，比直接複製大型頁面更容易逐項檢查。 |
-| What（現在實際示範什麼） | `ArtifactCategory` 範例從清單、詳細資料到 Create／Edit／Delete，包含查詢投影、輸入驗證、不存在的 Id、外鍵限制和未被使用資料才能刪除的條件；它是教學範例，不代表所有現有後台路由都採同一套細節。 |
-| How（要做自己的 CRUD 怎麼走） | 先用資料表參考確認欄位和限制，再建立 List／Form ViewModel、唯讀清單、詳細資料與受授權保護的 POST Action；Scaffold 只用來產生起始碼，之後補 ModelState、狀態檢查、錯誤回應、Post/Redirect/Get 和實際測試。遇到資產、訂單或不可刪除的歷史資料，改走具體 Service，不直接套用 Delete 範例。 |
-
-**適用情境：** 要快速建立一個新的管理後台資料頁，或需要判斷 Scaffold 產生的 Controller、View 和表單還缺哪些驗證時，照本頁的 `ArtifactCategory` 小範例逐段對照；資產、訂單和歷史資料則先回 Area 邊界決定能否使用一般 Delete。
+`ArtifactCategory` 範例從清單、詳細資料到 Create／Edit／Delete，包含查詢投影、輸入驗證、不存在的 Id、外鍵限制和未被使用資料才能刪除的條件；它是教學範例，不代表所有現有後台路由都採同一套細節。
 
 這份教學以 Schema 中現有的 `catalog.ArtifactCategories` 示範後台開發。範例完成並加入對應 Controller 與 View 後，可在 `/Catalog/ArtifactCategory` 查看分類清單、搜尋、詳細資料、新增、編輯與刪除未被使用的測試分類。
 

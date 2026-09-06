@@ -1,14 +1,6 @@
 # 官方參考索引
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | Microsoft、Angular、OpenAPI 或 RFC 文件只能說明通用技術行為，不能替 QMAH 決定路由、資料表、連線 fallback、角色或經濟規則。查錯來源時，即使引用的是官方文件，也可能得到不適用於本專案的結論。 |
-| What（現在實際整理什麼） | 本頁把 .NET、ASP.NET Core、EF Core、Angular、SQL Server、OpenAPI、HTTP、VitePress、GitHub Pages、資料來源與授權的官方文件，對應到 QMAH 的正規文件和程式來源。每個連結旁都說明它能確認哪一種通用行為。 |
-| How（遇到技術問題怎麼查） | 先用本頁官方來源確認框架「能怎麼做」，再回 `QMAH` 的 `Program.cs`、Controller、Service、`Schema.sql`、API 契約或 QMAH-Database Snapshot 確認「本專案實際怎麼做」。兩者不同時，以 QMAH 的程式、資料庫和契約為產品行為依據，並補回正規文件。 |
-
-**適用情境：** 遇到「官方文件說可以，但 QMAH 為什麼不是這樣」的問題，先在本頁找到對應的框架規範，再用連結的 QMAH 文件和實際程式確認專案採用的版本、設定與限制。
+本頁把 .NET、ASP.NET Core、EF Core、Angular、SQL Server、OpenAPI、HTTP、VitePress、GitHub Pages、資料來源與授權的官方文件，對應到 QMAH 的正規文件和程式來源。每個連結旁都說明它能確認哪一種通用行為。
 
 本頁列出 QMAH 文件引用的官方技術與資料來源。官方文件只用來確認框架、工具、協定與授權的通用語意；QMAH 的路由、資料表、版本、連線解析順序與業務規則，仍以產品 Repository 的程式、`Schema.sql`、API 契約與 QMAH-Database Snapshot 為準。
 

@@ -1,14 +1,6 @@
 # 資料存取與 DB-first
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | SQL Server 的資料表、C# Entity、API DTO 和 Razor ViewModel 各自回答不同問題。把 DTO 當成資料表，或把 Entity 直接當成表單輸入，會讓欄位、授權與可修改範圍一起失控。 |
-| What（現在實際怎麼做） | QMAH 以 SQL Server Schema 作為結構來源，`QmahDbContext` 和 Entity 只負責對照既有資料庫，程式不使用 EF Migration 建表。唯讀查詢通常用 `AsNoTracking()`，需要修改時取得受追蹤 Entity，最後由 `SaveChangesAsync()` 寫回資料庫。 |
-| How（資料庫或程式要改時怎麼走） | 先在 `Schema.sql` 確認欄位、外鍵、索引、`CHECK` 和 `rowversion`，再同步 Entity／Fluent mapping、`QmahDbContext`、DTO、ViewModel 與文件；不要只改其中一層。若一次更新多張表，從 Service 開始設計交易與失敗回復，完成後測試空結果、不存在的 Id、重複值、並行修改及實際資料庫寫入。 |
-
-**適用情境：** 要新增欄位、修正 LINQ 查詢、處理 `SaveChangesAsync()` 沒有寫入、遇到 `Invalid object name`，或需要讓點數／鑰匙／訂單等多張表一起成功時，依本頁的 Schema → Entity／DbContext → DTO／ViewModel 順序查，不直接在 Controller 猜資料庫行為。
+QMAH 以 SQL Server Schema 作為結構來源，`QmahDbContext` 和 Entity 只負責對照既有資料庫，程式不使用 EF Migration 建表。唯讀查詢通常用 `AsNoTracking()`，需要修改時取得受追蹤 Entity，最後由 `SaveChangesAsync()` 寫回資料庫。
 
 `QmahDbContext` 是 QMAH 網站透過 EF Core 存取 SQL Server 的共同入口。
 

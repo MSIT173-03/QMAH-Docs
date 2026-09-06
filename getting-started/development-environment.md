@@ -1,14 +1,6 @@
 # 開發環境與啟動
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | API、Razor 管理後台和 Angular 使用者前台是不同的執行部分，只有在版本、連線與資料庫基線一致時，畫面和 API 結果才有可比性。啟動錯主機或錯資料庫，常會被誤認成程式功能壞掉。 |
-| What（現在實際提供什麼） | 本頁整理 SDK、NuGet、SQL Server／LocalDB、共同 Snapshot、Visual Studio、Visual Studio Code、命令列、Hot Reload、Scaffold，以及 API／Web／Angular 的單獨或多個啟動設定。資料庫連線會優先使用檔案設定，找不到時才依本機候選尋找 `QMAH`。 |
-| How（新電腦第一次啟動怎麼走） | 先準備 SDK、套件和 `QMAH` 資料庫，再用 Visual Studio 或 VS Code 選擇 API、Web、Angular 的單獨／多啟動設定；前台開發確認 proxy 指向 API。若啟動失敗，依序檢查設定檔、LocalDB instance、資料庫名稱、HTTPS 憑證和實際啟動的 profile，不先改 Controller。 |
-
-**適用情境：** 新電腦第一次建置、要在 Visual Studio 和 VS Code 間切換、只啟動 API／Web／Angular 其中一個，或要一次啟動多個專案時，依本頁完成 SDK、Snapshot、連線設定和啟動 profile 的核對。
+本頁整理 SDK、NuGet、SQL Server／LocalDB、共同 Snapshot、Visual Studio、Visual Studio Code、命令列、Hot Reload、Scaffold，以及 API／Web／Angular 的單獨或多個啟動設定。資料庫連線會優先使用檔案設定，找不到時才依本機候選尋找 `QMAH`。
 
 本頁說明 QMAH 的開發環境、資料庫還原、NuGet 套件、雙主機啟動、Hot Reload、Angular 使用者前台與 CRUD Scaffold。
 

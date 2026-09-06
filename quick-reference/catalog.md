@@ -1,30 +1,23 @@
 # Catalog｜圖鑑與文物
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 要做文物清單、詳細頁、匯入、題庫、商品關聯或鑰匙解鎖時，第一個問題不是「要改哪個畫面」，而是「哪份資料是 Catalog 的主資料」。這能避免把文物名稱或圖片檔名當成關聯鍵，也避免其他 Area 直接改寫文物或鑰匙規則。 |
-| What（現在實際怎麼運作） | `catalog.Artifacts` 是文物主資料，透過 `CategoryId`、`EraBucketId` 和 `ArtifactId` 連到分類、年代、題庫、商品與 `ArtifactUnlocks`；圖片欄位保存邏輯路徑，網址由媒體 resolver 產生。會員使用鑰匙時，伺服器依鑰匙類型從啟用且尚未解鎖的文物建立候選，只有 `UNIVERSAL` 可以由前端指定文物。 |
-| How（要查或修改一件文物怎麼走） | 先判斷工作是主資料、匯入、媒體、題庫、商品還是解鎖，再用資料表參考核對欄位、外鍵和限制，接著用 API 或後台文件確認輸入與權限。測試解鎖時分別驗證 `NORMAL`、`CATEGORY`、`ERA` 和 `UNIVERSAL`，並確認沒有候選時不扣鑰匙、不建立解鎖紀錄；跨表寫入最後回查 Balance、Transaction 和歷史結果。 |
-
-**適用情境：** 需要處理文物主資料、匯入、題庫關聯、商品對應或鑰匙解鎖時，先看本頁的實際運作方式和資料表關聯；只要涉及欄位定義、API 輸入或跨表異動，就沿查詢入口回到正規文件。
-
-## 快速查閱
-
-| 查閱目的 | 入口 |
-| --- | --- |
-| 先理解怎麼運作 | [文物、鑰匙候選、解鎖及來源流水](../getting-started/system-walkthrough.md#圖鑑：文物如何變成會員的解鎖收藏) |
-| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+`catalog.Artifacts` 是文物主資料，透過 `CategoryId`、`EraBucketId` 和 `ArtifactId` 連到分類、年代、題庫、商品與 `ArtifactUnlocks`；圖片欄位保存邏輯路徑，網址由媒體 resolver 產生。會員使用鑰匙時，伺服器依鑰匙類型從啟用且尚未解鎖的文物建立候選，只有 `UNIVERSAL` 可以由前端指定文物。
 
 ## 系統範圍
 
 Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提供題庫、解鎖、鑰匙規則與商品對應使用的文物識別。跨系統關聯一律以資料庫鍵與 API 契約為準；文物名稱、圖片檔名與顯示文字不是關聯鍵。
 
-## 實際運作方式
+## 文物如何進入其他功能
 
-管理後台建立或匯入文物後，資料先保存分類、年代、來源與邏輯圖片路徑；顯示時才由媒體 resolver 轉成本機或 CDN 網址。Game 透過 `ArtifactId` 建立題庫與 Mini Game 素材，Store 以同一識別連結商品。會員使用鑰匙時，Service 依鑰匙類型在啟用且尚未解鎖的文物中選候選；只有萬能鑰匙接受指定文物，成功後才同時扣餘額、寫鑰匙流水並建立解鎖紀錄。
+1. 管理後台建立或匯入文物，保存分類、年代、來源、授權與邏輯圖片路徑。
+2. 清單和詳細頁讀取文物資料，媒體解析器在輸出時把邏輯路徑轉成本機或 CDN 網址。
+3. Game 以 `ArtifactId` 連接題庫與 Mini Game 素材；Store 也以 `ArtifactId` 連接商品。文物名稱和圖片檔名只供顯示，不能當成關聯鍵。
+
+## 鑰匙如何解鎖文物
+
+1. 前台使用會員經濟 API 回傳的 `keyCode`。分類與年代範圍由該鑰匙定義的 `CategoryId`、`EraBucketId` 決定，請求不另傳範圍；只有 `UNIVERSAL` 可以指定 `ArtifactId`。
+2. 服務從啟用且會員尚未解鎖的文物建立候選。`NORMAL`、`CATEGORY` 與 `ERA` 的最終結果由伺服器抽選。
+3. 有候選時，服務在同一流程扣除鑰匙餘額、建立 `KeyTransaction` 並新增 `ArtifactUnlock`。
+4. 沒有候選時不扣鑰匙，也不建立解鎖紀錄。前台應顯示沒有可解鎖文物，而不是一般伺服器錯誤。
 
 ## 資料表與關聯
 
@@ -78,16 +71,3 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 - 原始來源文字、授權代碼、`AttributionText` 與來源網址是否保留；媒體路徑是否交給 Resolver 處理。
 - 清單、詳細頁、空資料、查無資料、匯入錯誤、重複資料與停用狀態是否有明確結果。
 - Schema、Entity、`QmahDbContext`、API DTO、管理後台、前台與文件是否同步；跨表寫入是否說明交易與歷史保留。
-
-## 後續查閱
-
-以下是查文件的路線，不是系統實作先後。
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 Catalog 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [文物資料匯入](../features/catalog-import.md)、[資料與圖片使用](../features/data-and-media.md)：依工作目標查操作規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

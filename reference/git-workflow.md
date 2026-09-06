@@ -1,14 +1,6 @@
 # Git 與 GitHub 協作手冊
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | `QMAH`、`QMAH-Docs` 和 `QMAH-Database` 的內容、分支與交付方式不同。若沒有先確認目前所在的 Repository 和分支，最容易把程式、文件或完整資料推到錯的地方。 |
-| What（現在實際怎麼協作） | `QMAH` 管產品程式與 `Schema.sql`，`QMAH-Docs` 管 Markdown／VitePress 文件站，`QMAH-Database` 管完整資料 Snapshot；五個功能系統與營運中心可在各自 feature branch 平行開發，整合共同分支時仍要核對資料與文件。 |
-| How（一次工作怎麼交付） | 開始先在正確 Repository 查看工作樹與目前分支，再同步目標分支並確認不會覆蓋既有修改；完成後檢查 diff、執行該 Repository 的驗證、用能表達內容的 commit message 提交，再依權限 Push 或透過 PR 整合。資料庫變更要另外同步 Schema、版本標記和 QMAH-Database Snapshot。 |
-
-**適用情境：** 要開始一個 feature、同步 `develop`／`main`、提交文件站、交付 Schema 或更新資料庫 Release 時，先用本頁確認 Repository、分支和交付物，再執行對應的同步、驗證和整合步驟。
+`QMAH` 管產品程式與 `Schema.sql`，`QMAH-Docs` 管 Markdown／VitePress 文件站，`QMAH-Database` 管完整資料 Snapshot；五個功能系統與營運中心可在各自 feature branch 平行開發，整合共同分支時仍要核對資料與文件。
 
 QMAH 使用單一 Public Repository。五個 Area 各使用固定 feature branch，完成可驗證階段後整合至 `develop`；展示或發布版本由 `develop` 合併至 `main`。
 

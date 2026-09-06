@@ -1,30 +1,26 @@
 # Game｜遊戲與作答
 
-## 快速理解
+Game 分成多人主遊戲與 Mini Game。多人主遊戲保存房間、玩家、回合、作答、投票與領獎狀態；Mini Game 使用共用 Attempt 模型，四種玩法不各建一套資料表。前台必須依 API 回傳的狀態決定可用操作，不能自行判定得分、評級或獎勵。
 
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 房間建立、加入、回合作答、投票、揭曉和領獎各有自己的狀態與權限。前台如果只保存一個「遊戲結果」，就無法正確處理逾時、重複送出、非成員操作或已領過獎勵。 |
-| What（現在實際怎麼運作） | Game 保存 `GameRooms`、`GamePlayers`、`GameRounds`、`RoundAnswers`、`Votes`、邀請和結算；主遊戲由伺服器選題、收作答與投票，再依設定結算。Mini Game 使用共用 `MiniGameAttempts`，start 決定模式、文物池、難度、Seed 和 Config，complete 由伺服器驗證 raw result、計算 Grade 與獎勵。 |
-| How（要串接或排查一場遊戲怎麼走） | 先取得房間／Attempt 狀態，再只在該狀態允許的時間送作答、投票、邀請或 complete；每次請求都依 API 回應更新狀態，不在前台自行計算分數、Grade、點數或鑰匙進度。遇到結果不對時依序查房間狀態、玩家身分、回合資料、結算紀錄和資產流水，並確認同一場不能重複領 Reward。 |
-
-**適用情境：** 需要處理房間狀態、作答／投票、邀請、主遊戲獎勵或 Mini Game Attempt 時，先看本頁的狀態順序和資料表關聯；要實作前台操作，必須再核對 API 的狀態碼與後端結算結果。
-
-## 快速查閱
-
-| 查閱目的 | 入口 |
-| --- | --- |
-| 先理解怎麼運作 | [房間、回合、領獎及 Mini Game 驗證範圍](../getting-started/system-walkthrough.md#遊戲：作答、投票、領獎分開處理) |
-| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+目前 Mini Game 已具備共用的開始、完成、評級與經濟獎勵流程。完成請求會檢查分數範圍與結果 JSON 格式，但尚未逐一驗證四種玩法的實際操作內容。因此，現階段契約足以讓前台開始串接 Attempt 生命週期，不應描述為已完成完整防作弊驗證。
 
 ## 系統範圍
 
 Game 負責遊戲房間、玩家、回合、選題、作答、投票、邀請與 Mini Game。房間與回合是可追溯的流程資料；結算可能同時影響分數、鑑定點數、鑰匙、成就或社群加碼，不能當成互不相關的單表 CRUD。
 
-## 實際運作方式
+## 多人主遊戲流程
 
-主遊戲由房間承載玩家與多個回合；每回合由伺服器選題，玩家提交作答後再進入投票與結算。房間完成時，後端依設定計算獎勵並以房間識別避免重複領取。Mini Game 則由 start 建立 Attempt、選擇文物池與 Seed，complete 目前驗證分數範圍與 JSON 格式，再計算獎勵；逐玩法操作結果驗證仍需補齊，成功結算後寫入點數與鑰匙進度；進度達設定門檻時才轉成一般鑰匙。私人房間的加碼先從發起者額度扣除，官方活動加碼由活動設定供應。
+1. 建立房間後，玩家加入並形成 `GamePlayers`。
+2. 每回合由伺服器選題。玩家只在允許的房間與回合狀態送出答案和投票。
+3. 房間完成後，後端依資料庫設定計算獎勵，並以房間與會員識別避免重複領取。
+4. 私人房間的加碼使用發起者設定的有限額度；官方活動加碼由活動規則供應，不扣管理員個人資產。
+
+## Mini Game Attempt 流程
+
+1. 前台呼叫 start，伺服器建立 `MiniGameAttempts`，並決定模式、文物池、難度、Seed 與 Config。
+2. 前台完成玩法後送出原始分數及結果 JSON，不傳送可直接採信的 Grade、點數或鑰匙。
+3. complete 目前檢查分數範圍與 JSON 格式，再由伺服器計算標準化分數、Grade、點數和鑰匙進度。四種玩法各自的操作結果驗證仍待補齊。
+4. 成功結算才寫入資產流水。鑰匙進度會累積，達到後台設定門檻時轉成一把 `NORMAL` 鑰匙；未達門檻的進度保留至下次。
 
 ## 資料表與關聯
 
@@ -80,16 +76,3 @@ Game 負責遊戲房間、玩家、回合、選題、作答、投票、邀請與
 - 未登入、非房間成員、非主持人、重複作答、重複投票與重複領獎是否有對應回應。
 - `RowVersion`、資料庫唯一限制與 `DbUpdateConcurrencyException` 是否一起驗證；完成資料是否禁止任意刪除。
 - API DTO、OpenAPI catalog、前台畫面、管理後台、經濟規則與展示資料是否同步。
-
-## 後續查閱
-
-以下是查文件的路線，不是系統實作先後。
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 Game 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [經濟與進程](../features/economy-progression.md)：依工作目標查結算、鑰匙與獎勵規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

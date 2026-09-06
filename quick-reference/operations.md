@@ -1,22 +1,8 @@
 # Operations｜營運中心
 
-## 快速理解
+營運中心有三種用途：期間卡片查看整體變化，會員背包查看單一帳號，資產活動保存一次批次措施的條件與結果。三者使用相同的底層資料，但回答的問題不同。
 
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 營運卡片回答期間統計，會員詳情回答單一帳號，批次活動回答一次營運措施影響了誰；三者不能用同一個數字代替。先分清統計母體和資產流水，才知道卡片數字與個人帳務為什麼不同。 |
-| What（現在實際怎麼運作） | `OperationsController` 提供跨系統統計、日期篩選、會員與資產查詢，以及點數／鑰匙／優惠券批次操作。批次會保存篩選條件、增減量、必填原因、管理員 ID、執行時間、成功／失敗結果；真正的會員 Balance 變更仍由資產 Service 寫入各自 Transaction。 |
-| How（查統計或執行批次怎麼走） | 先選期間或預設的七天、一個月、一季、一年範圍，確認指標的母體與去重規則；需要改資產時先填條件並預覽對象和數量，再確認一次後執行，不能跳過預覽。完成後從批次結果、管理員稽核紀錄和 Point／Key／Coupon 流水回查，遇到日期或卡片不符先檢查範圍是否已切成自訂。 |
-
-**適用情境：** 需要解讀營運卡片、切換日期範圍、查會員流水，或執行點數／鑰匙／優惠券批次活動時，先看本頁的統計母體和預覽流程。營運中心是 `QMAH.Web/Controllers/OperationsController.cs` 的跨系統入口，不取代 Catalog、Game、Social、Store 或 User 的資料主責；跨系統流程再看[5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)。
-
-## 快速查閱
-
-| 查閱目的 | 入口 |
-| --- | --- |
-| 先理解怎麼運作 | [營運中心：看整體與發起批次資產活動](../getting-started/system-walkthrough.md#營運中心：看整體與發起批次資產活動) |
-| 查資產調整與流水 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子)、[經濟與進程](../features/economy-progression.md) |
-| 查啟動與共用元件 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+目前 `BulkEconomyService` 的資產類型只有 `POINT` 與 `COUPON`，支援點數及折價券批次操作。鑰匙從會員背包逐人調整並留下 `KeyTransaction`，目前沒有鑰匙批次操作。
 
 ## 系統範圍
 
@@ -27,7 +13,7 @@
 1. 選擇日期範圍與統計指標。會員登入率使用期間內登入過的不重複會員數除以會員母體；同一會員重複登入只算一人。
 2. 需要調整資產時先輸入篩選條件、增減量與必填原因，執行預覽。預覽只查詢符合條件的人數與範例，不寫入資料。
 3. 正式執行時重新依條件查詢會員，建立 `EconomyAdjustmentBatches`，再由 `BulkEconomyService` 逐一建立對應的資產明細。
-4. 點數批次為每位會員建立 `PointTransaction`；優惠券批次為每張券建立或更新 `UserCoupon`。批次主檔記錄目標數量、成功數量、失敗數量與失敗原因。
+4. 點數批次為每位會員建立 `PointTransaction`；優惠券批次為每張券建立或更新 `UserCoupon`。鑰匙目前從會員背包逐人調整並建立 `KeyTransaction`。批次主檔記錄目標數量、成功數量、失敗數量與失敗原因。
 5. 管理員 ID 與操作結果由 `AuditLogs` 保存；資產的實際增減、券的發放或撤銷則回到各自流水與生命週期資料查詢。
 
 目前正式批次採全有或全無：預覽完成到正式執行之間，會員狀態可能改變，因此預覽結果不代表一定能執行；只要整批點數不足、券數不足、券定義不符或超過上限，批次會保存 `FAILED` 結果且不寫入任何資產異動。成功時整批一起提交，避免只完成一部分而難以對帳。
@@ -42,6 +28,14 @@
 | `catalog.UserKeyBalances`、`catalog.KeyTransactions` | 鑰匙目前餘額與增減歷史 | 不可產生負數；管理員調整由資產服務寫入流水 |
 | `store.CouponDefinitions`、`store.UserCoupons` | 優惠券規格與每次發放的實體券 | Grant／Revoke 保留管理員、原因與批次；過期改為 `EXPIRED` 不刪除 |
 | `common.DailyMemberActivities` | 期間登入率與登入活動統計 | 以會員、日期與活動類型的歷史資料即時計算，不保存每月統計快照 |
+
+## 資產操作支援範圍
+
+| 資產 | 逐人調整 | 批次活動 | 查帳位置 |
+| --- | --- | --- | --- |
+| 鑑定點數 | 支援增加與扣除 | 支援 | `PointTransactions` 與批次主檔 |
+| 鑰匙 | 支援增加與扣除 | 尚未支援 | `KeyTransactions` |
+| 優惠券 | 支援發放與撤銷 | 支援 | `UserCoupons`、券生命週期與批次主檔 |
 
 ## 開發規則與跨系統界線
 
@@ -75,13 +69,3 @@
 - 點數、鑰匙、優惠券是否由正確 Service 寫入，且每筆變更都有原因、管理員 ID 與歷史紀錄。
 - 失敗批次是否保留原因與目標數量；目前全有或全無，不產生部分成功的資產結果。
 - 卡片、明細頁、API、資料表與文件是否使用同一名稱與計算定義。
-
-## 後續查閱
-
-以下是查文件的路線，不是系統實作先後。
-
-1. [Shared｜共用基礎](shared.md)：確認共用服務、資產流水與資料存取邊界。
-2. [5＋1 系統：快速查閱與操作流程](../getting-started/system-walkthrough.md)：看一次統計與批次調整如何流動。
-3. [經濟與進程](../features/economy-progression.md)：確認資產與優惠券規則。
-4. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認結構、交易與歷史資料。
-5. [REST API 契約](../reference/rest-api.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外契約與管理頁面實作。

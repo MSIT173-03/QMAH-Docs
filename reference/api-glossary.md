@@ -1,14 +1,6 @@
 # API 名詞表
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | API 條目常會單獨出現在 Scalar、搜尋結果或前端程式碼中，讀者不一定會先看完整文件。名詞若只靠上下文猜，容易把登入、Cookie、DTO、分頁或狀態碼的責任弄錯。 |
-| What（現在實際怎麼定義） | `summary` 是清單用的一句短摘要，`description` 要交代登入條件、輸入欄位、成功回應、狀態變化和可能錯誤；本頁集中說明 QMAH API 會反覆使用的術語，完整路徑與欄位仍以 REST API 契約和啟動中的 OpenAPI 為準。 |
-| How（第一次看到一個 API 怎麼讀） | 先看該條目的 `summary` 判斷用途，再讀 `description` 找權限、送出資料和成功／失敗結果；遇到術語回本頁查定義，最後到 REST API 契約核對 method、path、DTO、狀態碼和 Cookie／XSRF 要求。 |
-
-**適用情境：** Scalar 只顯示一個 Endpoint、前端看到 `DTO`／`ProblemDetails`／`operationId` 不確定意思，或要補寫 API 的 `summary` 和 `description` 時，先用這頁統一名詞，再回契約確認該條目的實際行為。
+`summary` 是清單用的一句短摘要，`description` 要交代登入條件、輸入欄位、成功回應、狀態變化和可能錯誤；本頁集中說明 QMAH API 會反覆使用的術語，完整路徑與欄位仍以 REST API 契約和啟動中的 OpenAPI 為準。
 
 本名詞表列出 QMAH API 文件使用的專業用語、英文原文與台灣繁體中文說明。跨 API 與一般文件共用的前端、後端、前台、後台、系統與資料層名詞，統一見[文件閱讀與名詞基準](./terminology.md)。
 

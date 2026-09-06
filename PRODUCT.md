@@ -2,15 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 文件站容易在整理過程中變成產品宣傳、重複規格或沒有來源的假設。這頁先把文件站的用途、證據範圍和內容原則寫清楚，讓後續新增頁面有可以回查的判斷基準。 |
-| What（現在實際維護什麼） | QMAH-Docs 維護 Markdown 與 VitePress 文件站，說明 `QMAH` 程式、`QMAH-Database` Snapshot、API、資料庫、前台、後台、五個功能系統與營運中心；程式功能、完整資料列和外部服務仍以各自 Repository 或實際設定為準。 |
-| How（決定內容是否該放這裡） | 先確認內容是否能回到程式、`Schema.sql`、API、Snapshot 或已列出的官方來源，再依 Product Purpose、Capabilities and Constraints 與 Product Principles 決定放置位置。缺少證據時保留已知範圍，不用推測補成已完成的功能或資料。 |
-
-**適用情境：** 需要判斷一段新需求應不應寫進文件站、應寫在哪個位置，或要檢查文件是否超出現有證據時，以本頁的 Product Purpose、Evidence on Hand 和 Capabilities and Constraints 作為範圍判斷。
+QMAH-Docs 維護 Markdown 與 VitePress 文件站，說明 `QMAH` 程式、`QMAH-Database` Snapshot、API、資料庫、前台、後台、五個功能系統與營運中心；程式功能、完整資料列和外部服務仍以各自 Repository 或實際設定為準。
 
 ## Platform
 

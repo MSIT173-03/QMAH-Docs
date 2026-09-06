@@ -1,22 +1,6 @@
 # Store｜商城與訂單
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 商品能不能買、購物車想買什麼、訂單是否成立、付款是否完成和優惠券能不能使用是不同狀態。拆開查詢，才能在金額、庫存、付款或券狀態不一致時定位是哪一段出錯。 |
-| What（現在實際怎麼分） | Store 分開保存 `Products`、`CartItems`、`StoreOrders`、`OrderDetails`、`Payments`、`CouponDefinitions`、`UserCoupons`、庫存與點數流水；`CouponDefinition` 是券的規格，`UserCoupon` 是會員取得的一張券，發放、使用、過期和撤銷都保留生命週期。 |
-| How（要串接購物或查一筆交易怎麼走） | 先查商品狀態與庫存，再建立或讀取購物車和訂單，接著依付款狀態判斷結果；使用券時確認該會員的 `UserCoupon` 狀態、有效期限、折扣條件與點數成本。發生異常時沿訂單、付款、庫存、UserCoupon 和 PointTransaction 逐段回查，不用商品價格或前端折扣結果代替後端結算。 |
-
-**適用情境：** 需要處理商品、庫存、購物車、付款、訂單或優惠券時，先用本頁辨識目前流程停在哪個狀態；涉及折扣、點數或券生命週期時，再沿資料表與經濟文件查核真正的結算來源。
-
-## 快速查閱
-
-| 查閱目的 | 入口 |
-| --- | --- |
-| 先理解怎麼運作 | [商品、訂單、兌券及發放撤銷](../getting-started/system-walkthrough.md#商城：券的規格與手上的一張券) |
-| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+Store 分開保存 `Products`、`CartItems`、`StoreOrders`、`OrderDetails`、`Payments`、`CouponDefinitions`、`UserCoupons`、庫存與點數流水；`CouponDefinition` 是券的規格，`UserCoupon` 是會員取得的一張券，發放、使用、過期和撤銷都保留生命週期。
 
 ## 系統範圍
 
@@ -24,7 +8,12 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 
 ## 實際運作方式
 
-前台從商品 API 讀取上架商品及已解析的圖片網址，購物車只保存會員、商品與數量。建立訂單時重新驗證價格、庫存及可用券，並把成交資料寫入訂單明細快照；付款與履約狀態分開推進。點數兌券會在同一交易內扣點數、寫入點數流水並建立一張 `UserCoupon`；管理員發放、撤銷或批次調整則保存管理員、原因與批次來源，券過期後改為 `EXPIRED` 而不刪除。
+1. 前台查詢上架商品及圖片網址，將商品與數量加入會員購物車。購物車尚未形成成交價格。
+2. 建立訂單時，後端重新驗證價格、庫存與可用折價券，將成交品名、單價及數量保存至訂單明細。付款與履約各有自己的狀態。
+3. 點數兌券由服務扣除點數、寫入點數流水，再建立一張獨立的 `UserCoupon`。重複取得同種券會建立不同持券列。
+4. 管理員發放與撤銷保存原因及管理員 ID，批次操作另連到批次主檔。券到期改成 `EXPIRED`，歷史仍保留。
+
+例如，購物車顯示的價格與建立訂單結果不同時，應呈現後端確認的成交金額。查某張券為何不能使用時，依序確認會員歸屬、狀態、期限與消費門檻，不只查看券定義是否啟用。
 
 ## 資料表與關聯
 
@@ -79,16 +68,3 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 - 訂單明細是否仍顯示成交時的品名、單價與數量，而不跟隨商品現值改寫。
 - 權限、目前會員、金額、折扣、庫存與點數是否由伺服器重新計算；目前沒有正式金流供應商 callback Endpoint。
 - API、資料庫限制、展示資料、管理後台、前台錯誤狀態與未來金流 callback 契約是否同步。
-
-## 後續查閱
-
-以下是查文件的路線，不是系統實作先後。
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 Store 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [經濟與進程](../features/economy-progression.md)、[資料與圖片使用](../features/data-and-media.md)：依工作目標查資產與展示規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

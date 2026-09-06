@@ -1,14 +1,6 @@
 # Razor 與 Tabler 管理後台介面
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 五個 Area 使用同一套管理後台外框。每個 View 如果自行重做 Layout、Sidebar 或全域 CSS，頁面可能看似完成，卻會和其他後台頁面失去一致的導覽、提示與響應式行為。 |
-| What（現在實際怎麼做） | `/Views/Shared/Admin/_AdminLayout.cshtml` 提供外框，`_ViewStart.cshtml` 將 Area 頁面接到這個 Layout；Sidebar、Navbar、提示訊息、頁尾與 Tabler 資源由共用檔案處理，個別 View 只提供放入 `@RenderBody()` 的功能內容。 |
-| How（新增頁面時怎麼走） | 先建立該 Area 的 View，再設定 `ViewData["Title"]`、`ViewData["AdminDescription"]` 和 `@section PageActions`；表格、表單與按鈕放在自己的功能 class 內，CSS 不改 `.page`、`.navbar`、`body` 等共用選擇器。完成後確認寬版、窄版、空資料、驗證錯誤與深色模式仍能使用。 |
-
-**適用情境：** Controller 和 ViewModel 已經準備好，現在要把新頁面接進既有後台，或遇到 Sidebar、頁首、Tabler CSS、Modal、深色模式與手機版跑版時，直接依這頁的 Layout、`ViewData`、`PageActions` 和 CSS 範圍檢查。
+`/Views/Shared/Admin/_AdminLayout.cshtml` 提供外框，`_ViewStart.cshtml` 將 Area 頁面接到這個 Layout；Sidebar、Navbar、提示訊息、頁尾與 Tabler 資源由共用檔案處理，個別 View 只提供放入 `@RenderBody()` 的功能內容。
 
 本頁說明 QMAH 後台共用介面的使用方式，適用於 Catalog、Game、Social、Store 與 User 頁面。
 

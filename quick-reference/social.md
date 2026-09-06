@@ -1,22 +1,6 @@
 # Social｜社群與活動
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 貼文、留言、檢舉、活動、報名、邀請和通知會互相連結，但它們的狀態和可操作角色不同。把活動報名當成貼文欄位，或把邀請成功直接當成遊戲完成，會讓後續權限和資產處理失去依據。 |
-| What（現在實際怎麼運作） | Social 保存 `SocialPosts`、`SocialComments`、`ContentReports`、`Events`、`EventRegistrations`、`UserNotifications` 與媒體資料；地址文字和可選座標供顯示／選點，地圖服務不取代活動或貼文資料。私人房間邀請、活動加碼與點數／鑰匙結果分別連到 Game 或資產流水。 |
-| How（要查或開發一個社群流程怎麼走） | 先確認是內容、活動、報名、邀請、通知還是地點，再查該資料的狀態、操作者和主責表；接著依 API 或後台契約處理建立、審核、接受、取消或結束。若流程涉及加碼或獎勵，最後回查發起者／官方活動來源、資產扣除或發放流水，以及參與者看到的狀態。 |
-
-**適用情境：** 需要處理貼文、留言、檢舉、活動報名、通知、地點或活動加碼時，先用本頁分清內容狀態和參與狀態；如果結果會影響遊戲或資產，沿資料關聯回查 Game 與流水規則。
-
-## 快速查閱
-
-| 查閱目的 | 入口 |
-| --- | --- |
-| 先理解怎麼運作 | [貼文、活動、報名、邀請及加碼](../getting-started/system-walkthrough.md#社群：內容、活動與加碼分開查) |
-| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
-| 查請求如何進入服務 | [應用程式啟動與共用服務](../architecture/runtime-and-shared-services.md) |
+Social 保存 `SocialPosts`、`SocialComments`、`ContentReports`、`Events`、`EventRegistrations`、`UserNotifications` 與媒體資料；地址文字和可選座標供顯示／選點，地圖服務不取代活動或貼文資料。私人房間邀請、活動加碼與點數／鑰匙結果分別連到 Game 或資產流水。
 
 ## 系統範圍
 
@@ -24,7 +8,11 @@ Social 負責貼文、公告貼文、留言與回覆、檢舉、活動、活動�
 
 ## 實際運作方式
 
-會員建立貼文或活動時，Controller 驗證目前登入者，Service 保存內容、地點與媒體關聯；公開查詢再依發布及審核狀態過濾。留言以父留言形成回覆串，檢舉只保存目標類型與識別，審核時重新確認目標仍存在。活動報名或遊戲邀請可連到共用加碼 Campaign，結算時才由獎勵服務判斷官方供應或會員預付額度，並把實際資產異動寫入流水。
+1. 建立貼文或活動時，後端確認登入身分，保存內容、地址與媒體關聯。儲存成功不代表已公開；公開查詢還會檢查發布與審核狀態。
+2. 留言使用父留言識別形成回覆串。檢舉保存目標類型與識別，審核時重新確認目標存在及目前狀態。
+3. 活動報名獨立保存參與紀錄。若有加碼規則，獎勵服務再依官方活動或會員額度判斷可發放內容，實際點數與鑰匙變化寫入流水。
+
+例如，活動已建立但公開清單沒有顯示時，先查審核與發布狀態；報名成功卻沒有加碼時，改查獎勵有效期間、額度與發放紀錄。地址可以只有文字，座標留空時仍應顯示活動內容。
 
 ## 資料表與關聯
 
@@ -36,7 +24,7 @@ Social 負責貼文、公告貼文、留言與回覆、檢舉、活動、活動�
 | `social.Events`、`social.EventRegistrations` | 活動審核、發布、報名與出席 | 活動連建立者與審核者；報名連活動、會員與可選獎勵規則 |
 | `social.OfficialAnnouncements` | 舊公告資料的結構相容表 | 新公告使用 `SocialPosts` 的公告貼文類型；兩種模型不作為同一筆資料重複寫入 |
 | `social.UserNotifications` | 會員通知與已讀狀態 | 只更新目前會員可管理的通知；通知由事件流程產生 |
-| `social.MediaAssets` | 社群圖片中繼資料、替代文字與貼文關聯 | 連到貼文與擁有者；實際網址由媒體 Resolver 解析 |
+| `social.MediaAssets` | 社群圖片中繼資料、替代文字與貼文關聯 | 連到貼文與擁有者；受控媒體 API 檢查公開狀態或擁有者權限後回傳圖片 |
 | `catalog.Artifacts`、`user.AspNetUsers` | 貼文的文物與作者引用 | Social 只保存明確外鍵或識別，不擁有文物與 Identity 主資料 |
 
 ## 開發規則與跨系統界線
@@ -78,16 +66,3 @@ Social 負責貼文、公告貼文、留言與回覆、檢舉、活動、活動�
 - 活動審核、發布、開始結束、報名截止、人數上限、重複報名與出席狀態是否分開驗證。
 - 使用者輸入是否以純文字安全呈現；外部連結、新分頁、媒體替代文字與 `413` 回應是否同步。
 - API、資料庫限制、媒體 Resolver、管理後台、前台顯示與展示資料是否同步。
-
-## 後續查閱
-
-以下是查文件的路線，不是系統實作先後。
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 Social 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [地點與地圖串接](../features/map-integration.md)、[資料與圖片使用](../features/data-and-media.md)：依工作目標查外部服務與內容規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

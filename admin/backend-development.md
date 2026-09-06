@@ -1,14 +1,6 @@
 # 管理後台開發起點
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 新增後台功能不只是做出一個表格。必須同時決定資料由哪個 Area 負責、表單允許改哪些欄位、哪些角色可以操作，以及這次異動是否要留下流水或歷史。 |
-| What（現在實際怎麼做） | `QMAH.Web` 的 Area 由 Controller 接收請求、ViewModel 限制輸入、Razor View 顯示畫面；單表查詢可直接使用 `QmahDbContext`，跨表流程、資產異動與歷史保留則交給具體 Service 和交易處理。 |
-| How（開始查或改時怎麼走） | 先看 Area 邊界和資料表限制，再讀對應的 Entity／`DbSet`；接著完成清單、詳細資料、表單、`[Authorize]`、驗證與保存流程。若會改點數、鑰匙、優惠券或其他歷史資料，最後要從流水與稽核紀錄回查結果，並測試查無資料、未授權、重複送出和並行修改。 |
-
-**適用情境：** 準備在 `QMAH.Web` 新增一個管理清單、詳細頁、表單或資產操作時，先用這頁決定檔案放在哪個 Area、哪些欄位可以輸入，以及保存時要不要經過 Service；若只是調整既有頁面的外觀，改看[Razor 與 Tabler 管理後台介面](razor-admin-ui.md)。
+`QMAH.Web` 的 Area 由 Controller 接收請求、ViewModel 限制輸入、Razor View 顯示畫面；單表查詢可直接使用 `QmahDbContext`，跨表流程、資產異動與歷史保留則交給具體 Service 和交易處理。
 
 管理後台頁面由資料表、路由、ViewModel、授權與 CRUD 組成。這些內容可以平行準備；完成單一操作流程時，再依資料依賴逐項驗證。
 
@@ -23,7 +15,7 @@ List、Controller、ViewModel、Razor 表單與完整 CRUD 的最小範例見[�
 1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
 2. 開啟 `QMAH.sln`，確認 `QMAH.Web` 與 `QMAH.Api` 至少各自可以啟動；Visual Studio 也可以選 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動兩者。
 3. 開發分支使用對應的 `feature/*` 分支，並在開始前同步遠端變更。
-4. `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping 應先完成閱讀。遠端版本更新後，依[資料工具參考](../reference/data-tools.md)用最新版完整快照重新建立資料庫；不直接修改舊資料庫，也不執行增量匯入。
+4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping。全新環境使用最新版完整 Snapshot；需要保留既有資料時，只使用 Release 明確提供且起訖版本相符的升級 SQL。文物資料匯入是功能資料更新，不等同資料庫 Schema 升級。
 5. SSMS Diagram 用於核對主鍵、外鍵、唯一索引、可否為 `NULL` 與 `rowversion`。
 
 資料庫已存在，不需要建表或建立 Migration。

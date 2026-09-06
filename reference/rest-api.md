@@ -1,14 +1,6 @@
 # REST API 契約
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 使用者前台只需要知道「呼叫哪個路徑、送哪些欄位、成功會收到什麼、失敗要怎麼顯示」。Entity、資料表和 Controller 是後端實作，不能拿來猜 API 的公開格式，否則前台會綁死內部結構。 |
-| What（現在實際記錄什麼） | 本頁以 `/api/v1` 為範圍，記錄 HTTP method、path、登入與 Cookie／XSRF 要求、Request／Response DTO、`summary`／`description`、成功狀態和 `400`、`401`、`403`、`404`、`409`、`413` 等流程錯誤；啟動中的 `/openapi/v1.json` 與 `/scalar/v1` 是可直接驗證的機器契約和測試頁。 |
-| How（前台接一個 Endpoint 怎麼走） | 先在 Endpoint 清單找到功能，再讀該條目的輸入、權限、成功回應與錯誤狀態；啟動 API 後用 Scalar 或 OpenAPI 核對實際 Schema。寫入請求先取得 anti-forgery token、沿用登入 Cookie，收到回應後依狀態碼更新畫面，不用前端自行推算資產、訂單、解鎖或遊戲結果。 |
-
-**適用情境：** 前台要開始串接一個 API、後端修改 Controller 回應，或 Scalar 看起來和文件不一致時，先在本頁找到完整 Endpoint 條目，再用 `/openapi/v1.json` 和 `/scalar/v1` 對照實際輸入、回應、權限與狀態碼。
+本頁以 `/api/v1` 為範圍，記錄 HTTP method、path、登入與 Cookie／XSRF 要求、Request／Response DTO、`summary`／`description`、成功狀態和 `400`、`401`、`403`、`404`、`409`、`413` 等流程錯誤；啟動中的 `/openapi/v1.json` 與 `/scalar/v1` 是可直接驗證的機器契約和測試頁。
 
 QMAH API 位於獨立的 `QMAH.Api` 專案，所有版本化 Endpoint（API 可呼叫的路徑）以 `/api/v1` 開頭。
 
@@ -58,6 +50,40 @@ Scalar 的 `Test Request` 會使用目前頁面的 session（瀏覽器工作階�
 Postman、Insomnia 或前端測試程式必須保留 cookies（瀏覽器保存的登入資料），並設定 `credentials`（是否攜帶 Cookie 的請求設定）。request body（請求本文，送出的 JSON 內容）則依 OpenAPI 契約傳送。
 
 `/openapi/v1.json` 可交給前端產生 client（呼叫 API 的程式碼）、執行 contract test（契約測試）或檢查 breaking change（會讓既有呼叫失效的變更）。
+
+### 文件各自負責什麼
+
+| 需要確認的內容 | 查閱位置 |
+| --- | --- |
+| 某項功能要依序呼叫哪些 API | 本頁的「常用串接流程」 |
+| Method、Path、權限與用途 | 本頁的「Endpoint 清單」 |
+| Request／Response 的完整欄位、型別、必填與可空規則 | 啟動中的 `/scalar/v1` 或 `/openapi/v1.json` |
+| DTO、驗證與實際狀態碼如何產生 | `QMAH.Api` Controller、DTO 與 OpenAPI operation catalog |
+
+本頁不另外複製所有 Schema 欄位，以免手寫範例和機器契約分成兩個版本。前台實作時先用本頁確認流程，再以同一次啟動產生的 OpenAPI 核對欄位。
+
+### 常用串接流程
+
+#### 登入後讀取會員資料
+
+1. 呼叫 `GET /api/v1/account/antiforgery-token`。成功回傳 `204`，沒有 JSON 本文；防偽權杖寫在可讀取的 `XSRF-TOKEN-API` Cookie。
+2. 呼叫登入 Endpoint，請求帶上同一組 Cookie 與 `X-XSRF-TOKEN`。
+3. 登入成功後呼叫 `GET /api/v1/me` 取得目前會員，再依需求呼叫 `/api/v1/me/*`。登入後重新取得防偽權杖，讓後續寫入使用登入身分對應的權杖。
+4. 收到 `401` 時回到登入流程；`403` 表示帳號已登入但沒有該資源或操作權限。
+
+#### 顯示圖鑑並使用鑰匙
+
+1. 讀取 metadata、分類、年代與文物清單，將 API 回傳的 Id 保存為路由或操作識別。
+2. 呼叫 `GET /api/v1/me/economy` 顯示鑰匙餘額與可解鎖數量。
+3. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。只有 `UNIVERSAL` 在 body 指定 `ArtifactId`，其他類型由伺服器選擇。
+4. 回應沒有解鎖結果時，表示目前沒有候選且沒有扣鑰匙；前台不將它顯示成伺服器錯誤。
+
+#### 完成一次 Mini Game
+
+1. 呼叫 `GET /api/v1/game/modes` 取得模式與目前設定。
+2. 呼叫 `POST /api/v1/game/attempts`，使用回傳的 Attempt、文物池、Seed 與 Config 建立玩法。
+3. 呼叫 `POST /api/v1/game/attempts/{id}/complete` 送出原始分數與結果資料。
+4. 前台只顯示後端回傳的標準化分數、Grade、點數與鑰匙進度。現階段後端尚未完成四種玩法各自的操作結果驗證，串接測試需涵蓋格式錯誤、重複完成與逾期 Attempt。
 
 正式環境（正式使用的部署環境）預設不公開文件。部署時若需要公開 OpenAPI，須以設定檔明確啟用 `OpenApi:Enabled`；若也需要公開 Scalar，另須啟用 `OpenApi:ScalarEnabled`。
 
@@ -172,6 +198,8 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 [圖表 IR 原始檔](../diagrams/api-auth-flow.json) · [draw.io 編輯檔（QMAH-Docs 專案）](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/api-auth-flow.drawio)
 
 ## Endpoint 清單
+
+本節是路由索引，不取代 OpenAPI Schema。每列說明權限與業務用途；實作 request body 或產生型別時，使用 `/scalar/v1` 或 `/openapi/v1.json` 的實際欄位。
 
 ### 帳號
 

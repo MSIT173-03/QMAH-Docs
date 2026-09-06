@@ -1,14 +1,6 @@
 # 資料表參考
 
-## 快速理解
-
-| 先問自己 | 文件直接回答 |
-| --- | --- |
-| Why（為什麼要看這頁） | 問「這欄存在嗎」、「程式怎麼存」、「API 會回什麼」和「本機目前有幾筆」時，答案不在同一份檔案。先分清查詢層次，才能避免拿展示資料推測 Schema，或拿 API 欄位推測整張表。 |
-| What（現在實際怎麼分） | `QMAH/database/Schema.sql` 是表格、欄位、索引與外鍵的結構來源；`QmahDbContext` 和 Entity 是 C# 對照；REST API 文件是前台可見欄位；QMAH-Database 的 `db-v0.8.0` Snapshot 才是共同展示資料列。 |
-| How（查資料時怎麼走） | 先在本頁找到資料表及其責任，再依問題回查 Schema、Entity／mapping、DTO 或 Snapshot。需要改結構時先改 Schema 和交付 SQL，需要改查詢時看 `DbSet` 與 Service，需要確認畫面資料時看 API 或 ViewModel，最後用相容 Snapshot 驗證實際結果。 |
-
-**適用情境：** 遇到「這個欄位在哪裡」、「兩張表怎麼關聯」、「API 為什麼沒有回某欄」、「本機資料為什麼不同」等問題時，先用本頁找到正確資料表，再依問題回到結構、程式映射、API 或 Snapshot，不把四種答案混在一起。
+`QMAH/database/Schema.sql` 是表格、欄位、索引與外鍵的結構來源；`QmahDbContext` 和 Entity 是 C# 對照；REST API 文件是前台可見欄位；QMAH-Database 的 `db-v0.8.0` Snapshot 才是共同展示資料列。
 
 本頁是 QMAH 資料表的文字字典，補充 [SSMS Diagram 建立參考](database-diagram.md) 不適合放進圖表的用途、主鍵、外鍵和開發注意事項。資料庫結構以 `QMAH/database/Schema.sql` 為準，Entity 與關聯映射以 `QMAH.Infrastructure/Data/QmahDbContext.cs` 為準；完整資料列則以 [QMAH-Database 的 Snapshot](https://github.com/MSIT173-03/QMAH-Database) 為準。
 
