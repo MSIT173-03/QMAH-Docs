@@ -70,7 +70,9 @@ var result = await _economyService.AdjustKeysAsync(
 
 Transaction（資料庫交易）讓多筆相關寫入一起成立，例如餘額增加與流水新增。提交前失敗就回復。
 
-Program 啟用 SQL 短暫錯誤重試後，手動交易需要把整段操作放入 execution strategy（重試策略）。目前人工點數及鑰匙調整已這樣處理；其他直接使用 BeginTransactionAsync 的領域方法仍需在串接時核對。不能只看到有 transaction 就宣稱所有結算路徑已可重試。
+Program 啟用 SQL 短暫錯誤重試後，手動交易需要把整段操作放入 execution strategy（重試策略）。人工點數及鑰匙調整、Mini Game 完成與營運批次資產操作已採用這種方式；其他直接使用 `BeginTransactionAsync` 的領域方法仍需個別核對。
+
+Mini Game 完成與批次操作各保留公開重試入口及私有單次交易方法。每次重試清除前次追蹤狀態，再重新查詢資料；Mini Game 依 Attempt 的完成狀態讀回既有結果，批次在同一次服務呼叫沿用固定批次 ID。即使前次提交成功但連線中斷，重試也能辨識已提交的結果。批次 ID 的保護範圍是同一次服務呼叫，另送一次 HTTP 請求仍是新的批次操作。
 
 完整例子與重複 HTTP 請求的限制見[增加鑰匙流程](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子)。
 
