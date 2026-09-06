@@ -35,6 +35,7 @@ SQL Server Schema 是共同契約。新增或修改資料表、欄位、索引�
 ## 依責任查閱文件
 
 - Area 內的資料表、狀態與跨區域規則： [Area 責任與資料界線](area-boundaries.md)
+- 從啟動、Controller 到共用 Service 與流水的流程： [應用程式啟動與六大系統流程](runtime-and-shared-services.md)
 - 逐表用途、主鍵、外鍵與 Schema 分區： [資料表參考](database-reference.md)
 - 查詢、交易、`RowVersion` 與服務判斷： [資料存取與 DB-first](data-access.md)
 - API 與前台欄位： [REST API 契約](../reference/rest-api.md)

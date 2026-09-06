@@ -1,6 +1,6 @@
 # QMAH 資料工具參考
 
-資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 取得相容的 `QMAH.sql` 或 `.bak`；不需開啟本目錄的工具，也不需手動執行增量 SQL。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
+資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得相容的 `QMAH.sql` 或 `.bak`；既有 `db-v0.7.0` 可改用 Release 內的升級 SQL 保留資料更新。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
 
 ## 工具分工
 
@@ -19,7 +19,7 @@
 2. 在 QMAH-Database Repository 根目錄執行：
 
    ```powershell
-   .\tools\QmahDataTools\Export-ReferenceDatabase.ps1 -Version 0.7.0
+   .\tools\QmahDataTools\Export-ReferenceDatabase.ps1 -Version 0.8.0
    ```
 
 3. Pipeline 會建立暫時 LocalDB、還原並驗證資料、檢查 Web 啟動與資料 parity，再輸出交付用 `.bak`、`.sql`、checksum 與報告。
@@ -37,7 +37,7 @@ exporter 預設寫入 sibling Repository 的 `QMAH-Database/QMAH.sql`。目標 R
 
 ```powershell
 .\tools\QmahDataTools\Export-ReferenceDatabase.ps1 `
-  -Version 0.7.0 `
+  -Version 0.8.0 `
   -RepositorySqlPath 'D:\qmah-snapshots\QMAH.sql'
 ```
 

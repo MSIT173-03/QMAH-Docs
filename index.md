@@ -3,7 +3,7 @@
 <div class="qmah-home">
   <section class="qmah-index-header" aria-labelledby="qmah-home-title">
     <h1 id="qmah-home-title">QMAH 開發文件</h1>
-    <p class="qmah-index-lead">文件依序列出開發環境、共同資料、系統邊界、功能文件與參考資料。六個快速查詢頁使用同一套欄位與查閱順序，方便從任一系統入口找到相同類型的資料。</p>
+    <p class="qmah-index-lead">各系統可以平行開發。從負責的功能進入，查操作流程、API 與資料；需要共用登入、文物或資產時，再確認跨系統約定。</p>
     <div class="qmah-index-meta" aria-label="文件站資訊">
       <span>QMAH / DOCUMENTATION</span>
       <span>Markdown source · VitePress build</span>
@@ -30,7 +30,7 @@
     <div class="qmah-index-sheet">
       <p class="qmah-index-label">讀取方式</p>
       <h2 id="qmah-route-title">共同基準與功能範圍</h2>
-      <p>閱讀順序為環境、共同 Snapshot、資料表、系統邊界與功能文件。快速查詢頁只負責定位；欄位、狀態、API 與變更規則以連結的正規文件為準。</p>
+      <p>第一次開啟專案可先確認環境與資料庫。各系統開發彼此獨立；文件排列只是查閱入口，沒有要求依序完成各系統。</p>
       <ol class="qmah-route-list">
         <li><a href="./getting-started/development-environment">準備開發環境</a><span>工具、啟動、連線與共同 Snapshot</span></li>
         <li><a href="./getting-started/development-data">確認共同資料</a><span>Snapshot、資料表、狀態與展示資料</span></li>
@@ -44,7 +44,7 @@
     <div class="qmah-section-heading">
       <p class="qmah-index-label">系統索引 / 6 pages</p>
       <h2 id="system-index-title">六個入口快速查詢頁</h2>
-      <p>六頁均依「系統範圍 → 資料表與關聯 → 開發規則與跨系統界線 → 查詢入口 → 變更前檢查 → 建議查閱順序」排列。頁內列出定位資訊，詳細內容以連結指向的正規文件為準。</p>
+      <p>選擇負責的系統，先看快速查閱與實際流程，再依需要查 API、資料表及跨系統約定。Shared 集中放共用服務與環境說明。</p>
     </div>
     <div class="qmah-system-list">
       <a class="qmah-system-row qmah-system-row-shared" href="./quick-reference/shared"><span class="qmah-system-code">CORE</span><span><strong>Shared｜共用基礎</strong><small>環境、資料表、API、資料存取、媒體、Snapshot、協作與跨系統界線</small></span><span class="qmah-system-arrow" aria-hidden="true">↗</span></a>
@@ -63,12 +63,14 @@
 
 ### 開始開發
 
+- [5＋1 系統：快速查閱與操作流程](getting-started/system-walkthrough.md)
 - [開發環境與啟動](getting-started/development-environment.md)
 - [開發資料與本機展示](getting-started/development-data.md)
 
 ### 架構
 
 - [系統架構總覽](architecture/system-overview.md)
+- [應用程式啟動與六大系統流程](architecture/runtime-and-shared-services.md)
 - [Area 責任與資料界線](architecture/area-boundaries.md)
 - [資料存取與 DB-first](architecture/data-access.md)
 - [資料庫 Diagram 對照](architecture/database-diagram.md)
@@ -77,6 +79,7 @@
 ### 前端
 
 - [Angular 使用者前台開發](frontend/angular-development.md)
+- [前台功能接手指南](frontend/feature-development-guide.md)
 - [媒體交付設定](frontend/media-delivery.md)
 
 ### 管理後台

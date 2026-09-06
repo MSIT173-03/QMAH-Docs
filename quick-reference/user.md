@@ -1,10 +1,22 @@
 # User｜會員與 Identity
 
-本頁固定依「系統範圍 → 資料表與關聯 → 開發規則與跨系統界線 → 查詢入口 → 變更前檢查 → 建議查閱順序」排列。詳細欄位、狀態與操作規則以連結的正規文件為準。
+快速定位工作可先看下表，再閱讀實際流程與資料表。
+
+## 快速查閱
+
+| 查閱目的 | 入口 |
+| --- | --- |
+| 先理解怎麼運作 | [登入活動、日數、登入成就及稱號](../getting-started/system-walkthrough.md#會員：何時算登入一天) |
+| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
+| 查請求如何進入服務 | [啟動與共用元件](../architecture/runtime-and-shared-services.md) |
 
 ## 系統範圍
 
 User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email、密碼、鎖定、角色、Claim、外部登入與 Token 屬於 Identity；暱稱、簡介、地址、成就、稱號、通知與會員活動資料由 QMAH 資料模型保存。
+
+## 實際運作方式
+
+登入由 Identity 驗證帳密、鎖定與 Security Stamp，再由 Web 或 API 各自簽發受保護 Cookie。會員資料以同一 `UserId` 連到 Profile、地址、成就、稱號與其他系統紀錄。API 的每日登入活動只在使用者前台流程寫入同會員、同日期、同類型的一列，後台登入不觸發；累積天數與登入率由這些每日列即時計算。登入活動服務會判斷登入成就；其他成就需確認各自的觸發入口，會員只能配戴自己已取得的稱號。
 
 ## 資料表與關聯
 
@@ -44,6 +56,14 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
 | 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+
+## 前台接手建議
+
+- 先約定 Auth service 如何提供會員狀態、登入、登出與 `401` 結果；其他系統可依這個介面同步開發。
+- 登入成功並確認 `/me` 後才登記每日登入；重新整理或管理後台登入不應產生額外登入天數。
+- 個人資料、地址、通知、成就與稱號分成各自 service，不把所有會員功能塞進單一 component。
+- 地址座標可以完全留空或成對送出；稱號只能使用 API 回傳的已取得成就，不在前台自行判斷資格。
+- 平行分工與跨系統確認事項見[前台功能接手指南](../frontend/feature-development-guide.md)。
 
 ## 變更前檢查
 

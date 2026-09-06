@@ -1,10 +1,22 @@
 # Shared｜共用基礎
 
-本頁固定依「系統範圍 → 資料表與關聯 → 開發規則與跨系統界線 → 查詢入口 → 變更前檢查 → 建議查閱順序」排列。詳細欄位、狀態與操作規則以連結的正規文件為準。
+快速定位工作可先看下表，再閱讀實際流程與資料表。
+
+## 快速查閱
+
+| 查閱目的 | 入口 |
+| --- | --- |
+| 先理解怎麼運作 | [共用服務、批次活動與營運查詢](../getting-started/system-walkthrough.md#營運中心：看整體與發起批次資產活動) |
+| 查資產增減與管理員 | [加鑰匙實例與查帳](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子) |
+| 查請求如何進入服務 | [啟動與共用元件](../architecture/runtime-and-shared-services.md) |
 
 ## 系統範圍
 
 Shared 不是資料庫中的獨立 Schema，也不是第六個產品 Area；它整理五個功能系統共同使用的環境、Identity、資料存取、API、媒體、Snapshot、資料工具、協作與跨系統界線。共同規則只在有實際程式、Schema 或工具依據時列出。
+
+## 實際運作方式
+
+Web 與 API 啟動時先載入環境設定，再由共用 resolver 選擇資料庫與媒體網址。HTTP request 進入後依序經過路由、限流、Cookie 修復、跨來源規則、登入與授權，Controller 才會呼叫 scoped Service。涉及資產或跨表狀態的 Service 在同一交易內寫入目前值與歷史來源；管理後台另外由 Audit filter 保存操作者與操作結果。完整呼叫關係與擴充位置見[應用程式啟動與六大系統流程](../architecture/runtime-and-shared-services.md)。
 
 ## 資料表與關聯
 
@@ -44,6 +56,14 @@ Shared 不是資料庫中的獨立 Schema，也不是第六個產品 Area；它�
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
 | 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+
+## 前台接手建議
+
+- Auth、API、XSRF、`ProblemDetails`、分頁與圖片處理可和功能頁同步開發；先約定輸入與回傳欄位，整合時再共用實作。
+- `core` 保存跨全站的狀態與服務，`shared` 保存可重用畫面元件；單一系統規則留在自己的 feature。
+- 每個清單共用載入、空資料、錯誤和分頁狀態，每個寫入操作共用送出中與重複點擊防護。
+- API Base URL、圖片來源與部署環境由設定決定，不在 component 內寫死 localhost、Azure 或 CDN 網域。
+- 平行分工與跨系統確認事項見[前台功能接手指南](../frontend/feature-development-guide.md)。
 
 ## 變更前檢查
 

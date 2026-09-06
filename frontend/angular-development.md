@@ -33,7 +33,7 @@ Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、
 
 ## 開發入口
 
-本機資料庫使用 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
+本機資料庫使用 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.8.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
 
 QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。前端第一次開發時，在 `QMAH.Client` 執行：
 
@@ -84,11 +84,13 @@ API 與 Angular 可以透過下列方式啟動：
 
 前端不把密碼、Cookie、Token 或 API 網域寫進 localStorage。登入與寫入資料只依後端 API 契約送出。
 
-## 功能開發順序
+## 各系統平行開發
 
 每個功能以 `features/<feature>` 分層。畫面只處理顯示與使用者操作，API 呼叫、資料轉換與錯誤處理集中在 service。
 
-下表提供使用者前台接手順序與第一批契約：
+各系統可獨立開發的頁面、API 與跨系統確認事項整理在[前台功能接手指南](feature-development-guide.md)。開始單一功能時，可先讀該系統的快速參考頁，再依接手指南完成第一條可操作流程。
+
+下表列出各系統需要的 API，列出的順序不代表開發順序：
 
 | 功能 | 主要 API | 前台需要組合的資料 |
 | --- | --- | --- |

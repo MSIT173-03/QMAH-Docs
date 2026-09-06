@@ -2,7 +2,7 @@
 
 本頁是 QMAH 資料表的文字字典，補充 [SSMS Diagram 建立參考](database-diagram.md) 不適合放進圖表的用途、主鍵、外鍵和開發注意事項。資料庫結構以 `QMAH/database/Schema.sql` 為準，Entity 與關聯映射以 `QMAH.Infrastructure/Data/QmahDbContext.cs` 為準；完整資料列則以 [QMAH-Database 的 Snapshot](https://github.com/MSIT173-03/QMAH-Database) 為準。
 
-目前對照的共同資料版本是 `db-v0.7.0`。本頁不嵌入大型 `QMAH.sql`，也不把某一次程式提交當成資料庫版本。
+目前對照的共同資料版本是 `db-v0.8.0`。本頁不嵌入大型 `QMAH.sql`，也不把某一次程式提交當成資料庫版本。
 
 ## 資料查詢層次
 
@@ -12,7 +12,7 @@
 | LINQ 能否導覽、如何載入與儲存 | `QmahDbContext` 與 Entity | EF Core 的型別、Navigation、追蹤與關聯映射 |
 | API 回傳哪些欄位 | [REST API 契約](../reference/rest-api.md) 與 DTO | 對外可見的資料形狀，不等於整張資料表 |
 | 管理後台如何編輯 | [Area 責任與資料界線](area-boundaries.md) 與 ViewModel | 操作權限、輸入欄位、狀態與流程邊界 |
-| 本機目前有多少資料 | [開發資料與本機展示](../getting-started/development-data.md) | `db-v0.7.0` Snapshot 的展示情境與資料量 |
+| 本機目前有多少資料 | [開發資料與本機展示](../getting-started/development-data.md) | `db-v0.8.0` Snapshot 的展示情境與資料量 |
 | 如何重建或輸出共同資料 | [資料工具](../reference/data-tools.md) | 隔離資料庫、展示資料、Snapshot 與檔案交付 |
 
 ## Schema 分區
@@ -67,7 +67,7 @@ QMAH 目前在 `Schema.sql` 定義 7 個 Schema、54 張資料表。`Shared` 是
 | `catalog.ArtifactUnlocks` | `Id` | `ArtifactId` → `Artifacts.Id`；`KeyTransactionId` → `KeyTransactions.Id`；`GameRoundId` → `game.GameRounds.Id`；`UserId` → `user.AspNetUsers.Id` | 會員解鎖文物的結果與來源。`UserId`／`ArtifactId` 有唯一限制；屬於歷史資料，不因文物下架而刪除。 |
 | `catalog.KeyDefinitions` | `Id` | `CategoryId` → `ArtifactCategories.Id`；`EraBucketId` → `EraBuckets.Id` | 鑰匙類型、作用範圍與規則。`ScopeType` 受 CHECK constraint 限制，不能當成任意文字。 |
 | `catalog.KeyExchangeRules` | `Id` | `SourceKeyDefinitionId`、`TargetKeyDefinitionId` → `KeyDefinitions.Id` | 鑰匙兌換規則。來源／目標組合有唯一索引，數量需符合正數限制。 |
-| `catalog.KeyTransactions` | `Id` | `KeyDefinitionId` → `KeyDefinitions.Id`；`UserId` → `user.AspNetUsers.Id` | 會員鑰匙異動流水。發放、消耗、兌換或回復都應留下可追溯的異動原因。 |
+| `catalog.KeyTransactions` | `Id` | `KeyDefinitionId` → `KeyDefinitions.Id`；`UserId` → `user.AspNetUsers.Id`；`CreatedByAdminUserId` → `user.AspNetUsers.Id` | 會員鑰匙異動流水。發放、消耗、兌換或回復都會留下原因；管理員人工調整保存操作管理員 ID，系統流程留空。 |
 | `catalog.UserKeyBalances` | `UserId`、`KeyDefinitionId` | `UserId` → `user.AspNetUsers.Id`；`KeyDefinitionId` → `KeyDefinitions.Id` | 會員與鑰匙類型的餘額。複合主鍵識別一筆餘額；查帳時要和 `KeyTransactions` 一起核對。 |
 | `catalog.KeyProgressBalances` | `UserId` | `UserId` → `user.AspNetUsers.Id` | Mini Game 鑰匙進度餘額。與一般鑰匙餘額分開保存，餘額不可為負。 |
 | `catalog.KeyProgressTransactions` | `Id` | `UserId` → `user.AspNetUsers.Id` | Mini Game 進度與轉換一般鑰匙的流水。進度交易與一般鑰匙交易分開記錄。 |
@@ -112,7 +112,7 @@ QMAH 目前在 `Schema.sql` 定義 7 個 Schema、54 張資料表。`Shared` 是
 | `store.CouponDefinitions` | `Id` | — | 折價券定義、折扣方式、取得方式與有效期間。`PERCENT`／`FIXED` 等代碼受資料庫與流程規則限制。 |
 | `store.UserCoupons` | `Id` | `CouponDefinitionId` → `CouponDefinitions.Id`；`UserId` → `user.AspNetUsers.Id`；管理員與發放／撤銷批次欄位連到 `user.AspNetUsers`、`admin.EconomyAdjustmentBatches` | 會員持券、使用、過期與撤銷狀態。券的定義與某會員手上的券不是同一層資料。 |
 | `store.PointBalances` | `UserId` | `UserId` → `user.AspNetUsers.Id` | 會員點數餘額。一位會員一筆餘額；異動原因要寫入 `PointTransactions`。 |
-| `store.PointTransactions` | `Id` | `UserId` → `user.AspNetUsers.Id` | 點數異動流水。查帳、回溯與重複請求判斷以流水為主。 |
+| `store.PointTransactions` | `Id` | `UserId` → `user.AspNetUsers.Id`；`CreatedByAdminUserId` → `user.AspNetUsers.Id` | 點數異動流水。管理員人工調整保存操作管理員 ID，系統獎勵或消耗流程留空；查帳、回溯與重複請求判斷以流水為主。 |
 | `store.ProductReviews` | `Id` | `ProductId` → `Products.Id`；`UserId` → `user.AspNetUsers.Id` | 商品評價與公開狀態。摘要只計入已發布評價，隱藏與刪除紀錄仍保留。 |
 
 ### `user`

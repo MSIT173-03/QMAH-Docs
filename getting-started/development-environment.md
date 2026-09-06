@@ -4,7 +4,7 @@
 
 完成資料庫還原後，可直接用 Visual Studio 開啟方案並按 `F5`，不需要先執行命令列。
 
-本機共用資料請從 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 取得 `QMAH.sql` 或 `.bak`；QMAH 主 Repository 的 Release 只保留版本導覽，不提供資料庫附件。
+本機共用資料請從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得 `QMAH.sql` 或 `.bak`；QMAH 主 Repository 的 Release 只保留版本導覽，不提供資料庫附件。
 
 ## 共同版本
 
@@ -52,7 +52,7 @@ Server=.;Database=QMAH
 
 ### 參考資料庫
 
-目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql) 可直接在 SSMS 執行。
+目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.8.0/QMAH.sql) 可直接在 SSMS 執行。
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。
 

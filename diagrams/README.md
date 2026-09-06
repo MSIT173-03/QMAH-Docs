@@ -8,6 +8,8 @@
 
 ## 圖表對照
 
+資產說明圖使用 Agents365-ai/drawio-skill 的 XML 與驗證規則。執行 `node diagrams/render-ledger.mjs` 產生 `asset-adjustment-flow.drawio`、`asset-ledger-map.drawio`；再用 draw.io Desktop 的 `-x -f svg -e --embed-svg-images` 匯出到同名 `rendered/*.svg`。原始資料與版面保存在腳本，可編輯檔保存在 `.drawio`。第一張表示操作順序，第二張表示查帳用途，均不是 SQL 外鍵圖。
+
 | IR 來源 | 可編輯檔 | 文件站輸出 | 用途 |
 | --- | --- | --- | --- |
 | `system-architecture.json` | `system-architecture.drawio` | `rendered/system-architecture.svg` | 前台、後台、API、共用服務、資料庫、資料工具、媒體與文件交付 |

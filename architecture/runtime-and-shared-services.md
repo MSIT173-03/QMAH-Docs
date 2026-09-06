@@ -1,0 +1,55 @@
+# 應用程式啟動與共用服務
+
+第一次接手可先閱讀 [5＋1 系統快速查閱與操作流程](../getting-started/system-walkthrough.md)，從查看背包、增加鑰匙到查帳逐步了解功能。本頁補充程式啟動及擴充位置。
+
+## Program.cs 的兩個階段
+
+網站啟動時先註冊服務，再設定請求經過的處理順序。註冊服務不等於執行業務操作，例如註冊 EconomyService 不會立刻發放點數。
+
+1. 讀取共同設定、環境別設定、環境變數等來源，最後加入 `appsettings.Local.json`，同名值由 Local 覆寫。資料庫目標等在啟動時讀成固定值，修改後需重新啟動。
+2. 允許探索時，`QmahDatabaseConnectionResolver` 檢查指定連線及本機候選，採第一個符合條件者。必要表檢查不等於完整版本驗證；關閉探索時直接使用指定連線。
+3. 註冊 `QmahDbContext`、Identity 與各 Service，讓 Controller 可以透過建構式取得所需物件。這叫 DI（依賴注入）。
+4. 設定 Middleware，也就是請求沿途經過的處理程式：路由、限流、Cookie 修復、登入及授權等。API 另套 CORS；Web 沒有套用 API 的 CORS policy。
+5. `app.Run()` 開始接收請求。Infrastructure 是程式庫，不需要另外啟動。
+
+## 註冊一個新服務
+
+若新功能使用 DbContext，就在使用它的 host 註冊 `AddScoped<服務類型>()`。Scoped 表示同一請求使用同一份物件，下一個請求另外建立，避免混用資料追蹤。
+
+只有 API 使用就註冊在 API；Web 也會呼叫才在 Web 註冊。Singleton 是整個應用程式共用一份，不能持有請求專屬的 DbContext。
+
+Controller 負責輸入與 HTTP 回應；需要共用的規則放 Service。單一系統的既有 CRUD 不必只為形式一致搬進共用層。
+
+## 哪些功能使用共用元件
+
+| 共用元件 | 實際呼叫位置 | 擴充時的做法 |
+| --- | --- | --- |
+| QmahDatabaseConnectionResolver | Web、API Program | 重用探索規則，不另猜伺服器名稱 |
+| QmahMediaUrlResolver | Catalog、StoreCatalog、MiniGame、Me API 與 Web MediaUrlTagHelper | 保存邏輯路徑，輸出時解析 |
+| QmahCookieRecoveryExtensions | Web、API pipeline | Cookie 更名需同步目前名稱及舊名稱清單 |
+| EconomyService | Economy API、MiniGame、會員管理、鑰匙與券背包 | 餘額及流水一起保存 |
+| BulkEconomyService | OperationsController | 預覽與執行分開，保存篩選及結果 |
+| CommunityRewardService | 社群、加碼及房間邀請 API | 由服務判斷加碼來源與額度 |
+| DailyActivityService | MeController | 前台明確記錄每日登入，後台登入不觸發 |
+
+## 交易與重試
+
+Transaction（資料庫交易）讓多筆相關寫入一起成立，例如餘額增加與流水新增。提交前失敗就回復。
+
+Program 啟用 SQL 短暫錯誤重試後，手動交易需要把整段操作放入 execution strategy（重試策略）。目前人工點數及鑰匙調整已這樣處理；其他直接使用 BeginTransactionAsync 的領域方法仍需在串接時核對。不能只看到有 transaction 就宣稱所有結算路徑已可重試。
+
+完整例子與重複 HTTP 請求的限制見[增加鑰匙流程](../getting-started/system-walkthrough.md#第三步：看一次加鑰匙的完整例子)。
+
+## 流水與稽核
+
+![資產帳本與管理紀錄的用途對照](../diagrams/rendered/asset-ledger-map.svg)
+
+此圖表示查帳用途，不表示 SQL 外鍵。Balance 查目前數量，Transaction 查增減來源，UserCoupons 查券生命週期，批次主檔查活動整體，AuditLogs 查管理操作結果。
+
+[可編輯圖檔](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/asset-ledger-map.drawio) · [逐步查帳說明](../getting-started/system-walkthrough.md#查帳快速對照)
+
+## 圖片與部署設定
+
+Resolver 只轉換公開網址，不會搬檔案。改用 CDN 還需上傳素材、設定來源與存取權限；受保護的媒體不能直接公開。完整步驟見[媒體交付設定](../frontend/media-delivery.md)。
+
+新增 Angular 網址時在 Cors:AllowedOrigins 設定明確來源，並一起核對 Cookie、XSRF 及部署的同站／跨站條件。只增加 CORS 不會自動解決 Cookie 的 SameSite 限制。

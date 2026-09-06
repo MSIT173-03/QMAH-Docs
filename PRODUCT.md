@@ -39,7 +39,7 @@ QMAH 既有 logo 與 mark 位於產品 Repository 的 `QMAH.Web/wwwroot/images/b
 ## Evidence on Hand
 
 - QMAH 程式 Repository：`https://github.com/MSIT173-03/QMAH`
-- QMAH-Database Snapshot：`db-v0.7.0`、`QMAH.sql` 與 `manifest.json`
+- QMAH-Database Snapshot：`db-v0.8.0`、`QMAH.sql` 與 `manifest.json`
 - 現有 Markdown 文件、`Schema.sql`、資料工具與 launch 設定
 - 無已提供的客戶見證、商業數據或可新增的真實照片素材；不在文件站製造這些證據。
 

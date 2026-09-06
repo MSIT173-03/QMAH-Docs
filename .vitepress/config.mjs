@@ -80,6 +80,7 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
       {
         text: '開始開發',
         items: [
+          { text: '5＋1 系統快速查閱與流程', link: '/getting-started/system-walkthrough' },
           { text: '開發環境與啟動', link: '/getting-started/development-environment' },
           { text: '開發資料與本機展示', link: '/getting-started/development-data' }
         ]
@@ -88,6 +89,7 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '架構',
         items: [
           { text: '系統架構總覽', link: '/architecture/system-overview' },
+          { text: '啟動與六大系統流程', link: '/architecture/runtime-and-shared-services' },
           { text: 'Area 責任與資料界線', link: '/architecture/area-boundaries' },
           { text: '資料存取與 DB-first', link: '/architecture/data-access' },
           { text: '資料庫 Diagram 對照', link: '/architecture/database-diagram' },
@@ -98,6 +100,7 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '前端',
         items: [
           { text: 'Angular 使用者前台開發', link: '/frontend/angular-development' },
+          { text: '前台功能接手指南', link: '/frontend/feature-development-guide' },
           { text: '媒體交付設定', link: '/frontend/media-delivery' }
         ]
       },
