@@ -314,7 +314,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | GET | `/api/v1/me/coupons/exchange-options` | 登入後 | 取得點數兌換券的成本、折扣、最低消費、有效天數與使用期間 |
 | POST | `/api/v1/me/coupons/redeem` | 登入後 | 傳送 `CouponDefinitionId`，扣除鑑定點數並建立一張獨立的會員優惠券 |
 | GET | `/api/v1/me/title` | 登入後 | 取得目前配戴的單一成就稱號，未配戴時回傳 `null` |
-| PUT | `/api/v1/me/title` | 登入後 | 傳送 `UserAchievementId` 設定稱號；傳送 `null` 清除配戴狀態 |
+| PUT | `/api/v1/me/title` | 登入後 | 傳送 `{"userAchievementId":"<取得紀錄 GUID>"}` 設定稱號；`{"userAchievementId":null}` 清除配戴，不能把整個 body 傳為 `null` |
 | GET | `/api/v1/me/daily-activity` | 登入後 | 依每日登入歷史即時計算最後登入日、累積天數、連續天數、最高連續天數與登入率 |
 | POST | `/api/v1/me/daily-activity/login` | 登入後 | 由會員前台明確記錄當日登入；同日重複呼叫只增加活動次數，不增加登入天數 |
 | GET | `/api/v1/game/modes` | 登入後 | 取得四種 Mini Game（小遊戲）模式、設定與評級門檻 |
@@ -335,7 +335,11 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 
 欄位錯誤或業務條件不符回傳 `400`；未登入回傳 `401`；不是資源擁有者或沒有角色權限回傳 `403`；找不到文物、規則、房間或邀請回傳 `404`。
 
-餘額不足、重複領取或目前狀態不允許時回傳 `409`。使用鑰匙時若沒有候選文物，API 仍回傳成功結果，並以回應欄位表示本次沒有解鎖且沒有扣除鑰匙。所有失敗均使用 `ProblemDetails`（標準錯誤回應格式）或 `ValidationProblemDetails`（欄位驗證錯誤格式）。
+餘額不足或目前狀態不允許時回傳 `409`。重複領取主遊戲獎勵回傳 `200` 與 `alreadyRewarded: true`；有效請求重送已完成的 Mini Game 回傳 `200` 與 `alreadyCompleted: true`，兩者均不再次發獎。使用鑰匙沒有候選文物時也回傳成功，以 `unlocked: false` 表示未解鎖且未扣鑰匙。業務錯誤使用 `ProblemDetails` 或 `ValidationProblemDetails`；前台仍應依 HTTP 狀態處理沒有 JSON 本文的回應。
+
+稱號使用的是會員取得紀錄 `UserAchievements.Id`，不是成就定義 `Achievements.Id`。服務同時核對這筆取得紀錄屬於目前會員，不能只從公開成就清單挑一個 ID 送出。
+
+延伸閱讀：[資料表與關聯](../architecture/database-reference.md)可核對持券、稱號及流水的識別；[經濟與進程](../features/economy-progression.md)說明資產規則；[API 名詞表](api-glossary.md)說明 DTO、防偽權杖及錯誤回應。
 
 鑑定點數、鑰匙與優惠券的異動資料是資產歷史的主要來源。`admin.AuditLogs` 不記錄每個 API 讀取或 request body（請求本文）。
 

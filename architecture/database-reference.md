@@ -8,6 +8,12 @@
 
 ## 資料查詢層次
 
+### 已知結構文件落差
+
+2026-09-06 核對主專案 `database/Schema.sql` 時，`catalog.KeyTransactions` 的建表段落缺少 `CreatedByAdminUserId`，但後面的外鍵與索引已引用它。資料模型和管理員異動服務也使用此欄位，因此目前不能把這份 Schema 當成已可完整執行的建庫腳本。此處記錄的是主專案結構檔問題，未据此判定 Release 備份或本機資料庫是否缺欄位；兩者需要分別核對。
+
+資料庫還原與版本升級方式見[資料工具](../reference/data-tools.md#選擇還原、升級或匯入)。修復結構檔後，應在乾淨的隔離資料庫驗證完整建表，再移除此項已知落差。
+
 | 查詢問題 | 對應來源 | 這一層回答什麼 |
 | --- | --- | --- |
 | 表格、欄位、索引、CHECK 或外鍵是否存在 | `QMAH/database/Schema.sql` | SQL Server 實際結構契約 |
@@ -132,7 +138,7 @@ QMAH 目前在 `Schema.sql` 定義 7 個 Schema、54 張資料表。`Shared` 是
 | `user.UserAddresses` | `Id` | `UserId` → `AspNetUsers.Id` | 會員收件地址與預設地址。展示資料不放入真實個資；預設地址規則和並行修改依 Schema 驗證。 |
 | `user.Achievements` | `Id` | — | 成就定義、條件、門檻與啟用狀態。停用定義不等於刪除會員已取得的紀錄。 |
 | `user.UserAchievements` | `Id` | `AchievementId` → `Achievements.Id`；`UserId` → `AspNetUsers.Id` | 會員取得成就的歷史紀錄。稱號和進程查詢以這層取得結果為依據。 |
-| `user.EquippedTitles` | `UserId` | `UserId` → `AspNetUsers.Id`；`UserAchievementId` → `UserAchievements.Id` | 會員目前裝備的稱號。一位會員一筆；指定的成就取得紀錄必須屬於同一會員。 |
+| `user.EquippedTitles` | `UserId` | `UserId` → `AspNetUsers.Id`；`UserAchievementId` → `UserAchievements.Id` | 會員目前裝備的稱號，一位會員最多一筆。外鍵保證取得紀錄存在；同會員歸屬由 `EconomyService.SetEquippedTitleAsync` 檢查，不能把它當成已由複合外鍵保證。 |
 
 ## 開發須知
 
@@ -165,6 +171,9 @@ QMAH 目前在 `Schema.sql` 定義 7 個 Schema、54 張資料表。`Shared` 是
 - 是否同步 `Schema.sql`、Entity、`QmahDbContext`、API、前台、後台、資料工具、文件與必要的 Snapshot 版本。
 
 ## 相關文件
+
+- [API 經濟與進程操作](../reference/rest-api.md#經濟、進程與社群加碼)：核對 API 使用的是定義 ID、會員取得紀錄 ID 或批次 ID。
+- [管理員補發鑰匙的實際呼叫](runtime-and-shared-services.md#管理員增加三把鑰匙的實際呼叫)：從操作入口追到餘額、流水及管理員欄位。
 
 - [SSMS Diagram 建立參考](database-diagram.md)：建立與閱讀關聯圖，不重複承擔逐表文字說明。
 - [資料存取與 DB-first](data-access.md)：EF Core、投影、追蹤、交易、並行與刪除邊界。
