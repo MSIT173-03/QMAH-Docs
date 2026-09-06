@@ -8,11 +8,7 @@
 
 ## 資料查詢層次
 
-### 已知結構文件落差
-
-2026-09-06 核對主專案 `database/Schema.sql` 時，`catalog.KeyTransactions` 的建表段落缺少 `CreatedByAdminUserId`，但後面的外鍵與索引已引用它。資料模型和管理員異動服務也使用此欄位，因此目前不能把這份 Schema 當成已可完整執行的建庫腳本。此處記錄的是主專案結構檔問題，未据此判定 Release 備份或本機資料庫是否缺欄位；兩者需要分別核對。
-
-資料庫還原與版本升級方式見[資料工具](../reference/data-tools.md#選擇還原、升級或匯入)。修復結構檔後，應在乾淨的隔離資料庫驗證完整建表，再移除此項已知落差。
+`catalog.KeyTransactions.CreatedByAdminUserId` 是可空的管理員外鍵：人工異動保存管理員 ID，系統流程可留空。Schema 建表、Entity 與後續外鍵／索引使用相同欄位。更新結構檔不會自動修改既有資料庫；還原及升級方式見[資料工具](../reference/data-tools.md#選擇還原、升級或匯入)。
 
 | 查詢問題 | 對應來源 | 這一層回答什麼 |
 | --- | --- | --- |
