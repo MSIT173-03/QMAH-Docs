@@ -70,7 +70,7 @@ Game 負責遊戲房間、玩家、回合、選題、作答、投票、邀請與
 
 - 先畫出房間、回合、作答、投票與結算的狀態轉換，再決定每個狀態顯示哪些操作。
 - 第一版依 API 重新讀取狀態，不假設已有 SignalR；輪詢應集中在 service，離開頁面時停止。
-- 作答、投票、邀請回應與領獎在請求完成前鎖定操作，並明確處理重複送出的 `409`。
+- 作答、投票、邀請回應與領獎在請求完成前鎖定操作。各操作依實際回應處理衝突；重送已完成的 Mini Game 回傳 `200` 與 `alreadyCompleted: true`，主遊戲重複領獎回傳 `200` 與 `alreadyRewarded: true`，均不再次發獎。
 - Mini Game 共用 Attempt 生命週期，各模式的 Config 與 raw result 轉換分開維護，評級與獎勵只顯示後端結果。
 - 平行分工與跨系統確認事項見[前台功能接手指南](../frontend/feature-development-guide.md)。
 

@@ -115,6 +115,8 @@ Postman、Insomnia 或前端測試程式必須保留 cookies（瀏覽器保存�
 
 `rawScore` 限 0～100；`rawResultJson` 選填，非空時須為最多 4,000 字元的 JSON 文字，解析後須為物件或陣列。格式錯誤回傳 `400`。有效請求重送已完成 Attempt 時回傳 `200`，`alreadyCompleted` 為 `true`，不再發獎；其他不可完成狀態才回傳 `409`。畫面不應看到成功回應就再次累加點數，應重新讀取背包。
 
+`rawResultJson` 的 DTO 使用 `StringLength(4000)`，OpenAPI 可表達相同長度上限；服務另檢查 JSON 格式。目前回應的 `normalizedScore` 等於 `rawScore`，並不表示伺服器已重播操作驗證成績。
+
 正式環境（正式使用的部署環境）預設不公開文件。部署時若需要公開 OpenAPI，須以設定檔明確啟用 `OpenApi:Enabled`；若也需要公開 Scalar，另須啟用 `OpenApi:ScalarEnabled`。
 
 測試用帳號與密碼不得寫入文件。
