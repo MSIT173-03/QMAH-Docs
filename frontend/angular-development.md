@@ -8,6 +8,24 @@
 
 欄位與狀態碼以 [`REST API 契約`](../reference/rest-api.md) 和 API 啟動後的 [OpenAPI JSON](https://localhost:7249/openapi/v1.json) 為準。
 
+## 先把幾個名詞對上
+
+第一次看 Angular 程式時，可以先用下面這組對照：
+
+| 名詞 | 用途 | QMAH 的例子 |
+| --- | --- | --- |
+| Angular | 在瀏覽器執行的前端框架 | `QMAH.Client` |
+| Component | 一個畫面或畫面中的一塊；TypeScript 處理操作，HTML 顯示內容，SCSS 負責樣式 | `artifact-list.ts`、`artifact-list.html`、`artifact-list.scss` |
+| Template | Component 使用的 HTML 畫面 | `app.html` 或 feature 的 `.html` |
+| Route | 把網址對應到某個 Component | `app.routes.ts` 或 Domain route |
+| Service | 集中處理可重複使用的工作，前台通常用它呼叫 API | `catalog-api.ts` |
+| HttpClient | Angular 內建的 HTTP 工具，負責送出 request、接收 response | `this.http.get(...)` |
+| API endpoint | 後端提供的一個可呼叫入口，由 HTTP method 和 path 組成 | `GET /api/v1/catalog/categories` |
+| JSON | request 或 response 內常見的資料格式 | `[{"id":"...","code":"...","name":"..."}]` |
+| DTO／model | DTO 是 API 對外的資料格式；model 是前台用來描述這份資料的 TypeScript 型別 | `CodeLabelDto`／`Category` |
+
+一條資料流程可以先記成：`route → component → service → HttpClient → API → JSON → component`。網址、畫面呈現和 API 呼叫各有自己的位置；新增功能時，不把所有工作塞進同一個 component。
+
 ## Angular 21.2.22 的版本選擇
 
 課程要求使用 Angular 21，因此版本線維持在 Angular 21，不升到 Angular 22。

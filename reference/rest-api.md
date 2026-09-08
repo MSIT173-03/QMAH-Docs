@@ -12,11 +12,28 @@ API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.In
 
 Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。
 
+## 先把 API 想成一個有規則的入口
+
+API 是前台向後端讀取資料或請後端執行工作的入口。每次 request（請求）都要看它要呼叫哪個 endpoint、要帶哪些資料，以及 response（回應）代表什麼結果。
+
+| 看到的內容 | 先怎麼讀 |
+| --- | --- |
+| `GET`、`POST`、`PUT`、`DELETE` | `GET` 通常讀取資料；其他 method 通常建立、修改或刪除資料，是否需要登入仍以 API 契約為準 |
+| `/api/v1/...` | endpoint 的 path（路徑）；`v1` 是 API 版本 |
+| `Parameters` | 放在網址上的 path／query 參數，例如 `/artifacts/{id}` 的 `id` 或 `?page=1` |
+| `Request body` | 送給後端的 JSON；常見於 `POST`、`PUT`，欄位要依 Schema 填寫 |
+| `Responses` | 後端可能回傳的狀態碼與資料格式；`200`、`204`、`400`、`401`、`403` 的意義不同 |
+| `Auth` | 這支 API 是否需要登入身分或特定權限 |
+
+例如 `GET /api/v1/catalog/categories` 是讀取分類清單，通常沒有 request body，成功會回傳 `200` 和一個 JSON 陣列；`POST /api/v1/account/login` 則會送出登入 JSON，成功回傳 `204` 並建立登入 Cookie。
+
 ## API 文件與測試頁面
 
 互動式 API 文件頁面使用 Scalar。Scalar 讀取 OpenAPI（API 的標準契約格式）契約，列出每個 Endpoint（API 可呼叫的路徑）的 request／response Schema（送入／回傳資料的欄位格式）。頁面也提供參數填寫與測試 request（測試請求）功能。
 
 `OpenAPI`（API 的標準契約格式）是描述 API 路徑、參數、請求、回應與驗證方式的機器可讀文件。
+
+`/openapi/v1.json` 是給工具讀取的原始契約；`/scalar/v1` 是把同一份契約做成可以閱讀和送 request 的頁面。有些文件會把這類頁面統稱為 Swagger，但 QMAH 實際使用的是 OpenAPI 加 Scalar，操作時開啟 Scalar 網址即可，不需要另外找 `/swagger`。
 
 QMAH 由 ASP.NET Core 依 Controller（處理 API 請求的程式類別）、DTO（API 對外傳輸的資料格式）、參數與 attributes（程式上的設定標記）產生 `/openapi/v1.json`。前端、測試工具與程式碼產生器都以這份 JSON（結構化資料格式）作為 API 定義。
 
@@ -27,7 +44,30 @@ API 啟動後可使用下列網址：
 | 原始 OpenAPI 契約 | `https://localhost:7249/openapi/v1.json` |
 | Scalar 互動式文件 | `https://localhost:7249/scalar/v1` |
 
-建議的 API 開發與驗證流程如下：
+### 第一次使用 Scalar
+
+以下用不需要登入的分類 API 做第一次測試：
+
+1. 啟動 `QMAH.Api`，確認瀏覽器能開啟 `https://localhost:7249/scalar/v1`。
+2. 在 Scalar 左側展開 `Catalog`，找到 `GET /api/v1/catalog/categories`。
+3. 展開這支 endpoint，先看 `Parameters`、`Request body`、`Responses` 和 `Auth`。這支 API 沒有必填參數，也沒有 request body。
+4. 按頁面上的 `Test Request`，送出 request。
+5. 在回應區確認狀態是 `200`，再看 JSON 是否為分類陣列，欄位包含 `id`、`code`、`name`。這樣就完成一次從文件查看契約到實際呼叫 API 的測試。
+
+收到 `400` 時先回頭檢查參數或 JSON；`401` 表示尚未登入或登入已失效；`403` 表示已登入但沒有權限；`404` 通常是網址或識別碼不對。Scalar 顯示的回應本文可以和本頁的流程說明互相核對。
+
+### 在 Scalar 測試登入後 API
+
+需要登入的 API 要在同一個 Scalar 頁面保留瀏覽器 session（工作階段）：
+
+1. 先執行 `GET /api/v1/account/antiforgery-token`，讓 API 寫入 `XSRF-TOKEN-API` Cookie。
+2. 找到 `POST /api/v1/account/login`，在 `Request body` 填入測試帳號的 Email、Password 和 `RememberMe`，再送出 request。
+3. 接著執行 `GET /api/v1/me`。收到 `200` 且看到會員資料，表示登入 Cookie 已隨同一個 session 帶上。
+4. 測試 `POST`、`PUT` 或 `DELETE` 時，除了 Cookie 還要送 `X-XSRF-TOKEN` Header。若 Scalar 沒有自動帶上，從瀏覽器開發者工具查看 `XSRF-TOKEN-API` 的值，放到該 request 的 Headers；登入身分改變後先重新取得一次防偽 Cookie。
+
+登入 Cookie 是 HttpOnly，不能用頁面 JavaScript 讀取；不要把 `.QMAH.Api.Auth` 貼到 request body。Scalar 的測試結果只代表這個瀏覽器 session 的 API 呼叫，前台 Angular 是否串接完成仍要回到 feature service 和 Network 檢查。
+
+熟悉介面後，固定的 API 開發與驗證順序如下：
 
 1. 在專案根目錄執行 `dotnet run --project QMAH.Api --launch-profile https`。
 2. 開啟 `https://localhost:7249/scalar/v1`，查看 Endpoint（API 可呼叫的路徑）、參數、Schema（資料欄位格式）與回應狀態。
