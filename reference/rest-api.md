@@ -1,6 +1,6 @@
 # REST API 契約
 
-開始串接時，先啟動 API、取得防偽權杖並登入，再依下方例子呼叫功能。路由索引列出可用操作；完整欄位與型別可在啟動中的 `/scalar/v1` 查看。維護 API 文件的規則另列於頁面後方。
+公開讀取 API 可在啟動 API 後直接測試；需要登入的功能則先取得防偽權杖並登入，再依下方例子呼叫。路由索引列出可用操作；完整欄位與型別可在啟動中的 `/scalar/v1` 查看。維護 API 文件的規則另列於頁面後方。
 
 QMAH API 位於獨立的 `QMAH.Api` 專案，所有版本化 Endpoint（API 可呼叫的路徑）以 `/api/v1` 開頭。
 
@@ -12,7 +12,18 @@ API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.In
 
 Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。
 
-## 先把 API 想成一個有規則的入口
+## 本頁閱讀分流 {#rest-api-reading-route}
+
+| 需要確認的內容 | 直接查看 |
+| --- | --- |
+| 先理解 API、request、response 與狀態碼 | [API 基本概念](#api-basics) |
+| 只需要開啟互動式文件並測試公開 API | [Scalar：從公開 API 開始](#scalar-public-api) |
+| 需要測試登入後或寫入 API | [Scalar：測試登入後 API](#scalar-auth-api)、[存取與驗證](#存取與驗證) |
+| 需要查某支 endpoint 的完整欄位 | [Endpoint 清單](#endpoint-清單)、啟動後的 `/scalar/v1` |
+| Angular 已送出 request 但結果不對 | [Browser DevTools](#browser-devtools)、[共通回應](#共通回應) |
+| 不使用瀏覽器，要用 PowerShell 驗證 | [PowerShell 驗證流程](#powershell-驗證流程) |
+
+## API 基本概念 {#api-basics}
 
 API 是前台向後端讀取資料或請後端執行工作的入口。每次 request（請求）都要看它要呼叫哪個 endpoint、要帶哪些資料，以及 response（回應）代表什麼結果。
 
@@ -44,28 +55,52 @@ API 啟動後可使用下列網址：
 | 原始 OpenAPI 契約 | `https://localhost:7249/openapi/v1.json` |
 | Scalar 互動式文件 | `https://localhost:7249/scalar/v1` |
 
-### 第一次使用 Scalar
+### Scalar：從公開 API 開始 {#scalar-public-api}
 
-以下用不需要登入的分類 API 做第一次測試：
+以下以不需登入的分類 API 說明一次完整操作：
 
 1. 啟動 `QMAH.Api`，確認瀏覽器能開啟 `https://localhost:7249/scalar/v1`。
 2. 在 Scalar 左側展開 `Catalog`，找到 `GET /api/v1/catalog/categories`。
-3. 展開這支 endpoint，先看 `Parameters`、`Request body`、`Responses` 和 `Auth`。這支 API 沒有必填參數，也沒有 request body。
+3. 展開這支 endpoint，依序查看 `Parameters`、`Request body`、`Responses` 和 `Auth`。這支 API 沒有必填參數，也沒有 request body。
 4. 按頁面上的 `Test Request`，送出 request。
-5. 在回應區確認狀態是 `200`，再看 JSON 是否為分類陣列，欄位包含 `id`、`code`、`name`。這樣就完成一次從文件查看契約到實際呼叫 API 的測試。
+5. 在回應區確認狀態是 `200`，再看 JSON 是否為分類陣列，欄位包含 `id`、`code`、`name`。此時已完成從文件查看契約到實際呼叫 API 的測試。
 
-收到 `400` 時先回頭檢查參數或 JSON；`401` 表示尚未登入或登入已失效；`403` 表示已登入但沒有權限；`404` 通常是網址或識別碼不對。Scalar 顯示的回應本文可以和本頁的流程說明互相核對。
+在其他 endpoint 填寫資料時，路徑參數要填入實際的資源 Id；query 參數直接填在 `Parameters`；需要 JSON 的操作則依 `Request body` 顯示的 Schema 填寫。`Responses` 是用來查看可能的結果，不是送出的欄位；`Auth` 則用來確認是否需要登入或特定權限。
 
-### 在 Scalar 測試登入後 API
+Scalar 測試結果可先依下表判讀；完整狀態碼說明見[共通回應](#共通回應)。
 
-需要登入的 API 要在同一個 Scalar 頁面保留瀏覽器 session（工作階段）：
+| 測試結果 | 判讀方式 |
+| --- | --- |
+| `200`、`201` 或 `202` | request 已依該 endpoint 的行為成功處理；是否有 JSON 本文以 `Responses` 為準 |
+| `204` | request 成功，但沒有 response body；不要再嘗試解析 JSON |
+| `400` | 參數、JSON 欄位或流程條件不符合；回到 `Parameters` 和 `Request body` 檢查 |
+| `401` | 尚未登入，或目前 session 的登入狀態已失效 |
+| `403` | 已登入，但目前帳號沒有該操作的權限 |
+| `404` | 路徑、資源 Id 或資源可見性不符合目前資料 |
+| `500` 或 `503` | API 或其依賴的服務發生錯誤；先保留 response body，再查啟動中的 API 輸出 |
+
+Scalar 顯示的 response body 可以和本頁的流程說明互相核對。
+
+### Scalar：測試登入後 API {#scalar-auth-api}
+
+需要登入的 API，請在同一個 Scalar 頁面使用同一個瀏覽器 session（工作階段）完成：
 
 1. 先執行 `GET /api/v1/account/antiforgery-token`，讓 API 寫入 `XSRF-TOKEN-API` Cookie。
 2. 找到 `POST /api/v1/account/login`，在 `Request body` 填入測試帳號的 Email、Password 和 `RememberMe`，再送出 request。
 3. 接著執行 `GET /api/v1/me`。收到 `200` 且看到會員資料，表示登入 Cookie 已隨同一個 session 帶上。
 4. 測試 `POST`、`PUT` 或 `DELETE` 時，除了 Cookie 還要送 `X-XSRF-TOKEN` Header。若 Scalar 沒有自動帶上，從瀏覽器開發者工具查看 `XSRF-TOKEN-API` 的值，放到該 request 的 Headers；登入身分改變後先重新取得一次防偽 Cookie。
 
-登入 Cookie 是 HttpOnly，不能用頁面 JavaScript 讀取；不要把 `.QMAH.Api.Auth` 貼到 request body。Scalar 的測試結果只代表這個瀏覽器 session 的 API 呼叫，前台 Angular 是否串接完成仍要回到 feature service 和 Network 檢查。
+登入 Cookie 是 HttpOnly，不能用頁面 JavaScript 讀取；`.QMAH.Api.Auth` Cookie 不應放入 request body。Scalar 的測試結果只代表這個瀏覽器 session 的 API 呼叫；前台 Angular 是否串接完成，仍需回到 feature service 和瀏覽器 Network 確認。
+
+### Scalar 測試結果如何用於 Angular
+
+Scalar 用來確認 API 契約與手動測試，不能取代前台畫面。完成一支 endpoint 的測試後，將下列資訊帶回對應的 Domain service：
+
+1. 記下 HTTP method、完整 path、path／query 參數，以及是否需要登入。
+2. 依 `Request body` 的 Schema 建立 Angular 的 request model；不自行增加資料庫欄位或猜測欄位名稱。
+3. 依成功回應的 Schema 建立 response model，並確認 `200`、`201`、`202`、`204` 各自是否有 response body。
+4. 依 `Responses` 列出的 `400`、`401`、`403`、`404` 或 `409` 設計畫面的錯誤狀態。
+5. 在 Angular service 使用 `environment.apiBaseUrl` 組合相對路徑，再由 component 負責載入中、成功、空資料與錯誤的畫面狀態。實作位置與範例見 [Angular 使用者前台開發](../frontend/angular-development.md#angular-api-basics)。
 
 熟悉介面後，固定的 API 開發與驗證順序如下：
 

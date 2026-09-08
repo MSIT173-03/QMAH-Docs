@@ -8,9 +8,20 @@
 
 欄位與狀態碼以 [`REST API 契約`](../reference/rest-api.md) 和 API 啟動後的 [OpenAPI JSON](https://localhost:7249/openapi/v1.json) 為準。
 
-## 先把幾個名詞對上
+## 本頁閱讀分流 {#angular-reading-route}
 
-第一次看 Angular 程式時，可以先用下面這組對照：
+| 需要確認的內容 | 直接查看 |
+| --- | --- |
+| 只需要啟動 API 與 Angular | [開發入口](#開發入口)、[固定版本與本機工作流](#固定版本與本機工作流) |
+| 需要理解 Angular、Component 與 API 的基本關係 | [Angular 與 API 基本名詞](#angular-api-basics) |
+| 需要確認各檔案的責任與放置位置 | [目前前台基線](#目前前台基線)、[Angular 分層](#angular-分層) |
+| 需要開始一個 Domain 功能 | [各系統平行開發](#各系統平行開發)、[新增功能的最小交付流程](#新增功能的最小交付流程) |
+| 需要處理登入、錯誤或圖片 | [登入後的第一條資料流程](#登入後的第一條資料流程)、[回應與錯誤處理](#回應與錯誤處理)、[圖片與地圖](#圖片與地圖) |
+| 需要確認 API 或測試 request | [REST API 契約](../reference/rest-api.md)、[建議的串接檢查](#建議的串接檢查) |
+
+## Angular 與 API 基本名詞 {#angular-api-basics}
+
+第一次閱讀 Angular 程式時，可先使用下面的對照表。名詞的完整共用定義仍以[文件閱讀與名詞基準](../reference/terminology.md)為準。
 
 | 名詞 | 用途 | QMAH 的例子 |
 | --- | --- | --- |
@@ -24,7 +35,16 @@
 | JSON | request 或 response 內常見的資料格式 | `[{"id":"...","code":"...","name":"..."}]` |
 | DTO／model | DTO 是 API 對外的資料格式；model 是前台用來描述這份資料的 TypeScript 型別 | `CodeLabelDto`／`Category` |
 
-一條資料流程可以先記成：`route → component → service → HttpClient → API → JSON → component`。網址、畫面呈現和 API 呼叫各有自己的位置；新增功能時，不把所有工作塞進同一個 component。
+### Angular 程式如何協作
+
+QMAH 前台的一條基本資料流程如下：
+
+1. 瀏覽器依網址交給 Router 判斷要載入哪個 route。
+2. route 載入對應的 component；component 的 TypeScript 處理畫面操作，template 顯示資料，SCSS 控制樣式。
+3. component 呼叫 feature service；service 使用 HttpClient 送出 API request，並依 API 契約指定 request／response 型別。
+4. API 回傳 JSON 與 HTTP 狀態碼；component 依成功、空資料、載入中或錯誤狀態更新畫面。
+
+可以把這條路徑記成：`route → component → service → HttpClient → API → JSON → component`。網址、畫面呈現和 API 呼叫各有自己的位置；新增功能時，依責任分開放置，不把所有工作集中在同一個 component。
 
 ## Angular 21.2.22 的版本選擇
 
