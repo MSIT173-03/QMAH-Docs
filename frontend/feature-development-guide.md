@@ -6,6 +6,20 @@ Angular 的 route 決定頁面網址，component 負責畫面與操作，service
 
 各系統可以同時開發自己的使用者前台功能。本頁說明各自能做什麼，以及功能接在一起時需要確認什麼。實際欄位與狀態碼仍以啟動中的 OpenAPI／Scalar 為準；本頁負責說明畫面流程，不複製另一份 DTO 定義。名詞定義見[文件閱讀與名詞基準](../reference/terminology.md)。
 
+## 開始前台工作的最短路線
+
+先把自己的功能分支更新到 `main`，啟動 API 與 Angular，再依下表完成第一條可看到結果的流程。表中的檔名是建議起點，不是需要一次建立的固定模板。
+
+| Domain | 建議第一條流程 | 起始 API | 是否需登入 |
+| --- | --- | --- | --- |
+| Catalog | 分類／文物清單 → 詳情 | `GET /api/v1/catalog/categories`、`/catalog/artifacts` | 否 |
+| Game | 房間清單 → 房間詳情 | `GET /api/v1/game/rooms`、`/game/rooms/{id}` | 清單否，操作是 |
+| Social | 公開貼文／活動清單 → 詳情 | `GET /api/v1/social/posts`、`/social/events` | 否 |
+| Store | 商品清單 → 商品詳情 | `GET /api/v1/store/products`、`/store/products/{id}` | 否 |
+| User | 防偽 → 登入 → 會員資料 | `/api/v1/account/antiforgery-token`、`/api/v1/account/login`、`/api/v1/me` | 登入後是 |
+
+Catalog、Game、Social、Store 的 Domain 負責人各自維護自己的 `*-api.ts` 與功能目錄；User 負責先定義登入／session service 的公開方法，其他 Domain 使用這份介面，不各自重寫登入。每個人可在自己的分支暫時註冊測試 route；合併時由整合者集中處理 `app.routes.ts`，避免五個分支同時改根路由。
+
 ## 共用功能的平行開發
 
 登入、API 呼叫與共用畫面元件可和各系統同步開發。先約定方法名稱、輸入與回傳欄位；尚未完成時，可用符合 API 契約的測試回應開發畫面，接好後再換成真實 API 驗證：
