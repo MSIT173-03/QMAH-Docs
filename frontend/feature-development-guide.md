@@ -12,10 +12,10 @@ Angular 的 route 決定頁面網址，component 負責畫面與操作，service
 
 | 位置 | 建議內容 |
 | --- | --- |
-| `core/api` | API 根路徑、分頁型別、`ProblemDetails` 與共用回應處理 |
-| `core/auth` | 啟動時讀取目前會員、登入、登出、`401` 清理與登入後每日活動登記 |
-| `core/http` | Cookie credentials、XSRF Header、錯誤轉換與重複送出防護 |
-| `shared` | 載入、空資料、錯誤、分頁、確認操作、圖片替代狀態與地點連結元件 |
+| Domain 的 `*.models.ts` | 功能契約；確實跨 Domain 共用時才抽出共用型別 |
+| `auth/`（實作登入時建立） | 啟動時讀取目前會員、登入、登出、`401` 清理與登入後每日活動登記 |
+| `app.config.ts` | 沿用 credentials／XSRF 設定；操作防重送由 Page 管理 |
+| `shared/<功能>/`（有共用需求時建立） | 載入、空資料、錯誤、分頁、確認操作、圖片替代狀態與地點連結元件 |
 
 前台不保存資料庫 Entity，也不從名稱、圖片檔名或畫面文字推算 ID。篩選代碼與顯示名稱先讀取 `/api/v1/metadata`；圖片直接使用 API 回傳的 URL。
 
@@ -66,16 +66,16 @@ Mini Game 先由 `/game/modes` 產生模式入口。Start response（開始回�
 
 ## 可選的 API 串接測試頁
 
-正式 UI 尚未完成時，可在 `features/<domain>/pages/api-test/` 建立很薄的 standalone 頁面；這是推薦工具，不是必做交付。按鈕呼叫真正的 Feature Service，再顯示 loading、response 與 error，驗證路徑是 `Test Page → Real Feature Service → Real HttpClient → Real API`。
+正式 UI 尚未完成時，可在 `<domain>/api-test/` 建立很薄的 standalone 頁面；這是推薦工具，不是必做交付。按鈕呼叫真正的 Feature Service，再顯示 loading、response 與 error，驗證路徑是 `Test Page → Real Feature Service → Real HttpClient → Real API`。
 
-以下 Catalog 範例沿用 [CatalogApiService 範例](angular-development.md#angular-分層)，檔案可放在 `features/catalog/pages/api-test/api-test.ts`：
+以下 Catalog 範例沿用 [CatalogApi 範例](angular-development.md#angular-分層)，檔案可放在 `catalog/api-test/api-test.ts`：
 
 ```ts
 import { JsonPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
-import { CatalogApiService } from '../../services/catalog-api.service';
-import { Category } from '../../models/category';
+import { CatalogApi } from '../catalog-api';
+import { Category } from '../catalog.models';
 
 @Component({
   selector: 'app-catalog-api-test',
@@ -89,7 +89,7 @@ import { Category } from '../../models/category';
   `
 })
 export class CatalogApiTest {
-  private readonly api = inject(CatalogApiService);
+  private readonly api = inject(CatalogApi);
   readonly loading = signal(false);
   readonly error = signal('');
   readonly categories = signal<Category[]>([]);
@@ -116,12 +116,103 @@ export class CatalogApiTest {
 
 API 回應中的日期保留原始 ISO 8601 值，由共用格式化工具轉成台灣顯示格式。金額與數量同樣集中格式化，不在模板中散落字串拼接。
 
-## 一個前台功能的串接流程
+## 從空資料夾到正式頁面
 
-1. 在 Scalar 找到實際 Endpoint，確認 request、response、權限與狀態碼。
-2. 把 DTO 型別與 API service 放在對應 feature，跨系統通用型別才放進 `core/api`。
-3. 先列出正常、空資料、未登入、無權限、找不到、衝突與伺服器失敗的畫面結果。
-4. 使用真實 API 回應完成一條可操作流程，再補其他頁面與視覺細節。
-5. 以瀏覽器 Network 確認 Cookie、XSRF Header、查詢參數、request body 與實際回應。
+先依 [Angular 開發入口](angular-development.md#開發入口)還原本機 DB、啟動 API 與 Angular。瀏覽器使用 `http://localhost:4200/`；API 契約在 `https://localhost:7249/scalar/v1`。app.routes 仍為空，尚無功能頁是預期狀態；選定 Domain 後才建立實際功能目錄。
+
+建議一次完成一條可操作流程，而不是先把五個 Domain 的所有畫面或 service 寫完：
+
+1. **選定入口**：例如 Catalog 先完成分類查詢與顯示，再做文物清單、分頁及詳情。先約定負責人、頁面 URL、要用的 endpoint 與操作成功後呈現什麼。
+2. **確認 contract**：在 Scalar 查看 Method、Route、query、body、DTO、可空欄位、Auth 與成功狀態；公開查詢可先串接，需要登入的功能再接共用 session。
+3. **建立 model**：在 Domain／feature 旁的 `*.models.ts` 依 DTO 定義 TypeScript 型別。保留 API 的欄位名稱、null 與日期字串語意；不使用 Entity，也不以 `any` 隱藏型別落差。TypeScript 型別不會在執行時驗證伺服器資料。
+4. **建立 service**：在 Domain／feature 旁的 `*-api.ts` 使用 `inject(HttpClient)` 和 environment；query 放在 HttpClient 的 `params`，寫入使用專屬 request 型別。方法回傳 Observable，由使用端訂閱，service 不自己觸發重複 request。
+5. **接上 Page**：在 Domain 下的功能目錄建立 standalone component，TS／HTML／SCSS 放一起，inject service；模板需要的 pipe／component 明確加入 imports。用 signal 保存互動狀態，`finalize` 解除 loading。範例見前面的可選測試頁，正式 UI 同樣沿用該 service。
+6. **註冊路由**：第一個頁面完成後建立 Domain routes，於 `app.routes.ts` 加一條 lazy route。只有其他頁面也會使用的 UI 才移到 `shared`，Domain 專用元件留在使用它的功能旁。
+7. **接好操作結果**：寫入成功後重新讀取受影響資料，或用後端回應更新畫面；失敗保留輸入並顯示可理解的錯誤。點數、庫存、名額與訂單金額以後端為準。
+8. **按風險驗證並交接**：選用下方方法，記下入口、帳號角色及已完成流程，連同功能程式一起提交；尚未實作的部分直接說明，不以假成功回應遮掩。
+
+以下路由是頁面完成後的範例，假設 `artifact-list/artifact-list.ts` 匯出 `ArtifactList`；範例檔名及網址可依實際 UI 決定：
+
+```ts
+// catalog/catalog.routes.ts
+import { Routes } from '@angular/router';
+
+export const catalogRoutes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./artifact-list/artifact-list').then(m => m.ArtifactList)
+  }
+];
+
+// app.routes.ts 的 routes 陣列加入這個項目
+// { path: 'catalog', loadChildren: () =>
+//     import('./catalog/catalog.routes').then(m => m.catalogRoutes) }
+```
+
+不要把每次嘗試用的路由都加入正式選單。API 測試頁若保留，僅在開發環境註冊；隱藏選單本身不等於路由不可存取，也不取代後端授權。
+
+## 登入與寫入串接
+
+共用登入流程由 `auth/` 負責，各 Domain 使用同一份記憶體 session 狀態：
+
+1. 先 `GET /api/v1/account/antiforgery-token`，取得 `XSRF-TOKEN-API`。
+2. `POST /api/v1/account/login`，由全域 HttpClient 設定帶上 Cookie 與 `X-XSRF-TOKEN`。成功的 `204` 沒有 JSON body。
+3. `GET /api/v1/me` 取得會員，並重新取得 antiforgery token，讓後續寫入使用登入身分對應的 XSRF。
+4. 會員前台確認登入完成後，可依正式流程呼叫 `/api/v1/me/daily-activity/login`；不要在每個頁面載入時都登記。
+5. 登出使用 `/api/v1/account/logout`，成功後清除記憶體 session；之後若以匿名身分寫入或重新登入，先更新 antiforgery token。
+
+頁面重新整理時可用 `/me` 恢復 session。未登入的公開頁可正常顯示，不必把所有 `401` 都轉成全站跳頁；需要登入的功能再引導登入。Angular route guard 用於導覽體驗，API 仍負責授權。完整 Cookie 與 PowerShell 操作見 [REST API 契約](../reference/rest-api.md#powershell-驗證流程)。
+
+寫入期間停用操作按鈕，並在 handler 防止重入；不要替訂單、扣款、發獎等 POST 加上通用自動 retry。遇到逾時先查詢實際結果，再依 endpoint 的重送契約決定下一步。不要把一支 endpoint 的冪等行為推廣到所有寫入 API。
+
+## 實作時容易忽略的地方
+
+| 情境 | 建議做法 |
+| --- | --- |
+| 搜尋與篩選快速變更 | 可用 debounce 與 switchMap 避免舊回應覆蓋新查詢；變更篩選時回第一頁 |
+| 離開頁面 | 長時間訂閱與輪詢隨元件銷毀解除，可用 AsyncPipe 或 takeUntilDestroyed；避免背景輪詢持續累積 |
+| 多次訂閱 Observable | HttpClient 每次訂閱都可能發出 request，避免模板與程式對同一操作重複訂閱 |
+| loading 與錯誤 | 成功、失敗都解除 loading；重試前清除舊錯誤，保留必要表單輸入 |
+| API 參數 | 使用 params 處理查詢，將可空欄位和空字串區分；不要手工拼出未編碼的查詢字串 |
+| 資料顯示 | 用安全文字插值，圖片直接用 API URL；清單以穩定 ID 追蹤，保留空資料畫面 |
+| 表單與可操作性 | 輸入有 label，錯誤靠近欄位，按鈕可用鍵盤操作；手機寬度避免橫向溢出 |
+| HTTP 錯誤 | 依狀態與 ProblemDetails 顯示可理解訊息；response 不一定是 JSON，也不一定包含 detail |
+| 正式部署 | API 維持 `/api/v1`；部署主機需處理 SPA 深層路由回退，API 路徑則轉送 API，不回傳 index.html |
+
+## 依需要選用的測試方式
+
+不需要每次改字、調樣式都跑整套測試。先確認目前想排除哪種問題，再選最小方法；不必每支 API 測遍所有錯誤碼。
+
+| 想確認什麼 | 推薦方式 | 能確認的範圍 |
+| --- | --- | --- |
+| route、method、DTO 或 Auth | Scalar／OpenAPI | 後端契約及直接 request，無法代表 Angular service 已接好 |
+| 真實前台串接 | 正式 Page 或可選 API 測試頁＋Network | Page → service → HttpClient → API，含 proxy、Cookie 與 XSRF |
+| service 的 URL、參數、body | HttpClient 測試替身 | 不連 DB；模擬回應與錯誤，確認 request 形狀與解析 |
+| Page 的 loading、error 與互動 | 用 service stub 做元件測試 | 專注畫面狀態，不能取代真實 API 串接 |
+| 寫入是否生效 | 送出一次後查詢 API／後台／DB | 實際保存結果；使用可辨識的測試資料，避免對正式資料試寫 |
+| 型別、模板及打包 | `npm run build` | 編譯與打包，不代表登入或業務流程正確 |
+
+service 測試可使用 Angular 的 `provideHttpClient()`，再註冊 `provideHttpClientTesting()`，由 `HttpTestingController.expectOne` 核對 URL、method、params／body，再以 `flush` 模擬回應；結束時 `verify` 確認沒有未處理 request。這只測 HTTP 契約用法，不測真實 Cookie、proxy 或 DB。有明確回歸風險時再加入測試，不為空目錄建立測試。
+
+建議的手動串接順序是：正常讀取 → 空資料 → 實際要用的登入／寫入 → 成功後畫面更新；視功能再檢查欄位錯誤、未登入、無權限、查無資源或衝突。Network 可檢查 URL、Method、Status、Headers、Payload、Response 與 Cookies。若資料有寫入，回查結果，不只看成功提示。
+
+## 遇到串接問題時
+
+| 現象 | 先看哪裡 |
+| --- | --- |
+| Angular 首頁空白 | app.routes 是否有已實作的 page；目前骨架尚無功能路由 |
+| `/api` 回傳 HTML | URL 或 proxy 是否正確，是否被 SPA fallback 接走 |
+| API 連不到 | API 是否以 https profile 啟動、7249 是否一致、proxy 設定及本機開發憑證 |
+| `401` | `.QMAH.Api.Auth` 是否存在且 request 有帶 Cookie；帳號 session 是否有效 |
+| `400` 或防偽失敗 | 先看 response；區分 DTO validation 與缺 XSRF，確認登入後已更新 token |
+| `403` | 目前會員角色、資源擁有者及 endpoint 權限；不要只修改前端按鈕 |
+| `409` | 查詢最新餘額、庫存或流程狀態，依實際 endpoint 契約決定是否重試 |
+| 有回應但沒顯示 | DTO 欄位大小寫、null、清單包裝、訂閱及畫面狀態是否一致 |
+
+## 組員交接建議
+
+一個功能的提交可包含 model、service、Page、需要的 Domain routes 與 app.routes 註冊。共用設定只有確實需要才修改，避免五個人同時重寫登入或 interceptor。Commit 說明頁面入口、使用的 API、必要角色、完成的操作及已知限制；API contract 改變時同步更新受影響型別與文件。
+
+試接用 stub 不作為正式成功路徑，測試帳密不寫入程式或 commit。正式 UI 接好後移除不再需要的測試頁，保留真正可重用的 service。
 
 相關資料：[Angular 使用者前台開發](angular-development.md)、[REST API 契約](../reference/rest-api.md)、[經濟與進程](../features/economy-progression.md)、[媒體交付設定](media-delivery.md)、[地點與地圖串接](../features/map-integration.md)。

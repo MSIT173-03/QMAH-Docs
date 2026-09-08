@@ -66,7 +66,7 @@ API 與 Angular 可以透過下列方式啟動：
 | `src/environments/environment*.ts` | `apiBaseUrl` 都是 `/api/v1` | 依環境設定 API 根路徑，不在 component 寫死連接埠 |
 | `proxy.conf.json` | 將 `/api`、`/openapi`、`/scalar` 轉送至 `https://localhost:7249` | 只供 Angular 開發伺服器使用，不帶入正式建置設定 |
 
-目前不存在的 `core`、`shared` 與 `features` 資料夾屬於建議的新增結構，不代表 Repository 已經有對應功能。文件中列出的功能 API 是後端已存在的接手契約；前台畫面、路由與服務仍需依功能範圍逐項建立。
+五個 Domain（catalog、game、social、store、user）是開發分工慣例，目前尚無功能程式，不預建空目錄。開始實作時直接在 `src/app/<domain>/` 建立功能；既有 API 是後端契約，不代表前台畫面已完成。
 
 `app.config.ts` 的目前設定具體包含 `provideRouter(routes, withComponentInputBinding())`、針對 `/api/v1` request 設定 `withCredentials: true`，以及以 `XSRF-TOKEN-API` Cookie 讀取 request token、送出 `X-XSRF-TOKEN` Header 的 XSRF 設定。API 的 `GET /api/v1/account/antiforgery-token` 會建立這個可讀取的 request token；API 內部的 HttpOnly Cookie 仍由 ASP.NET Core 保護。
 
@@ -86,7 +86,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 ## 各系統平行開發
 
-每個功能以 `features/<domain>` 分層。Page／Component 負責互動、loading、error 與顯示；Feature API Service 負責 URL、parameters、request／response 型別與 HttpClient 呼叫。
+每個功能以 `<domain>` 分層。Page／Component 負責互動、loading、error 與顯示；Feature API Service 負責 URL、parameters、request／response 型別與 HttpClient 呼叫。
 
 各系統可獨立開發的頁面、API 與跨系統確認事項整理在[前台功能接手指南](feature-development-guide.md)。開始單一功能時，可先讀該系統的快速參考頁，再依接手指南完成第一條可操作流程。
 
@@ -110,7 +110,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 ## 回應與錯誤處理
 
-清單回應統一使用 `items`、`page`、`pageSize`、`totalCount`、`totalPages`。空清單是正常狀態；`totalPages` 為 `0` 時保留空畫面與重新整理入口。
+分頁清單回應使用 `items`、`page`、`pageSize`、`totalCount`、`totalPages`。分類／年代等選項 endpoint 回傳陣列，依各自契約處理。空清單是正常狀態；`totalPages` 為 `0` 時保留空畫面與重新整理入口。
 
 日期使用 API 的 ISO 8601（國際標準日期時間文字格式）值，顯示格式由前台集中處理。
 
@@ -145,44 +145,68 @@ QMAH 不需在使用者前台或資料庫保存地圖圖磚資料。完整欄位
 
 ## Angular 分層
 
+依 [Angular Style Guide](https://angular.dev/style-guide#organize-your-project-by-feature-areas)，按功能分區，相關檔案放在一起（colocation）。Standalone 不強制特定目錄；目前五人分工以 Domain 直接放在 app 下較容易辨識。以下是開發慣例，不是預建的空目錄：
+
 ```text
 src/app/
-├─ core/
-├─ shared/
-├─ features/
-│  ├─ catalog/
-│  ├─ game/
-│  ├─ social/
-│  ├─ store/
-│  └─ user/
+├─ catalog/
+├─ game/
+├─ social/
+├─ store/
+├─ user/
 ├─ app.config.ts
-└─ app.routes.ts
+├─ app.routes.ts
+├─ app.ts
+└─ app.html
 ```
 
-`core` 放全站共用服務，`shared` 放可重用元件。Domain 負責人開始功能時，依需求建立 `pages/`、`components/`、`services/`、`models/` 與 `<domain>.routes.ts`，不必全部存在。尚未實作的 Domain 不建立空資料夾、空 service 或測試頁。
+先判斷功能屬於哪個 Domain，再建立該功能。Component 的 TS／HTML／SCSS 同名並放在一起；需要測試時，spec 也放在被測程式旁。Catalog 開始實作後可自然形成：
+
+```text
+catalog/
+├─ artifact-list/
+│  ├─ artifact-list.ts
+│  ├─ artifact-list.html
+│  └─ artifact-list.scss
+├─ artifact-detail/
+│  ├─ artifact-detail.ts
+│  ├─ artifact-detail.html
+│  └─ artifact-detail.scss
+├─ catalog-api.ts
+├─ catalog.models.ts
+└─ catalog.routes.ts
+```
+
+API service 與使用它的 Domain／feature 放在一起，不按程式碼類型預建分類。功能增加後才拆成 artifacts、unlock 等子 feature；Store 可按 products、cart、orders、reviews 拆分，搭配 store-catalog-api.ts、store-order-api.ts。五個 Domain 不必對稱。
+
+登入真正開始時可建立 `auth/auth.ts`、`auth/auth-guard.ts` 與 `auth/auth.models.ts`。確實有跨 Domain 共用元件再建立 `shared/loading/` 或 `shared/pagination/`，不預建 core／shared 分類目錄。credentials 與 XSRF 維持 app.config.ts 既有設定，不重複註冊。
+
+跨 Domain 可使用明確的公開 service 方法與型別，不直接引用其他 Domain 的 Page。只有實際共用需求才抽出共用功能，避免循環依賴。會員資產放 user，Mini Game 放 game；API 根路徑仍以 environment 為唯一來源。
+
+檔名使用連字號，例如 `ArtifactList` 對應 `artifact-list.ts`；模板及樣式沿用同名。`CatalogApi` 放 `catalog-api.ts`，相關型別放 `catalog.models.ts`，不要收集成萬用 service。
 
 開發順序是 Scalar／OpenAPI 確認 contract → Angular model → Domain feature service → 正式 Page 使用 service。`EF Entity ≠ API DTO ≠ Angular model`，不把資料庫 Entity 複製到 Angular。
 
 呼叫路徑固定為 `Page / Component → Feature API Service → Angular HttpClient → /api/v1/* → QMAH.Api`。沿用 `provideHttpClient`、functional `apiCredentialsInterceptor` 與 `withXsrfConfiguration`；全域已設定 `withCredentials`，Feature Service 不重複設定，也不自行讀 XSRF。Angular feature 不使用 `fetch`、`XMLHttpRequest`、`$.ajax` 或 `axios`，不建立 `BaseApiService`、`GenericApiService<T>` 或全站萬能 `ApiService`。Domain 變大時可依功能自然拆多支 service。
 
-以下是尚未建立的 Catalog feature 慣例範例，呼叫已存在的 `GET /api/v1/catalog/categories`。回應 `CodeLabelDto` 的欄位是 `id`、`code`、`name`。
+以下是 Catalog 資料夾內尚待實作的 service 慣例範例，呼叫已存在的 `GET /api/v1/catalog/categories`。回應 `CodeLabelDto` 的欄位是 `id`、`code`、`name`。
 
 ```ts
-// features/catalog/models/category.ts
+// catalog/catalog.models.ts
 export interface Category {
   id: string;
   code: string;
   name: string;
 }
 
-// features/catalog/services/catalog-api.service.ts
+// catalog/catalog-api.ts
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../../../environments/environment';
-import { Category } from '../models/category';
+import { environment } from '../../environments/environment';
+import { Category } from './catalog.models';
 
 @Injectable({ providedIn: 'root' })
-export class CatalogApiService {
+export class CatalogApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/catalog`;
 
@@ -194,7 +218,7 @@ export class CatalogApiService {
 
 ## 新增功能的最小交付流程
 
-1. 先確認 Scalar／OpenAPI 契約，在 `src/app/features/<domain>/` 按需求建立 model、service 與 standalone page；`<domain>` 使用 `catalog`、`game`、`social`、`store` 或 `user`。
+1. 先確認 Scalar／OpenAPI 契約，在 `src/app/<domain>/` 按需求建立 model、service 與 standalone page；`<domain>` 使用 `catalog`、`game`、`social`、`store` 或 `user`。
 2. 在 `app.routes.ts` 增加 lazy route，路由元件只負責組合頁面，不直接散落 HTTP、狀態代碼或資料轉換。
 3. Service 以 `environment.apiBaseUrl` 組合 API 路徑並定義 request／response 型別；Page 處理 loading、成功結果與 `ProblemDetails` 顯示。
 4. 清單與詳情頁同時定義 loading、空資料、錯誤、未登入、無權限、流程衝突與重試狀態；寫入表單保留驗證錯誤與送出中的 disabled 狀態。
