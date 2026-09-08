@@ -64,6 +64,52 @@ Angular 的 route 決定頁面網址，component 負責畫面與操作，service
 
 Mini Game 先由 `/game/modes` 產生模式入口。Start response（開始回應）提供 Attempt、文物池、難度、Seed 與 Config；Complete request（完成請求）只送原始結果，評級、點數與鑰匙進度由後端計算。四種模式可以共用嘗試生命週期，但每種 `Config` 與 raw result（原始結果）的畫面轉換應放在各自 adapter（資料轉換層），不要在單一大型 component 內以大量條件分支處理。
 
+## 可選的 API 串接測試頁
+
+正式 UI 尚未完成時，可在 `features/<domain>/pages/api-test/` 建立很薄的 standalone 頁面；這是推薦工具，不是必做交付。按鈕呼叫真正的 Feature Service，再顯示 loading、response 與 error，驗證路徑是 `Test Page → Real Feature Service → Real HttpClient → Real API`。
+
+以下 Catalog 範例沿用 [CatalogApiService 範例](angular-development.md#angular-分層)，檔案可放在 `features/catalog/pages/api-test/api-test.ts`：
+
+```ts
+import { JsonPipe } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+import { finalize } from 'rxjs';
+import { CatalogApiService } from '../../services/catalog-api.service';
+import { Category } from '../../models/category';
+
+@Component({
+  selector: 'app-catalog-api-test',
+  standalone: true,
+  imports: [JsonPipe],
+  template: `
+    <button (click)="load()" [disabled]="loading()">讀取分類</button>
+    @if (loading()) { <p>載入中…</p> }
+    @if (error()) { <p role="alert">{{ error() }}</p> }
+    <pre>{{ categories() | json }}</pre>
+  `
+})
+export class CatalogApiTest {
+  private readonly api = inject(CatalogApiService);
+  readonly loading = signal(false);
+  readonly error = signal('');
+  readonly categories = signal<Category[]>([]);
+
+  load() {
+    if (this.loading()) return;
+    this.loading.set(true);
+    this.error.set('');
+    this.api.getCategories().pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
+      next: value => this.categories.set(value),
+      error: () => this.error.set('讀取失敗，請查看 Network 回應。')
+    });
+  }
+}
+```
+
+測試頁不直接 inject HttpClient、不重複 URL、不自行讀 XSRF 或設定 credentials。正式 UI 完成後可移除測試頁或由正式 Page 取代；若保留 developer-only 頁面，限制在開發路由，不放正式 navigation。無需替五個 Domain 預先建立測試頁。
+
 ## 每個頁面都要處理的狀態
 
 清單至少有載入中、空資料、載入失敗、正常資料與下一頁；詳情另處理不存在或目前不可見。寫入頁要保留欄位錯誤、送出中、成功、權限不足、登入失效、狀態衝突與重新嘗試。`204` 沒有 response body，不能一律呼叫 JSON 解析。

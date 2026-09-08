@@ -12,6 +12,10 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 2. 清單和詳細頁讀取文物資料，媒體解析器在輸出時把邏輯路徑轉成本機或 CDN 網址。
 3. Game 以 `ArtifactId` 連接題庫與 Mini Game 素材；Store 也以 `ArtifactId` 連接商品。文物名稱和圖片檔名只供顯示，不能當成關聯鍵。
 
+文物停用由具授權的 POST 表單執行，保留 antiforgery 驗證，僅將 `IsActive` 設為 false 並保存；既有題庫、解鎖及其他歷史參照保留。
+
+一般鑰匙以 `NORMAL` 為 canonical，`KEY-NORMAL` 保留 legacy 相容性。新增、編輯與切換啟用都限制同時最多一把一般鑰匙啟用；停用定義不刪除 `UserKeyBalances`、`KeyTransactions` 或其他參照。服務優先採用啟用中的 `NORMAL`，舊資料只有 `KEY-NORMAL` 時仍可使用。前台沿用 API 回傳的實際 keyCode。
+
 ## 鑰匙如何解鎖文物
 
 1. 前台使用會員經濟 API 回傳的 `keyCode`。分類與年代範圍由該鑰匙定義的 `CategoryId`、`EraBucketId` 決定，請求不另傳範圍；只有 `UNIVERSAL` 可以指定 `ArtifactId`。

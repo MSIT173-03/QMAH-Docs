@@ -2,7 +2,7 @@
 
 `QMAH.Client` 使用 Angular 21.2.22，已有 Router、HttpClient、Cookie／XSRF 與 proxy 設定；API 契約由 `QMAH.Api` 的 `/api/v1` 提供，`app.routes.ts` 目前保留為前台功能接手入口，尚未放入功能路由。
 
-本頁是 QMAH 使用者前台的 Angular 開發入口。`QMAH.Client` 使用 Angular 21.2.22，透過 `QMAH.Api` 的 `/api/v1` JSON 契約取得資料與執行操作。前端、後端、前台與後台的固定用法見[文件閱讀與名詞基準](../reference/terminology.md)。
+前端、後端、前台與後台的固定用法見[文件閱讀與名詞基準](../reference/terminology.md)。
 
 資料庫、Identity（登入與會員驗證元件）、圖片網址與跨系統規則由 `QMAH.Infrastructure` 共用。
 
@@ -12,9 +12,7 @@
 
 課程要求使用 Angular 21，因此版本線維持在 Angular 21，不升到 Angular 22。
 
-原先的 Angular 21.1.3 相依樹在本機 `npm audit` 會列出漏洞。目前 Repository 固定使用 Angular 21 版本線內的 `21.2.22`，並已通過 `npm audit --audit-level=high`。
-
-這次只更新同一個 major version 內的次版本與修補版本，既有 standalone、Router、HttpClient、環境設定與 SCSS 寫法不需要改寫。
+Repository 固定使用 Angular 21 版本線內的 `21.2.22`，沿用 standalone、Router、HttpClient、環境設定與 SCSS。
 
 Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、TypeScript 與 RxJS 相容範圍內。實際版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準。
 
@@ -78,7 +76,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 1. 呼叫 `GET /api/v1/account/antiforgery-token`，取得 API 的 Anti-forgery（防偽請求驗證）Cookie。
 2. 呼叫 `POST /api/v1/account/login`，body 使用 `Email`、`Password`、`RememberMe`。
-3. 登入成功後呼叫 `GET /api/v1/me`，取得目前會員資料、角色與點數。
+3. 登入成功後呼叫 `GET /api/v1/me`，取得目前會員資料、角色與點數，並重新取得 antiforgery token，讓後續寫入使用登入身分對應的 XSRF。
 4. 會員使用者前台確認登入完成後，再呼叫 `POST /api/v1/me/daily-activity/login` 記錄當日登入；營運管理後台登入不使用這個流程。
 5. 呼叫 `GET /api/v1/metadata`，將 API 回傳的 `Code` 與中文 `Label` 用於篩選器、表單與顯示文字。
 
@@ -88,7 +86,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 ## 各系統平行開發
 
-每個功能以 `features/<feature>` 分層。畫面只處理顯示與使用者操作，API 呼叫、資料轉換與錯誤處理集中在 service。
+每個功能以 `features/<domain>` 分層。Page／Component 負責互動、loading、error 與顯示；Feature API Service 負責 URL、parameters、request／response 型別與 HttpClient 呼叫。
 
 各系統可獨立開發的頁面、API 與跨系統確認事項整理在[前台功能接手指南](feature-development-guide.md)。開始單一功能時，可先讀該系統的快速參考頁，再依接手指南完成第一條可操作流程。
 
@@ -150,30 +148,62 @@ QMAH 不需在使用者前台或資料庫保存地圖圖磚資料。完整欄位
 ```text
 src/app/
 ├─ core/
-│  ├─ api/              # API client、ProblemDetails、分頁與共用 DTO 型別
-│  ├─ auth/             # 登入狀態、Anti-forgery 與會員 session
-│  └─ http/             # credentials、錯誤轉換與共用 interceptor
-├─ shared/              # 可跨功能重用的表單、載入、空資料、錯誤與圖片元件
-├─ features/            # catalog、social、game、economy、store、member 等功能
-└─ app.routes.ts        # lazy loading 功能路由集中入口
+├─ shared/
+├─ features/
+│  ├─ catalog/
+│  ├─ game/
+│  ├─ social/
+│  ├─ store/
+│  └─ user/
+├─ app.config.ts
+└─ app.routes.ts
 ```
 
-`core` 只放全站共用服務，`shared` 只放可重用的顯示元件，業務規則放在對應的 `features` service。
+`core` 放全站共用服務，`shared` 放可重用元件。Domain 負責人開始功能時，依需求建立 `pages/`、`components/`、`services/`、`models/` 與 `<domain>.routes.ts`，不必全部存在。尚未實作的 Domain 不建立空資料夾、空 service 或測試頁。
 
-使用者前台功能以後端 API DTO 建立型別，再由 service 轉成畫面需要的資料。不將資料庫 Entity 複製到 Angular。
+開發順序是 Scalar／OpenAPI 確認 contract → Angular model → Domain feature service → 正式 Page 使用 service。`EF Entity ≠ API DTO ≠ Angular model`，不把資料庫 Entity 複製到 Angular。
+
+呼叫路徑固定為 `Page / Component → Feature API Service → Angular HttpClient → /api/v1/* → QMAH.Api`。沿用 `provideHttpClient`、functional `apiCredentialsInterceptor` 與 `withXsrfConfiguration`；全域已設定 `withCredentials`，Feature Service 不重複設定，也不自行讀 XSRF。Angular feature 不使用 `fetch`、`XMLHttpRequest`、`$.ajax` 或 `axios`，不建立 `BaseApiService`、`GenericApiService<T>` 或全站萬能 `ApiService`。Domain 變大時可依功能自然拆多支 service。
+
+以下是尚未建立的 Catalog feature 慣例範例，呼叫已存在的 `GET /api/v1/catalog/categories`。回應 `CodeLabelDto` 的欄位是 `id`、`code`、`name`。
+
+```ts
+// features/catalog/models/category.ts
+export interface Category {
+  id: string;
+  code: string;
+  name: string;
+}
+
+// features/catalog/services/catalog-api.service.ts
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { environment } from '../../../../environments/environment';
+import { Category } from '../models/category';
+
+@Injectable({ providedIn: 'root' })
+export class CatalogApiService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiBaseUrl}/catalog`;
+
+  getCategories() {
+    return this.http.get<Category[]>(`${this.baseUrl}/categories`);
+  }
+}
+```
 
 ## 新增功能的最小交付流程
 
-1. 先在 `src/app/features/<feature>/` 建立 standalone component、型別與 service；`<feature>` 使用 `catalog`、`social`、`game`、`member` 或 `store` 等功能名稱。
+1. 先確認 Scalar／OpenAPI 契約，在 `src/app/features/<domain>/` 按需求建立 model、service 與 standalone page；`<domain>` 使用 `catalog`、`game`、`social`、`store` 或 `user`。
 2. 在 `app.routes.ts` 增加 lazy route，路由元件只負責組合頁面，不直接散落 HTTP、狀態代碼或資料轉換。
-3. Service 以 `environment.apiBaseUrl` 組合 API 路徑，將 request／response 型別與 `ProblemDetails` 轉成畫面可處理的狀態。
+3. Service 以 `environment.apiBaseUrl` 組合 API 路徑並定義 request／response 型別；Page 處理 loading、成功結果與 `ProblemDetails` 顯示。
 4. 清單與詳情頁同時定義 loading、空資料、錯誤、未登入、無權限、流程衝突與重試狀態；寫入表單保留驗證錯誤與送出中的 disabled 狀態。
 5. 圖片使用 API 回傳的解析後 URL；選項與狀態標籤使用 `/api/v1/metadata`，不在元件內複製資料庫代碼。
-6. 先以 API Scalar 或 OpenAPI 契約確認 request／response，再用瀏覽器 Network 檢查 Cookie、XSRF Header、狀態碼與實際 payload，最後執行 Angular build 與測試。
+6. 建議以 Scalar／OpenAPI 確認 request／response；遇到問題時用瀏覽器 Network 檢查 Cookie、XSRF Header、狀態碼與 payload，視功能範圍執行建置與測試。
 
 前台目前沒有 feature component 或 route，因此上述順序是實作邊界，不是對現有頁面狀態的描述。後端契約變更時，DTO、OpenAPI 文字、Angular 型別與受影響頁面應在同一項變更中核對。
 
-## 完成功能前的檢查
+## 建議的串接檢查
 
 - 本機使用 `QMAH` 資料庫，API 與 Angular 都能由 GUI 或命令列啟動。
 - 前端 API 呼叫使用 `/api/v1` 相對路徑，沒有把本機連接埠寫進 component。
@@ -181,7 +211,7 @@ src/app/
 - 清單有載入中、空資料、分頁與錯誤狀態，寫入有成功與重複送出處理。
 - 圖片直接使用後端 API 網址，地圖直接使用後端 API 地點欄位。
 - 經濟數值、鑰匙比例、優惠券門檻、評級與有效期限都取自後端 API，不在使用者前台寫死。
-- 完成後以 Scalar 的 Test Request、瀏覽器 Network、Angular build 與測試檢查實際 request／response。
+- 可用 Scalar、瀏覽器 Network 或 [PowerShell 驗證流程](../reference/rest-api.md#powershell-驗證流程)確認 request／response，視功能範圍執行建置與測試。
 
 ## 固定版本與本機工作流
 

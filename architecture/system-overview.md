@@ -14,6 +14,10 @@
 
 前台只讀取 API 的 DTO 與狀態。管理後台在 `QMAH.Web` 以 Area、Controller、ViewModel 與 Razor View 組成；共用資料存取與 Identity 規則位於 `QMAH.Infrastructure`。
 
+Angular 使用 `Page / Component → Feature API Service → HttpClient → /api/v1/* → QMAH.Api`。Razor 普通操作使用 `form submit → QMAH.Web MVC Controller`；局部非同步操作使用瀏覽器原生 `fetch() → QMAH.Web MVC Controller`，POST 保留 `__RequestVerificationToken`。伺服器呼叫故宮 Open Data 等外部 API 則使用 `QMAH.Web → IHttpClientFactory / typed HttpClient → External API`，三種 HTTP 流程各有不同責任。
+
+Azure 部署時，`QMAH.Web → Infrastructure → Azure SQL` 與 `QMAH.Api → Infrastructure → Azure SQL` 各自存取同一資料庫。Web 不必成為 API 的 HTTP client；Angular production 優先維持相對 `/api/v1`，由部署入口轉送至 API。
+
 資料工具屬於 Snapshot 產製流程，不會由網站啟動流程建立結構或寫入展示資料。
 
 ## Repository 與專案責任

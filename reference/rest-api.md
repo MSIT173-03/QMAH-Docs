@@ -27,7 +27,7 @@ API 啟動後可使用下列網址：
 | 原始 OpenAPI 契約 | `https://localhost:7249/openapi/v1.json` |
 | Scalar 互動式文件 | `https://localhost:7249/scalar/v1` |
 
-API 開發與測試流程如下：
+建議的 API 開發與驗證流程如下：
 
 1. 在專案根目錄執行 `dotnet run --project QMAH.Api --launch-profile https`。
 2. 開啟 `https://localhost:7249/scalar/v1`，查看 Endpoint（API 可呼叫的路徑）、參數、Schema（資料欄位格式）與回應狀態。
@@ -50,6 +50,40 @@ Scalar 的 `Test Request` 會使用目前頁面的 session（瀏覽器工作階�
 Postman、Insomnia 或前端測試程式必須保留 cookies（瀏覽器保存的登入資料），並設定 `credentials`（是否攜帶 Cookie 的請求設定）。request body（請求本文，送出的 JSON 內容）則依 OpenAPI 契約傳送。
 
 `/openapi/v1.json` 可交給前端產生 client（呼叫 API 的程式碼）、執行 contract test（契約測試）或檢查 breaking change（會讓既有呼叫失效的變更）。
+
+### Browser DevTools
+
+Angular 串接遇到問題時，可用 `F12 → Network → /api/` 篩選 request，查看 URL、Method、Status、Headers、Payload、Response 與 Cookies。登入或寫入問題可檢查 `XSRF-TOKEN-API`、`.QMAH.Api.Auth` 與 `X-XSRF-TOKEN`；登入後應重新取得 XSRF，並確認 request 走相對 `/api/v1` 與 development proxy。
+
+一般建議確認正常 request、route／method 與 response contract；若寫入資料，可再確認實際 DB／後台結果。視 endpoint 性質可驗證 `401`、`403`、`400 validation`、`404`、`409`、缺 XSRF 或 `429`，不要求每支 API 全部測試。
+
+### PowerShell 驗證流程
+
+API 使用 https profile 啟動且本機開發憑證已信任後，可執行下列流程。提示視窗的使用者名稱填現有測試帳號 Email；同一 session 保存防偽與登入 Cookie，不把 Cookie／token 放入 localStorage。
+
+```powershell
+$baseUrl = 'https://localhost:7249/api/v1'
+$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$credential = Get-Credential -Message '輸入 QMAH 測試帳號 Email 與密碼'
+Invoke-RestMethod "$baseUrl/account/antiforgery-token" -WebSession $session
+$token = $session.Cookies.GetCookies([uri]$baseUrl)['XSRF-TOKEN-API'].Value
+$headers = @{ 'X-XSRF-TOKEN' = [uri]::UnescapeDataString($token) }
+$body = @{
+  email = $credential.UserName
+  password = $credential.GetNetworkCredential().Password
+  rememberMe = $false
+} | ConvertTo-Json
+Invoke-RestMethod "$baseUrl/account/login" -Method Post `
+  -WebSession $session -Headers $headers -ContentType 'application/json' -Body $body
+Invoke-RestMethod "$baseUrl/me" -WebSession $session
+# 登入身分改變後重新取得 XSRF，後續寫入沿用更新後的 headers。
+Invoke-RestMethod "$baseUrl/account/antiforgery-token" -WebSession $session
+$token = $session.Cookies.GetCookies([uri]$baseUrl)['XSRF-TOKEN-API'].Value
+$headers['X-XSRF-TOKEN'] = [uri]::UnescapeDataString($token)
+Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
+```
+
+登入成功回傳 `204` 並設定 `.QMAH.Api.Auth`，最後的會員資產查詢是需要登入的唯讀 endpoint。Scalar／OpenAPI 可查 Method、Route、DTO、Auth 並快速送 request；功能 Page 的 service 串接可搭配[可選測試頁](../frontend/feature-development-guide.md#可選的-api-串接測試頁)。
 
 ### 文件各自負責什麼
 

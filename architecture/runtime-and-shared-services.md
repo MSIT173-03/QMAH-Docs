@@ -66,6 +66,10 @@ var result = await _economyService.AdjustKeysAsync(
 | CommunityRewardService | 社群、加碼及房間邀請 API | 由服務判斷加碼來源與額度 |
 | DailyActivityService | MeController | 前台明確記錄每日登入，後台登入不觸發 |
 
+## 管理表單送出
+
+一般表單通過確認且未被 custom／AJAX handler 取消後才顯示 busy 狀態。防重送保留原始 `event.submitter`、按鈕值與 `formaction`；取消確認或 prevented submit 可再次操作，瀏覽器返回頁面時恢復按鈕原 HTML／icon。自訂非同步表單自行管理 request 的 loading 與錯誤狀態。
+
 ## 交易與重試
 
 Transaction（資料庫交易）讓多筆相關寫入一起成立，例如餘額增加與流水新增。提交前失敗就回復。
@@ -85,6 +89,8 @@ Mini Game 完成與批次操作各保留公開重試入口及私有單次交易�
 [可編輯圖檔](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/asset-ledger-map.drawio) · [查帳快速對照](../getting-started/system-walkthrough.md#查帳快速對照)
 
 ## 圖片與部署設定
+
+API 預設媒體根目錄為 `../QMAH.Web/wwwroot/media`，適用於 Web／API 並置的本機開發。兩個主機分開部署時不能假設共享 filesystem；Azure 正式部署需 shared media storage，並依部署方式設定儲存與交付路徑。
 
 Resolver 只轉換公開網址，不會搬檔案。改用 CDN 還需上傳素材、設定來源與存取權限；受保護的媒體不能直接公開。完整步驟見[媒體交付設定](../frontend/media-delivery.md)。
 
