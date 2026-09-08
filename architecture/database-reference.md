@@ -4,7 +4,7 @@
 
 本頁是 QMAH 資料表的文字字典，補充 [SSMS Diagram 建立參考](database-diagram.md) 不適合放進圖表的用途、主鍵、外鍵和開發注意事項。資料庫結構以 `QMAH/database/Schema.sql` 為準，Entity 與關聯映射以 `QMAH.Infrastructure/Data/QmahDbContext.cs` 為準；完整資料列則以 [QMAH-Database 的 Snapshot](https://github.com/MSIT173-03/QMAH-Database) 為準。
 
-目前對照的共同資料版本是 `db-v0.8.0`。本頁不嵌入大型 `QMAH.sql`，也不把某一次程式提交當成資料庫版本。
+目前對照的共同資料版本是 `db-v0.9.0`。本頁不嵌入大型 `QMAH.sql`，也不把某一次程式提交當成資料庫版本。
 
 ## 資料查詢層次
 
@@ -16,7 +16,7 @@
 | LINQ 能否導覽、如何載入與儲存 | `QmahDbContext` 與 Entity | EF Core 的型別、Navigation、追蹤與關聯映射 |
 | API 回傳哪些欄位 | [REST API 契約](../reference/rest-api.md) 與 DTO | 對外可見的資料形狀，不等於整張資料表 |
 | 管理後台如何編輯 | [Area 責任與資料界線](area-boundaries.md) 與 ViewModel | 操作權限、輸入欄位、狀態與流程邊界 |
-| 本機目前有多少資料 | [開發資料與本機展示](../getting-started/development-data.md) | `db-v0.8.0` Snapshot 的展示情境與資料量 |
+| 本機目前有多少資料 | [開發資料與本機展示](../getting-started/development-data.md) | `db-v0.9.0` Snapshot 的展示情境與資料量 |
 | 如何重建或輸出共同資料 | [資料工具](../reference/data-tools.md) | 隔離資料庫、展示資料、Snapshot 與檔案交付 |
 
 ## Schema 分區

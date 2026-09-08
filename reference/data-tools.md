@@ -2,7 +2,7 @@
 
 `NpmDataWorkbench` 整理來源，`QmahCatalogImport` 解析與匯入 Catalog，`QmahDatabaseRelease` 產生展示資料、還原與驗證 Snapshot；`Export-ReferenceDatabase.ps1` 負責隔離資料庫到 QMAH-Database 的交付流程。工具輸出集中在各工作區的 `_工具輸出`，不由網站啟動流程自動執行。
 
-資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動可從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得相容的 `QMAH.sql` 或 `.bak`；既有 `db-v0.7.0` 需要保留資料時，才使用 Release 內標明起訖版本的升級 SQL。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
+資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動可從 [QMAH-Database db-v0.9.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.9.0) 取得相容的 `QMAH.sql` 或 `.bak`；既有 `db-v0.7.0` 需要保留資料時，才使用 Release 內標明起訖版本的升級 SQL。`.bak` 僅在 GitHub Release 提供，不提交到 Repository。
 
 ## 選擇還原、升級或匯入
 

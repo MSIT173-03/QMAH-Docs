@@ -1,6 +1,6 @@
 # 系統架構總覽
 
-`QMAH` 保存 `QMAH.Api`、`QMAH.Web`、`QMAH.Client`、`QMAH.Infrastructure` 與 `Schema.sql`；`QMAH-Database` 保存 `db-v0.8.0` 完整 Snapshot；`QMAH-Docs` 保存這些元件的操作、契約、架構與查閱路線。
+`QMAH` 保存 `QMAH.Api`、`QMAH.Web`、`QMAH.Client`、`QMAH.Infrastructure` 與 `Schema.sql`；`QMAH-Database` 保存 `db-v0.9.0` 完整 Snapshot；`QMAH-Docs` 保存這些元件的操作、契約、架構與查閱路線。
 
 本頁說明 QMAH 的執行面，以及資料庫、文件和資料工具的責任關係。五個功能系統與營運中心可以平行開發；開始單一工作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。跨文件的名詞定義見[文件閱讀與名詞基準](../reference/terminology.md)。
 

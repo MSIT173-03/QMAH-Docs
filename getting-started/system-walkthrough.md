@@ -15,7 +15,7 @@ QMAH 的 5＋1 是五個功能系統（圖鑑、遊戲、社群、商城、會�
 | API 與對外資料契約 | `QMAH.Api` 的 V1 Controller、DTO、OpenAPI 與 Scalar 測試入口 |
 | 管理後台與營運中心 | `QMAH.Web` 的 Razor 管理頁面；營運統計與批次資產入口為 `Controllers/OperationsController.cs` |
 | 共用資料與規則 | `QMAH.Infrastructure` 的 `QmahDbContext`、Identity 與共用 Service |
-| 本機資料基線 | `QMAH-Database` 的 `db-v0.8.0` Snapshot；主 Repository 的 `database/Schema.sql` 是結構契約 |
+| 本機資料基線 | `QMAH-Database` 的 `db-v0.9.0` Snapshot；主 Repository 的 `database/Schema.sql` 是結構契約 |
 | 使用者前台 | `QMAH.Client` 已建立 Angular 啟動、HttpClient、Cookie、XSRF 與代理設定；`src/app/app.routes.ts` 目前仍是空路由，正式功能畫面由前台開發逐項接手 |
 | Mini Game | 模式、Attempt、開始／完成契約與獎勵欄位已預留；各玩法的拼圖、翻牌等原始結果驗證仍需由後續功能實作 |
 

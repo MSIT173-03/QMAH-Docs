@@ -1,12 +1,12 @@
 # 開發資料與本機展示
 
-QMAH-Database 的 `db-v0.8.0` 提供共同展示資料；網站只連到還原後名為 `QMAH` 的 SQL Server 資料庫，啟動時不建表、不清空，也不自動執行 seed。完整資料表、帳號、資產流水、活動和展示關聯以 Snapshot 內容為準。
+QMAH-Database 的 `db-v0.9.0` 提供共同展示資料；網站只連到還原後名為 `QMAH` 的 SQL Server 資料庫，啟動時不建表、不清空，也不自動執行 seed。完整資料表、帳號、資產流水、活動和展示關聯以 Snapshot 內容為準。
 
 QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` 資料庫副本，使用相同 Schema 與共同基準資料；本機新增、修改或刪除的測試資料不會影響其他副本。
 
 ## 1. 取得共同資料
 
-目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.8.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.8.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.8.0/QMAH.sql) 可直接在 SSMS 執行。
+目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.9.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.9.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.9.0/QMAH.sql) 可直接在 SSMS 執行。
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只保留版本導覽，不再提供 SQL／BAK 資產。
 
@@ -23,7 +23,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 ## 2. Snapshot 內容
 
-下表數量以 QMAH-Database `db-v0.8.0` 的完整資料庫 Snapshot 為準。
+下表數量以 QMAH-Database `db-v0.9.0` 的完整資料庫 Snapshot 為準。
 
 逐表確認用途、主鍵或外鍵時，詳見[資料表參考](../architecture/database-reference.md)。本節保留 Snapshot 的資料量、狀態與展示情境；不在這裡重複維護完整資料字典。
 
