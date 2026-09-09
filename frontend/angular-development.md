@@ -16,7 +16,9 @@
 ng g c <domain>/<component-name>
 ```
 
-預設只產生 TypeScript、HTML 與測試檔，不產生 stylesheet。大部分畫面直接在 Angular template 使用 Tailwind CSS utilities 與 daisyUI component classes：
+預設會產生 TypeScript、HTML、SCSS 與測試檔。大部分畫面直接在 Angular template 使用 Tailwind CSS utilities 與 daisyUI component classes；需要特殊視覺時，再把樣式寫在同一個 Component 的 `.scss`：
+
+這個預設由 `angular.json` 的 Component schematic `style: "scss"` 與 build option `inlineStyleLanguage: "scss"` 固定下來；例如產生的檔案會包含 `artifact-card.scss`。
 
 ```html
 <section class="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
@@ -54,6 +56,20 @@ ng g c <domain>/<component-name>
 **HyperUI** 是可複製的 HTML 與 Tailwind UI snippets／blocks 集合，不是 npm dependency、runtime library 或 Angular framework。
 
 目前前台統一使用 Tailwind CSS 與 daisyUI；feature 不自行加入另一套完整 UI framework。
+
+### Global CSS 與 Component SCSS
+
+兩種 stylesheet 的責任不同：
+
+```text
+src/styles.css
+→ Tailwind CSS + daisyUI 全域入口，維持 CSS。
+
+feature/component/*.scss
+→ Component 自己的特殊樣式。
+```
+
+一般 UI 優先在 template 使用 Tailwind utilities 與 daisyUI classes。Component SCSS 可直接寫熟悉的普通 CSS，不要求使用 Sass 進階語法；適合放複雜 selector、pseudo-element、animation、third-party override，或會讓 template 難讀的特殊樣式。不要在 Component SCSS 重複 `@import "tailwindcss"` 或 `@plugin "daisyui"`。
 
 ### Tailwind 最小速查
 
@@ -123,13 +139,13 @@ Catalog 可以採圖鑑 gallery，Store 可以採商品 grid，Social 可以採 
 
 ### 需要普通 CSS 時
 
-QMAH 沒有禁止普通 CSS；一般 Component 只是預設不產生 stylesheet。`::before`／`::after`、複雜 keyframes、特殊 animation、`clip-path`、複雜 selector、third-party override，或 utilities 讓 template 明顯難讀時，可以建立 CSS Component：
+QMAH 沒有禁止普通 CSS；Component 預設使用 SCSS，而且 SCSS 可以直接寫普通 CSS。`::before`／`::after`、複雜 keyframes、特殊 animation、`clip-path`、複雜 selector、third-party override，或 utilities 讓 template 明顯難讀時，可以把樣式寫在 Component SCSS。若明確需要純 CSS，才使用這個 override：
 
 ```powershell
 ng g c <domain>/<component-name> --style=css
 ```
 
-既有 Component 後來才需要 CSS 時，在 Component 旁新增同名 `.css`，並於 `@Component` metadata 加入：
+既有 Component 若明確需要純 CSS，可在 Component 旁新增同名 `.css`，並於 `@Component` metadata 加入：
 
 ```ts
 @Component({
@@ -138,7 +154,7 @@ ng g c <domain>/<component-name> --style=css
 })
 ```
 
-`styleUrl` 是 Angular 21 可用的單一 stylesheet syntax；多個檔案才使用 `styleUrls`。既有 feature 若已有合理 SCSS，不要求為統一而重寫；新功能不以 SCSS 作為預設。
+`styleUrl` 是 Angular 21 可用的單一 stylesheet syntax；多個檔案才使用 `styleUrls`。既有 feature 若已有合理 CSS／SCSS，不要求為統一而重寫；新功能預設使用 SCSS，只有明確需求才用 `--style=css`。
 
 ### HyperUI 搬入 Angular 的流程
 
@@ -154,11 +170,11 @@ ng g c <domain>/<component-name> --style=css
 ### 新增 Angular Component 的日常流程
 
 1. 執行 `ng g c catalog/artifact-card`。
-2. CLI 會建立 `artifact-card.ts`、`artifact-card.html` 與 `artifact-card.spec.ts`，不建立 stylesheet。
+2. CLI 會建立 `artifact-card.ts`、`artifact-card.html`、`artifact-card.scss` 與 `artifact-card.spec.ts`。
 3. 在 TypeScript 寫 state、event 與 service 呼叫，在 HTML 寫 Angular template。
 4. 用 Tailwind 排版，用 daisyUI 處理常見 UI。
 5. 串接 Feature Service 的資料與事件。
-6. 特殊視覺確實需要時才補 component CSS。
+6. 一般 UI 留在 template；特殊視覺確實需要時，在同一個 Component 的 SCSS 補上樣式。
 
 第一次出現的 UI 留在 feature。確實有跨 Domain 重複、固定 complex composition 或 QMAH-specific behavior 時，再考慮 shared component。不要只為包住 `btn`、`card` 或 `input` 建立 `QmahButton`、`QmahCard`、`QmahInput`。
 
@@ -185,7 +201,7 @@ ng g c <domain>/<component-name> --style=css
 | 名詞 | 用途 | QMAH 的例子 |
 | --- | --- | --- |
 | Angular | 在瀏覽器執行的前端框架 | `QMAH.Client` |
-| Component | 一個畫面或畫面中的一塊；TypeScript 處理操作，HTML 顯示內容，特殊需求才加 CSS | `artifact-list.ts`、`artifact-list.html` |
+| Component | 一個畫面或畫面中的一塊；TypeScript 處理操作，HTML 顯示內容，SCSS 放 Component 特殊樣式 | `artifact-list.ts`、`artifact-list.html`、`artifact-list.scss` |
 | Template | Component 使用的 HTML 畫面 | `app.html` 或 feature 的 `.html` |
 | Route | 把網址對應到某個 Component | `app.routes.ts` 或 Domain route |
 | Service | 集中處理可重複使用的工作，前台通常用它呼叫 API | `catalog-api.ts` |
@@ -357,13 +373,14 @@ src/app/
 └─ app.html
 ```
 
-先判斷功能屬於哪個 Domain，再建立該功能。Component 的 TS／HTML 放在一起，特殊需求才加同名 CSS；需要測試時，spec 也放在被測程式旁。Catalog 開始實作後可自然形成：
+先判斷功能屬於哪個 Domain，再建立該功能。Component 的 TS／HTML／SCSS 放在一起；需要測試時，spec 也放在被測程式旁。Catalog 開始實作後可自然形成：
 
 ```text
 catalog/
 ├─ artifact-list/
 │  ├─ artifact-list.ts
-│  └─ artifact-list.html
+│  ├─ artifact-list.html
+│  └─ artifact-list.scss
 ├─ artifact-detail/
 │  ├─ artifact-detail.ts
 │  └─ artifact-detail.html
