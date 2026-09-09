@@ -20,7 +20,7 @@
 2. [前台功能接手指南](frontend/feature-development-guide.md)：選定 Catalog、Game、Social、Store 或 User，依功能建立頁面、API service、路由和可選測試頁。
 3. [REST API 契約](reference/rest-api.md)：確認實際 endpoint、DTO、權限、成功回應與需要驗證的錯誤狀態。
 
-每個 Domain 由自己的分支開始，Component 的 TypeScript、HTML、SCSS 與使用它的 service 放在同一個功能附近。功能完成後再由整合者把 Domain route 接進 `app.routes.ts`；這樣五個人不必同時修改同一個根路由檔案。
+每個 Domain 由自己的分支開始，Component 的 TypeScript、HTML 與使用它的 service 放在同一個功能附近；特殊視覺才增加 component CSS。功能完成後再由整合者把 Domain route 接進 `app.routes.ts`；這樣五個人不必同時修改同一個根路由檔案。
 
   <section id="reading-route" class="qmah-work-index" aria-labelledby="qmah-route-title">
     <nav class="qmah-index-rail" aria-label="工作索引">

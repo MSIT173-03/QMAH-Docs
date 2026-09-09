@@ -6,6 +6,8 @@ Angular 的 route 決定頁面網址，component 負責畫面與操作，service
 
 各系統可以同時開發自己的使用者前台功能。本頁說明各自能做什麼，以及功能接在一起時需要確認什麼。實際欄位與狀態碼仍以啟動中的 OpenAPI／Scalar 為準；本頁負責說明畫面流程，不複製另一份 DTO 定義。名詞定義見[文件閱讀與名詞基準](../reference/terminology.md)。
 
+UI 預設直接使用 Tailwind CSS 與 daisyUI，Component 預設沒有 stylesheet；特殊視覺可使用 component CSS，不自行加入另一套 theme 或完整 UI framework。日常範例與規則只維護在 [Angular 使用者前台開發：UI 與樣式](angular-development.md#ui-and-styling)。
+
 ## 開始前台工作的最短路線
 
 先把自己的功能分支更新到 `main`，啟動 API 與 Angular，再依下表完成第一條可看到結果的流程。表中的檔名是建議起點，不是需要一次建立的固定模板。
@@ -140,7 +142,7 @@ API 回應中的日期保留原始 ISO 8601 值，由共用格式化工具轉成
 2. **確認 contract**：在 Scalar 查看 Method、Route、query、body、DTO、可空欄位、Auth 與成功狀態；公開查詢可先串接，需要登入的功能再接共用 session。
 3. **建立 model**：在 Domain／feature 旁的 `*.models.ts` 依 DTO 定義 TypeScript 型別。保留 API 的欄位名稱、null 與日期字串語意；不使用 Entity，也不以 `any` 隱藏型別落差。TypeScript 型別不會在執行時驗證伺服器資料。
 4. **建立 service**：在 Domain／feature 旁的 `*-api.ts` 使用 `inject(HttpClient)` 和 environment；query 放在 HttpClient 的 `params`，寫入使用專屬 request 型別。方法回傳 Observable，由使用端訂閱，service 不自己觸發重複 request。
-5. **接上 Page**：在 Domain 下的功能目錄建立 standalone component，TS／HTML／SCSS 放一起，inject service；模板需要的 pipe／component 明確加入 imports。用 signal 保存互動狀態，`finalize` 解除 loading。範例見前面的可選測試頁，正式 UI 同樣沿用該 service。
+5. **接上 Page**：在 Domain 下的功能目錄建立 standalone component，TS／HTML 放一起，inject service；特殊視覺才加 component CSS。模板需要的 pipe／component 明確加入 imports。用 signal 保存互動狀態，`finalize` 解除 loading。範例見前面的可選測試頁，正式 UI 同樣沿用該 service。
 6. **註冊路由**：第一個頁面完成後建立 Domain routes，於 `app.routes.ts` 加一條 lazy route。只有其他頁面也會使用的 UI 才移到 `shared`，Domain 專用元件留在使用它的功能旁。
 7. **接好操作結果**：寫入成功後重新讀取受影響資料，或用後端回應更新畫面；失敗保留輸入並顯示可理解的錯誤。點數、庫存、名額與訂單金額以後端為準。
 8. **按風險驗證並交接**：選用下方方法，記下入口、帳號角色及已完成流程，連同功能程式一起提交；尚未實作的部分直接說明，不以假成功回應遮掩。

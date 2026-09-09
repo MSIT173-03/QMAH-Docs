@@ -8,12 +8,171 @@
 
 欄位與狀態碼以 [`REST API 契約`](../reference/rest-api.md) 和 API 啟動後的 [OpenAPI JSON](https://localhost:7249/openapi/v1.json) 為準。
 
+## UI 與樣式 {#ui-and-styling}
+
+以下命令都在 `QMAH.Client` 執行。一般 Component 直接建立：
+
+```powershell
+ng g c <domain>/<component-name>
+```
+
+預設只產生 TypeScript、HTML 與測試檔，不產生 stylesheet。大部分畫面直接在 Angular template 使用 Tailwind CSS utilities 與 daisyUI component classes：
+
+```html
+<section class="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+  @for (artifact of artifacts(); track artifact.id) {
+    <article class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title">{{ artifact.name }}</h2>
+        <button
+          class="btn btn-primary"
+          type="button"
+          (click)="openArtifact(artifact.id)"
+        >
+          查看
+        </button>
+      </div>
+    </article>
+  }
+</section>
+```
+
+這段程式的責任如下：
+
+- Angular：`{{ }}`、`(click)`、`@if`、`@for`、component state 與 API data。
+- Tailwind CSS：`mx-auto`、`grid`、`max-w-6xl`、`gap-6`、`md:grid-cols-3`、`shadow-sm`。
+- daisyUI：`card`、`bg-base-100`、`card-body`、`card-title`、`btn`、`btn-primary`。
+
+### 四個工具各自負責什麼
+
+**Angular** 是 `QMAH.Client` 的 application framework，負責 Component、Router、Forms、Dependency Injection、state、event 與 HTTP／API integration。
+
+**Tailwind CSS** 是 utility-first CSS framework。QMAH 用它處理 layout、flex／grid、spacing、尺寸、responsive breakpoint、typography、border／radius、hover／focus、transition 與常見視覺屬性；class 直接寫在 Angular template。Tailwind 不取代 Angular，也不禁止普通 CSS。
+
+**daisyUI** 是 Tailwind CSS plugin 與 component class library，不是 Angular component framework。它提供 `btn`、`card`、`input`、`select`、`textarea`、`checkbox`、`toggle`、`badge`、`alert`、`modal`、`drawer`、`navbar`、`menu`、`tabs`、`steps`、`loading`、`skeleton` 等 class，以及 semantic theme classes。State、event、forms、routing、API 與 business logic 仍由 Angular 負責。
+
+**HyperUI** 是可複製的 HTML 與 Tailwind UI snippets／blocks 集合，不是 npm dependency、runtime library 或 Angular framework。
+
+目前前台統一使用 Tailwind CSS 與 daisyUI；feature 不自行加入另一套完整 UI framework。
+
+### Tailwind 最小速查
+
+| 一般 CSS 需求 | Tailwind |
+| --- | --- |
+| `display: flex` | `flex` |
+| `display: grid` | `grid` |
+| `gap: 1rem` | `gap-4` |
+| `padding: 1.5rem` | `p-6` |
+| `margin-inline: auto` | `mx-auto` |
+| `width: 100%` | `w-full` |
+| `align-items: center` | `items-center` |
+| `justify-content: space-between` | `justify-between` |
+| 圓角 | `rounded-*` |
+| `font-weight: 700` | `font-bold` |
+| media query | `md:*`、`lg:*` |
+| `:hover`／`:focus` | `hover:*`／`focus:*` |
+| transition | `transition` |
+
+更多 class 直接查 [Tailwind utilities](https://tailwindcss.com/docs/styling-with-utility-classes)、[responsive design](https://tailwindcss.com/docs/responsive-design) 與 [state variants](https://tailwindcss.com/docs/hover-focus-and-other-states)。
+
+### daisyUI 的日常用法
+
+基本按鈕使用 daisyUI：
+
+```html
+<button class="btn btn-primary" type="button">儲存</button>
+```
+
+需要排版時，在同一個元素加 Tailwind class：
+
+```html
+<button class="btn btn-primary w-full md:w-auto" type="button">
+  加入收藏
+</button>
+```
+
+互動狀態由 Angular 管理，呈現使用 daisyUI：
+
+```html
+<button
+  class="btn btn-primary"
+  type="button"
+  [disabled]="saving()"
+  (click)="save()"
+>
+  @if (saving()) {
+    <span class="loading loading-spinner"></span>
+  }
+  儲存
+</button>
+```
+
+`[disabled]`、`(click)`、`@if` 與 `saving()` 是 Angular；`btn`、`btn-primary`、`loading` 與 `loading-spinner` 是 daisyUI。
+
+### Theme 與頁面自由度
+
+共用 UI 優先使用 daisyUI semantic classes：
+
+- 品牌操作：`primary`、`secondary`、`accent`。
+- 頁面表面：`bg-base-100`、`bg-base-200`、`bg-base-300`、`text-base-content`、`border-base-300`。
+- 狀態：`info`、`success`、`warning`、`error`。
+
+共用 Button、Input、Form、狀態色、字體基線、間距節奏與表面語言應維持一致，避免各頁到處使用 `bg-[#xxxxxx]` 或 `text-[#xxxxxx]` 另建一套色彩。Arbitrary values 仍可用於 illustration、裝飾、Domain artwork 與局部視覺效果。
+
+Catalog 可以採圖鑑 gallery，Store 可以採商品 grid，Social 可以採 feed／thread layout；各 Domain 可自行決定 page layout、hero、內容密度、card composition、圖片、section structure 與 responsive arrangement。共同按鈕、form control、semantic colors 與 surface treatment 沿用同一基線。
+
+### 需要普通 CSS 時
+
+QMAH 沒有禁止普通 CSS；一般 Component 只是預設不產生 stylesheet。`::before`／`::after`、複雜 keyframes、特殊 animation、`clip-path`、複雜 selector、third-party override，或 utilities 讓 template 明顯難讀時，可以建立 CSS Component：
+
+```powershell
+ng g c <domain>/<component-name> --style=css
+```
+
+既有 Component 後來才需要 CSS 時，在 Component 旁新增同名 `.css`，並於 `@Component` metadata 加入：
+
+```ts
+@Component({
+  templateUrl: './artifact-card.html',
+  styleUrl: './artifact-card.css'
+})
+```
+
+`styleUrl` 是 Angular 21 可用的單一 stylesheet syntax；多個檔案才使用 `styleUrls`。既有 feature 若已有合理 SCSS，不要求為統一而重寫；新功能不以 SCSS 作為預設。
+
+### HyperUI 搬入 Angular 的流程
+
+1. 到 HyperUI 找適合的 block，複製 HTML 與 Tailwind classes。
+2. 放進 Angular component template。
+3. Static data 改成 Angular binding，loop 改成 `@for`，condition 改成 `@if`。
+4. Interaction 改成 Angular event 與 state，不搬 `document.querySelector`、手動 DOM state 或 vanilla JavaScript toggle。
+5. 檢查固定品牌色是否應改成 QMAH／daisyUI semantic theme。
+6. `grid`、`gap-*`、`max-w-*`、`md:*`、`lg:*`、`aspect-*`、`object-cover` 等 layout utilities 通常可保留。
+
+例如 `bg-white`、`text-gray-900`、`border-gray-200`、`bg-indigo-600` 應先判斷是否改為 `bg-base-100`、`text-base-content`、`border-base-300` 或 `btn-primary`，不要機械替換。不要執行 `npm install hyperui`。
+
+### 新增 Angular Component 的日常流程
+
+1. 執行 `ng g c catalog/artifact-card`。
+2. CLI 會建立 `artifact-card.ts`、`artifact-card.html` 與 `artifact-card.spec.ts`，不建立 stylesheet。
+3. 在 TypeScript 寫 state、event 與 service 呼叫，在 HTML 寫 Angular template。
+4. 用 Tailwind 排版，用 daisyUI 處理常見 UI。
+5. 串接 Feature Service 的資料與事件。
+6. 特殊視覺確實需要時才補 component CSS。
+
+第一次出現的 UI 留在 feature。確實有跨 Domain 重複、固定 complex composition 或 QMAH-specific behavior 時，再考慮 shared component。不要只為包住 `btn`、`card` 或 `input` 建立 `QmahButton`、`QmahCard`、`QmahInput`。
+
+不要由 feature 個別加入 PrimeNG、Spartan、Angular Material、Bootstrap、Flowbite、Preline 或另一套完整 UI framework。若目前 stack 無法合理處理具體需求，先提出需求由團隊決定；小型 specialist library 仍可依明確需求評估。
+
+官方資料： [Angular](https://angular.dev/)、[Angular Tailwind guide](https://angular.dev/guide/tailwind)、[Angular component styling](https://angular.dev/guide/components/styling)、[Angular CLI generate component](https://angular.dev/cli/generate/component)、[Tailwind CSS](https://tailwindcss.com/)、[daisyUI](https://daisyui.com/)、[daisyUI install](https://daisyui.com/docs/install/)、[daisyUI Angular install](https://daisyui.com/docs/install/angular/)、[daisyUI components](https://daisyui.com/components/)、[daisyUI themes](https://daisyui.com/docs/themes/)、[HyperUI](https://hyperui.dev/)、[HyperUI FAQ](https://hyperui.dev/blog/faqs/)。
+
 ## 本頁閱讀分流 {#angular-reading-route}
 
 | 需要確認的內容 | 直接查看 |
 | --- | --- |
 | 只需要啟動 API 與 Angular | [開發入口](#開發入口)、[固定版本與本機工作流](#固定版本與本機工作流) |
 | 需要理解 Angular、Component 與 API 的基本關係 | [Angular 與 API 基本名詞](#angular-api-basics) |
+| 需要開始寫畫面與樣式 | [UI 與樣式](#ui-and-styling) |
 | 需要確認各檔案的責任與放置位置 | [目前前台基線](#目前前台基線)、[Angular 分層](#angular-分層) |
 | 需要開始一個 Domain 功能 | [各系統平行開發](#各系統平行開發)、[新增功能的最小交付流程](#新增功能的最小交付流程) |
 | 需要處理登入、錯誤或圖片 | [登入後的第一條資料流程](#登入後的第一條資料流程)、[回應與錯誤處理](#回應與錯誤處理)、[圖片與地圖](#圖片與地圖) |
@@ -26,7 +185,7 @@
 | 名詞 | 用途 | QMAH 的例子 |
 | --- | --- | --- |
 | Angular | 在瀏覽器執行的前端框架 | `QMAH.Client` |
-| Component | 一個畫面或畫面中的一塊；TypeScript 處理操作，HTML 顯示內容，SCSS 負責樣式 | `artifact-list.ts`、`artifact-list.html`、`artifact-list.scss` |
+| Component | 一個畫面或畫面中的一塊；TypeScript 處理操作，HTML 顯示內容，特殊需求才加 CSS | `artifact-list.ts`、`artifact-list.html` |
 | Template | Component 使用的 HTML 畫面 | `app.html` 或 feature 的 `.html` |
 | Route | 把網址對應到某個 Component | `app.routes.ts` 或 Domain route |
 | Service | 集中處理可重複使用的工作，前台通常用它呼叫 API | `catalog-api.ts` |
@@ -40,7 +199,7 @@
 QMAH 前台的一條基本資料流程如下：
 
 1. 瀏覽器依網址交給 Router 判斷要載入哪個 route。
-2. route 載入對應的 component；component 的 TypeScript 處理畫面操作，template 顯示資料，SCSS 控制樣式。
+2. route 載入對應的 component；component 的 TypeScript 處理畫面操作，template 顯示資料並使用 Tailwind／daisyUI class。
 3. component 呼叫 feature service；service 使用 HttpClient 送出 API request，並依 API 契約指定 request／response 型別。
 4. API 回傳 JSON 與 HTTP 狀態碼；component 依成功、空資料、載入中或錯誤狀態更新畫面。
 
@@ -50,7 +209,7 @@ QMAH 前台的一條基本資料流程如下：
 
 課程要求使用 Angular 21，因此版本線維持在 Angular 21，不升到 Angular 22。
 
-Repository 固定使用 Angular 21 版本線內的 `21.2.22`，沿用 standalone、Router、HttpClient、環境設定與 SCSS。
+Repository 固定使用 Angular 21 版本線內的 `21.2.22`，沿用 standalone、Router、HttpClient 與環境設定；UI baseline 為 Tailwind CSS 4 與 daisyUI 5。
 
 Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、TypeScript 與 RxJS 相容範圍內。實際版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準。
 
@@ -198,18 +357,16 @@ src/app/
 └─ app.html
 ```
 
-先判斷功能屬於哪個 Domain，再建立該功能。Component 的 TS／HTML／SCSS 同名並放在一起；需要測試時，spec 也放在被測程式旁。Catalog 開始實作後可自然形成：
+先判斷功能屬於哪個 Domain，再建立該功能。Component 的 TS／HTML 放在一起，特殊需求才加同名 CSS；需要測試時，spec 也放在被測程式旁。Catalog 開始實作後可自然形成：
 
 ```text
 catalog/
 ├─ artifact-list/
 │  ├─ artifact-list.ts
-│  ├─ artifact-list.html
-│  └─ artifact-list.scss
+│  └─ artifact-list.html
 ├─ artifact-detail/
 │  ├─ artifact-detail.ts
-│  ├─ artifact-detail.html
-│  └─ artifact-detail.scss
+│  └─ artifact-detail.html
 ├─ catalog-api.ts
 ├─ catalog.models.ts
 └─ catalog.routes.ts
@@ -284,6 +441,9 @@ export class CatalogApi {
 | npm | `11.16.0` |
 | TypeScript | `5.9.3` |
 | RxJS | `7.8.2` |
+| Tailwind CSS、`@tailwindcss/postcss` | `4.3.3` |
+| PostCSS | `8.5.28` |
+| daisyUI | `5.7.32` |
 
 第一次使用時，在 QMAH Repository 根目錄執行：
 
