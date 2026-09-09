@@ -10,52 +10,15 @@
 
 ## UI 與樣式 {#ui-and-styling}
 
-以下命令都在 `QMAH.Client` 執行。一般 Component 直接建立：
+畫面樣式依工作分成三頁，直接選你現在需要的工具：
 
-```powershell
-ng g c <domain>/<component-name>
-```
+| 現在想做什麼 | 使用教學 |
+| --- | --- |
+| 調間距、欄位排列、寬度、手機版面 | [Tailwind CSS：排版與響應式](tailwind-guide.md) |
+| 做按鈕、卡片、表單、載入狀態與共用色彩 | [daisyUI：按鈕、卡片與表單外觀](daisyui-guide.md) |
+| 找現成區塊排版，複製後接上資料 | [HyperUI：複製排版，再接上 Angular](hyperui-guide.md) |
 
-預設會產生 TypeScript、HTML、SCSS 與測試檔。大部分畫面直接在 Angular template 使用 Tailwind CSS utilities 與 daisyUI component classes；需要特殊視覺時，再把樣式寫在同一個 Component 的 `.scss`：
-
-這個預設由 `angular.json` 的 Component schematic `style: "scss"` 與 build option `inlineStyleLanguage: "scss"` 固定下來；例如產生的檔案會包含 `artifact-card.scss`。
-
-```html
-<section class="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-  @for (artifact of artifacts(); track artifact.id) {
-    <article class="card bg-base-100 shadow-sm">
-      <div class="card-body">
-        <h2 class="card-title">{{ artifact.name }}</h2>
-        <button
-          class="btn btn-primary"
-          type="button"
-          (click)="openArtifact(artifact.id)"
-        >
-          查看
-        </button>
-      </div>
-    </article>
-  }
-</section>
-```
-
-這段程式的責任如下：
-
-- Angular：`{{ }}`、`(click)`、`@if`、`@for`、component state 與 API data。
-- Tailwind CSS：`mx-auto`、`grid`、`max-w-6xl`、`gap-6`、`md:grid-cols-3`、`shadow-sm`。
-- daisyUI：`card`、`bg-base-100`、`card-body`、`card-title`、`btn`、`btn-primary`。
-
-### 四個工具各自負責什麼
-
-**Angular** 是 `QMAH.Client` 的 application framework，負責 Component、Router、Forms、Dependency Injection、state、event 與 HTTP／API integration。
-
-**Tailwind CSS** 是 utility-first CSS framework。QMAH 用它處理 layout、flex／grid、spacing、尺寸、responsive breakpoint、typography、border／radius、hover／focus、transition 與常見視覺屬性；class 直接寫在 Angular template。Tailwind 不取代 Angular，也不禁止普通 CSS。
-
-**daisyUI** 是 Tailwind CSS plugin 與 component class library，不是 Angular component framework。它提供 `btn`、`card`、`input`、`select`、`textarea`、`checkbox`、`toggle`、`badge`、`alert`、`modal`、`drawer`、`navbar`、`menu`、`tabs`、`steps`、`loading`、`skeleton` 等 class，以及 semantic theme classes。State、event、forms、routing、API 與 business logic 仍由 Angular 負責。
-
-**HyperUI** 是可複製的 HTML 與 Tailwind UI snippets／blocks 集合，不是 npm dependency、runtime library 或 Angular framework。
-
-目前前台統一使用 Tailwind CSS 與 daisyUI；feature 不自行加入另一套完整 UI framework。
+Angular 負責資料、事件、路由、表單與 API。三種工具的 class 都放在 Component HTML；需要特殊樣式時可用 Component SCSS。
 
 ### Global CSS 與 Component SCSS
 
@@ -70,72 +33,6 @@ feature/component/*.scss
 ```
 
 一般 UI 優先在 template 使用 Tailwind utilities 與 daisyUI classes。Component SCSS 可直接寫熟悉的普通 CSS，不要求使用 Sass 進階語法；適合放複雜 selector、pseudo-element、animation、third-party override，或會讓 template 難讀的特殊樣式。不要在 Component SCSS 重複 `@import "tailwindcss"` 或 `@plugin "daisyui"`。
-
-### Tailwind 最小速查
-
-| 一般 CSS 需求 | Tailwind |
-| --- | --- |
-| `display: flex` | `flex` |
-| `display: grid` | `grid` |
-| `gap: 1rem` | `gap-4` |
-| `padding: 1.5rem` | `p-6` |
-| `margin-inline: auto` | `mx-auto` |
-| `width: 100%` | `w-full` |
-| `align-items: center` | `items-center` |
-| `justify-content: space-between` | `justify-between` |
-| 圓角 | `rounded-*` |
-| `font-weight: 700` | `font-bold` |
-| media query | `md:*`、`lg:*` |
-| `:hover`／`:focus` | `hover:*`／`focus:*` |
-| transition | `transition` |
-
-更多 class 直接查 [Tailwind utilities](https://tailwindcss.com/docs/styling-with-utility-classes)、[responsive design](https://tailwindcss.com/docs/responsive-design) 與 [state variants](https://tailwindcss.com/docs/hover-focus-and-other-states)。
-
-### daisyUI 的日常用法
-
-基本按鈕使用 daisyUI：
-
-```html
-<button class="btn btn-primary" type="button">儲存</button>
-```
-
-需要排版時，在同一個元素加 Tailwind class：
-
-```html
-<button class="btn btn-primary w-full md:w-auto" type="button">
-  加入收藏
-</button>
-```
-
-互動狀態由 Angular 管理，呈現使用 daisyUI：
-
-```html
-<button
-  class="btn btn-primary"
-  type="button"
-  [disabled]="saving()"
-  (click)="save()"
->
-  @if (saving()) {
-    <span class="loading loading-spinner"></span>
-  }
-  儲存
-</button>
-```
-
-`[disabled]`、`(click)`、`@if` 與 `saving()` 是 Angular；`btn`、`btn-primary`、`loading` 與 `loading-spinner` 是 daisyUI。
-
-### Theme 與頁面自由度
-
-共用 UI 優先使用 daisyUI semantic classes：
-
-- 品牌操作：`primary`、`secondary`、`accent`。
-- 頁面表面：`bg-base-100`、`bg-base-200`、`bg-base-300`、`text-base-content`、`border-base-300`。
-- 狀態：`info`、`success`、`warning`、`error`。
-
-共用 Button、Input、Form、狀態色、字體基線、間距節奏與表面語言應維持一致，避免各頁到處使用 `bg-[#xxxxxx]` 或 `text-[#xxxxxx]` 另建一套色彩。Arbitrary values 仍可用於 illustration、裝飾、Domain artwork 與局部視覺效果。
-
-Catalog 可以採圖鑑 gallery，Store 可以採商品 grid，Social 可以採 feed／thread layout；各 Domain 可自行決定 page layout、hero、內容密度、card composition、圖片、section structure 與 responsive arrangement。共同按鈕、form control、semantic colors 與 surface treatment 沿用同一基線。
 
 ### 需要普通 CSS 時
 
@@ -156,17 +53,6 @@ ng g c <domain>/<component-name> --style=css
 
 `styleUrl` 是 Angular 21 可用的單一 stylesheet syntax；多個檔案才使用 `styleUrls`。既有 feature 若已有合理 CSS／SCSS，不要求為統一而重寫；新功能預設使用 SCSS，只有明確需求才用 `--style=css`。
 
-### HyperUI 搬入 Angular 的流程
-
-1. 到 HyperUI 找適合的 block，複製 HTML 與 Tailwind classes。
-2. 放進 Angular component template。
-3. Static data 改成 Angular binding，loop 改成 `@for`，condition 改成 `@if`。
-4. Interaction 改成 Angular event 與 state，不搬 `document.querySelector`、手動 DOM state 或 vanilla JavaScript toggle。
-5. 檢查固定品牌色是否應改成 QMAH／daisyUI semantic theme。
-6. `grid`、`gap-*`、`max-w-*`、`md:*`、`lg:*`、`aspect-*`、`object-cover` 等 layout utilities 通常可保留。
-
-例如 `bg-white`、`text-gray-900`、`border-gray-200`、`bg-indigo-600` 應先判斷是否改為 `bg-base-100`、`text-base-content`、`border-base-300` 或 `btn-primary`，不要機械替換。不要執行 `npm install hyperui`。
-
 ### 新增 Angular Component 的日常流程
 
 1. 執行 `ng g c catalog/artifact-card`。
@@ -179,8 +65,6 @@ ng g c <domain>/<component-name> --style=css
 第一次出現的 UI 留在 feature。確實有跨 Domain 重複、固定 complex composition 或 QMAH-specific behavior 時，再考慮 shared component。不要只為包住 `btn`、`card` 或 `input` 建立 `QmahButton`、`QmahCard`、`QmahInput`。
 
 不要由 feature 個別加入 PrimeNG、Spartan、Angular Material、Bootstrap、Flowbite、Preline 或另一套完整 UI framework。若目前 stack 無法合理處理具體需求，先提出需求由團隊決定；小型 specialist library 仍可依明確需求評估。
-
-官方資料： [Angular](https://angular.dev/)、[Angular Tailwind guide](https://angular.dev/guide/tailwind)、[Angular component styling](https://angular.dev/guide/components/styling)、[Angular CLI generate component](https://angular.dev/cli/generate/component)、[Tailwind CSS](https://tailwindcss.com/)、[daisyUI](https://daisyui.com/)、[daisyUI install](https://daisyui.com/docs/install/)、[daisyUI Angular install](https://daisyui.com/docs/install/angular/)、[daisyUI components](https://daisyui.com/components/)、[daisyUI themes](https://daisyui.com/docs/themes/)、[HyperUI](https://hyperui.dev/)、[HyperUI FAQ](https://hyperui.dev/blog/faqs/)。
 
 ## 本頁閱讀分流 {#angular-reading-route}
 

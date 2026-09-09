@@ -14,13 +14,21 @@
 
 ## 前台開發入口 {#frontend-start}
 
-要在 `QMAH.Client` 開始功能，從這三頁依序查就夠了，不用先讀完整個文件站：
+要在 `QMAH.Client` 開始功能，依目前工作選入口：
+
+| 要做什麼 | 直接查看 |
+| --- | --- |
+| 排版、間距、手機版面 | [Tailwind CSS 用法](frontend/tailwind-guide.md) |
+| 按鈕、卡片、表單與共用色彩 | [daisyUI 用法](frontend/daisyui-guide.md) |
+| 找現成區塊，搬進 Angular | [HyperUI 用法](frontend/hyperui-guide.md) |
+
+要啟動專案或接上功能，再看下面三頁：
 
 1. [Angular 使用者前台開發](frontend/angular-development.md)：先啟動 API 與 Angular，了解 standalone、`/api/v1`、HttpClient、Cookie／XSRF 與開發 proxy。
 2. [前台功能接手指南](frontend/feature-development-guide.md)：選定 Catalog、Game、Social、Store 或 User，依功能建立頁面、API service、路由和可選測試頁。
 3. [REST API 契約](reference/rest-api.md)：確認實際 endpoint、DTO、權限、成功回應與需要驗證的錯誤狀態。
 
-每個 Domain 由自己的分支開始，Component 的 TypeScript、HTML 與使用它的 service 放在同一個功能附近；特殊視覺才增加 component CSS。功能完成後再由整合者把 Domain route 接進 `app.routes.ts`；這樣五個人不必同時修改同一個根路由檔案。
+每個 Domain 由自己的分支開始，Component 的 TypeScript、HTML、SCSS 與使用它的 service 放在同一個功能附近；SCSS 可直接寫普通 CSS。功能完成後再由整合者把 Domain route 接進 `app.routes.ts`，避免五個人同時修改根路由檔案。
 
   <section id="reading-route" class="qmah-work-index" aria-labelledby="qmah-route-title">
     <nav class="qmah-index-rail" aria-label="工作索引">

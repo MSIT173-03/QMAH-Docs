@@ -10,6 +10,8 @@ UI 預設直接使用 Tailwind CSS 與 daisyUI，Component 預設產生 `.scss`�
 
 ## 開始前台工作的最短路線
 
+先做畫面時，直接查 [Tailwind 排版](tailwind-guide.md)、[daisyUI 元件外觀](daisyui-guide.md)、[HyperUI 區塊搬入](hyperui-guide.md)。要接資料與操作，再照本頁的功能流程進行。
+
 先把自己的功能分支更新到 `main`，啟動 API 與 Angular，再依下表完成第一條可看到結果的流程。表中的檔名是建議起點，不是需要一次建立的固定模板。
 
 | Domain | 建議第一條流程 | 起始 API | 是否需登入 |
