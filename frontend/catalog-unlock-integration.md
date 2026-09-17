@@ -19,6 +19,21 @@
 
 ## 點文物的解鎖按鈕
 
+### 獨立查詢鑰匙定義
+
+需要呈現鑰匙規則或單把鑰匙詳情時，使用以下登入後 API：
+
+| 方法與路徑 | 回應 |
+| --- | --- |
+| GET `/api/v1/catalog/key-definitions` | 所有啟用定義的 JSON 陣列 |
+| GET `/api/v1/catalog/key-definitions/{keyCode}` | 單一定義；不存在或停用為 404 |
+
+每筆包含 `id`、`code`、`name`、`scopeType`、`categoryId`、`categoryCode`、`categoryName`、`eraBucketId`、`eraCode`、`eraName`、`recyclePointValue`、`canSelectArtifact`。不適用的分類／年代欄位為 null。定義不含會員餘額，以 `id` 或 `code` 對應 `/me/economy` 的 `keys`。
+
+`canSelectArtifact` 為 false 的一般鑰匙只能隨機解鎖；true 仍須核對分類／年代、會員餘額與候選數。使用定義回傳的 `code` 呼叫既有 POST `/api/v1/me/keys/{keyCode}/unlock`；查詢定義本身不扣鑰匙、不解鎖。停用與新建規則由資料庫即時反映，不需前端新增硬編碼。
+
+### 選擇與送出
+
 1. 若 `isUnlocked` 為 true，直接開收藏卡；否則開啟鑰匙選擇視窗。
 2. 重新讀取 `/api/v1/me/economy`，篩出還有餘額且適用這件文物的鑰匙。
 3. 顯示鑰匙名稱、持有數量與「本次消耗 1 把」，讓使用者選一把。

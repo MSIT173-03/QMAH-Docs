@@ -424,6 +424,8 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | Method | Path | 權限 | 用途與主要欄位 |
 | --- | --- | --- | --- |
 | GET | `/api/v1/me/economy` | 登入後 | 取得鑑定點數、鑰匙進度、各類鑰匙餘額、每把鑰匙的可解鎖文物數量與目前兌換規則 |
+| GET | `/api/v1/catalog/key-definitions` | 登入後 | 啟用鑰匙定義陣列，含範圍識別與名稱、回收點數及 canSelectArtifact；不含會員餘額 |
+| GET | `/api/v1/catalog/key-definitions/{keyCode}` | 登入後 | 依實際 code 查單一定義，不存在或停用回傳 404；使用鑰匙仍呼叫 `/me/keys/{keyCode}/unlock` |
 | GET | `/api/v1/me/catalog/artifacts` | 登入後 | 取得目前會員圖鑑清單，每件啟用文物附 `isUnlocked` 與 `unlockedAt`；可依搜尋、分類與年代分頁 |
 | GET | `/api/v1/me/catalog/unlocks` | 登入後 | 取得目前會員解鎖歷史，包含解鎖方式、文物、分類、年代、遊戲回合、鑰匙流水參照與實際 `keyCode`／`keyName` |
 | GET | `/api/v1/me/keys/exchange-rules` | 登入後 | 取得目前仍有可解鎖文物的鑰匙兌換規則 |
