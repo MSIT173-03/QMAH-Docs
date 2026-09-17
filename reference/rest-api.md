@@ -201,7 +201,7 @@ Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
 5. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。`CATEGORY`／`ERA` 可在 body 指定自身範圍內的 `ArtifactId`，省略時由伺服器選擇；`NORMAL` 不可指定，`UNIVERSAL` 可指定任一候選文物；成功後重新讀取會員圖鑑與經濟摘要。
 6. 回應沒有解鎖結果時，表示目前沒有候選且沒有扣鑰匙；前台不將它顯示成伺服器錯誤。
 
-使用一般鑰匙時，將經濟摘要回傳的實際 `keyCode` 放入路徑，使用 `POST` 並送出 `{}`。分類／年代鑰匙可送出 `{"artifactId":"<自身範圍內文物 GUID>"}`，也可送 `{}`；萬能鑰匙可送出 `{"artifactId":"<文物 GUID>"}`，範圍由鑰匙定義決定。
+使用一般鑰匙時，將經濟摘要回傳的實際 `keyCode`（例如 `KEY-NORMAL`）放入路徑，使用 `POST` 並送出 `{}`。分類／年代鑰匙可送出 `{"artifactId":"<自身範圍內文物 GUID>"}`，也可送 `{}`；萬能鑰匙可送出 `{"artifactId":"<文物 GUID>"}`，範圍由鑰匙定義決定。不要自行把 `NORMAL`、`CATEGORY` 或 `ERA` 當成路徑值。
 
 管理員可用 `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` 強制解鎖。該操作只新增 `ADMIN` 解鎖事實，不扣鑰匙；若已存在解鎖列，回傳 `200` 且 `created=false`，並以 `admin.AuditLogs` 保存管理員與目標資訊。
 
