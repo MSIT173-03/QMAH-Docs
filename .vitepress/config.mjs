@@ -111,6 +111,7 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
           { text: 'daisyUI｜按鈕、卡片與表單', link: '/frontend/daisyui-guide' },
           { text: 'HyperUI｜複製排版到 Angular', link: '/frontend/hyperui-guide' },
           { text: '前台功能接手指南', link: '/frontend/feature-development-guide' },
+          { text: '圖鑑與鑰匙背包串接', link: '/frontend/catalog-unlock-integration' },
           { text: '媒體交付設定', link: '/frontend/media-delivery' }
         ]
       },
