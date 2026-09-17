@@ -30,7 +30,7 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 | Method | Path | 用途 |
 | --- | --- | --- |
 | `GET` | `/api/v1/me/catalog/artifacts` | 取得啟用文物分頁，附 `isUnlocked`、`unlockedAt`、分類／年代識別與圖片網址 |
-| `GET` | `/api/v1/me/catalog/unlocks` | 取得目前會員的解鎖歷史，依 `unlockedAt` 最新優先 |
+| `GET` | `/api/v1/me/catalog/unlocks` | 取得目前會員的解鎖歷史，依 `unlockedAt` 最新優先；鑰匙來源直接附 `keyCode`／`keyName` |
 | `GET` | `/api/v1/me/economy` | 取得鑰匙餘額與每種鑰匙的 `eligibleArtifactCount` |
 | `POST` | `/api/v1/me/keys/{keyCode}/unlock` | 使用一把鑰匙；`CATEGORY`／`ERA` 可傳自身範圍內的 `artifactId`，`NORMAL` 不可傳，`UNIVERSAL` 可傳任一候選文物 |
 | `POST` | `/api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` | Admin 強制解鎖一件文物，來源為 `ADMIN`，重複呼叫冪等 |
