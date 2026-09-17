@@ -23,6 +23,43 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 3. 有候選時，服務在同一流程扣除鑰匙餘額、建立 `KeyTransaction` 並新增 `ArtifactUnlock`。
 4. 沒有候選時不扣鑰匙，也不建立解鎖紀錄。前台應顯示沒有可解鎖文物，而不是一般伺服器錯誤。
 
+## 會員圖鑑 API
+
+會員圖鑑畫面需要使用登入後的清單 API，讓後端一次完成「文物是否已解鎖」的判斷：
+
+| Method | Path | 用途 |
+| --- | --- | --- |
+| `GET` | `/api/v1/me/catalog/artifacts` | 取得啟用文物分頁，附 `isUnlocked`、`unlockedAt`、分類／年代識別與圖片網址 |
+| `GET` | `/api/v1/me/catalog/unlocks` | 取得目前會員的解鎖歷史，依 `unlockedAt` 最新優先 |
+| `GET` | `/api/v1/me/economy` | 取得鑰匙餘額與每種鑰匙的 `eligibleArtifactCount` |
+| `POST` | `/api/v1/me/keys/{keyCode}/unlock` | 使用一把鑰匙；只有 `UNIVERSAL` 可以傳 `artifactId` |
+
+兩支清單 API 都支援 `q`、`categoryCode`、`eraCode`、`page` 與 `pageSize`。會員識別只來自登入 Cookie，不能由 query string 傳入 `userId`。圖片路徑已由 API 的媒體解析器轉成可交付網址，前台不應自行拼接磁碟路徑。
+
+### 一次解鎖的前台流程
+
+```text
+GET /me/catalog/artifacts + GET /me/economy
+        ↓
+依 keyCode、scopeType、categoryId、eraBucketId 顯示可用鑰匙
+        ↓
+POST /me/keys/{keyCode}/unlock
+        ├─ UNIVERSAL：{ "artifactId": "<文物 GUID>" }
+        └─ 其他鑰匙：{ "artifactId": null }
+        ↓
+若 unlocked=true，重新讀取圖鑑、經濟摘要與解鎖歷史
+若 unlocked=false，不扣鑰匙，顯示 message
+```
+
+`NORMAL` 從全部未解鎖文物抽選，`CATEGORY` 與 `ERA` 由鑰匙定義的 `CategoryId` 或 `EraBucketId` 限定範圍，`UNIVERSAL` 才由會員指定單一文物。請求成功但 `unlocked=false` 不是錯誤，而是該範圍已沒有候選。
+
+### 單一會員的保存方式
+
+- `catalog.ArtifactUnlocks` 是會員與文物的解鎖事實，一件文物對同一會員只能有一筆；保存 `UnlockMethod`、`UnlockedAt`、`KeyTransactionId` 與可選的 `GameRoundId`。
+- `catalog.UserKeyBalances` 是目前背包快照，依 `UserId + KeyDefinitionId` 保存餘額，供畫面快速顯示。
+- `catalog.KeyTransactions` 是鑰匙異動流水。解鎖成功會在同一筆資料庫交易內新增負數流水並回寫 `ArtifactUnlocks.KeyTransactionId`。
+- `GET /api/v1/me/catalog/artifacts` 每次依登入會員即時標記狀態；`GET /api/v1/me/catalog/unlocks` 直接查該會員的歷史，因此前端不需要自行保存解鎖紀錄作為真相。
+
 ## 資料表與關聯
 
 | 資料表或資料群 | 在此入口的用途 | 主要關聯／限制 |

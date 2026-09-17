@@ -25,6 +25,8 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 
 圖鑑完成率、分類完成率、年代完成率與鑰匙的可解鎖數量，都以目前 `Active`（啟用中）的文物即時計算。增加文物、分類或年代資料時，不需要修改程式中的總數。
 
+會員圖鑑狀態由 `GET /api/v1/me/catalog/artifacts` 取得，回應每件啟用文物的 `isUnlocked` 與 `unlockedAt`；解鎖歷史由 `GET /api/v1/me/catalog/unlocks` 取得。這兩支 API 以登入 Cookie 決定會員，不接受前台傳入其他 `UserId`。前台應以 `GET /api/v1/me/economy` 的實際 `keyCode`、`scopeType`、`categoryId`、`eraBucketId` 與 `eligibleArtifactCount` 建立可用鑰匙選項，不要把鑰匙數量或候選範圍寫死在 Angular。
+
 ## 每日登入與共用進程
 
 會員使用者前台在登入完成後明確呼叫 `POST /api/v1/me/daily-activity/login`。`DailyActivityService` 會在 `common.DailyMemberActivities` 保存當天的 `LOGIN` 歷史事實。
@@ -201,6 +203,8 @@ EconomyService 驗證操作
 使用者前台不需知道獎勵公式，依 API（應用程式介面）回應呈現結果：
 
 - `GET /api/v1/me/economy`：鑑定點數、鑰匙餘額、可解鎖數、鑰匙進度與兌換規則
+- `GET /api/v1/me/catalog/artifacts`：目前會員圖鑑清單，以及每件文物的解鎖狀態與日期
+- `GET /api/v1/me/catalog/unlocks`：目前會員的解鎖歷史，可依文物搜尋、分類與年代篩選
 - `GET /api/v1/me/daily-activity`：依歷史資料取得每日登入日期、累積天數、目前／最高連續天數、登入率與今日登入狀態
 - `POST /api/v1/me/daily-activity/login`：由會員使用者前台明確記錄一次登入活動；同日重複呼叫不增加登入天數
 - `POST /api/v1/me/keys/{keyCode}/unlock`：使用鑰匙解鎖文物，只有 `UNIVERSAL` 送 `artifactId`

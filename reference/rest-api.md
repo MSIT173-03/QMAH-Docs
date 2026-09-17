@@ -194,10 +194,12 @@ Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
 
 #### 顯示圖鑑並使用鑰匙
 
-1. 讀取 metadata、分類、年代與文物清單，將 API 回傳的 Id 保存為路由或操作識別。
-2. 呼叫 `GET /api/v1/me/economy` 顯示鑰匙餘額與可解鎖數量。
-3. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。只有 `UNIVERSAL` 在 body 指定 `ArtifactId`，其他類型由伺服器選擇。
-4. 回應沒有解鎖結果時，表示目前沒有候選且沒有扣鑰匙；前台不將它顯示成伺服器錯誤。
+1. 讀取分類、年代與公開文物選項；需要顯示會員狀態時改呼叫 `GET /api/v1/me/catalog/artifacts`，不要自行讀取或猜測 `ArtifactUnlocks`。
+2. 以 `isUnlocked` 決定卡片是否顯示完整名稱與圖片；`unlockedAt` 可用於收藏卡或解鎖日期。清單支援 `q`、`categoryCode`、`eraCode`、`page`、`pageSize`。
+3. 若要顯示歷史或解鎖流水，呼叫 `GET /api/v1/me/catalog/unlocks`；回應只包含目前登入會員的紀錄，依 `unlockedAt` 最新優先排序。
+4. 呼叫 `GET /api/v1/me/economy` 顯示鑰匙餘額與每把鑰匙的 `eligibleArtifactCount`，把實際 `keyCode` 保存為後續操作識別。
+5. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。只有 `UNIVERSAL` 在 body 指定 `ArtifactId`，其他類型由伺服器選擇；成功後重新讀取會員圖鑑與經濟摘要。
+6. 回應沒有解鎖結果時，表示目前沒有候選且沒有扣鑰匙；前台不將它顯示成伺服器錯誤。
 
 使用一般、分類或年代鑰匙時，將經濟摘要回傳的實際 `keyCode` 放入路徑，使用 `POST` 並送出 `{}`。萬能鑰匙才送出 `{"artifactId":"<文物 GUID>"}`；分類與年代範圍由鑰匙定義決定。
 
@@ -330,6 +332,8 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 | GET | `/api/v1/catalog/artifacts/{id}` | 文物詳情、來源授權、圖片與是否有題庫／商品 |
 | GET | `/api/v1/catalog/categories` | 圖鑑分類 |
 | GET | `/api/v1/catalog/eras` | 年代篩選 |
+| GET | `/api/v1/me/catalog/artifacts` | 登入後取得目前會員圖鑑清單；`q`、`categoryCode`、`eraCode`、`page`、`pageSize`；每筆附 `isUnlocked`、`unlockedAt` |
+| GET | `/api/v1/me/catalog/unlocks` | 登入後取得目前會員解鎖歷史；支援 `q`、`categoryCode`、`eraCode`、`page`、`pageSize`；依最新解鎖時間排序 |
 | GET | `/api/v1/store/products` | `q`、`categoryCode`、`artifactId`、`page`、`pageSize`；只回傳上架商品 |
 | GET | `/api/v1/store/products/{id}` | 商品詳情與對應文物 |
 | GET | `/api/v1/store/products/{productId}/reviews` | 公開評價分頁、平均星等與評價總數；只計入已發布內容 |
@@ -418,6 +422,8 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | Method | Path | 權限 | 用途與主要欄位 |
 | --- | --- | --- | --- |
 | GET | `/api/v1/me/economy` | 登入後 | 取得鑑定點數、鑰匙進度、各類鑰匙餘額、每把鑰匙的可解鎖文物數量與目前兌換規則 |
+| GET | `/api/v1/me/catalog/artifacts` | 登入後 | 取得目前會員圖鑑清單，每件啟用文物附 `isUnlocked` 與 `unlockedAt`；可依搜尋、分類與年代分頁 |
+| GET | `/api/v1/me/catalog/unlocks` | 登入後 | 取得目前會員解鎖歷史，包含解鎖方式、文物、分類、年代、遊戲回合與鑰匙流水參照 |
 | GET | `/api/v1/me/keys/exchange-rules` | 登入後 | 取得目前仍有可解鎖文物的鑰匙兌換規則 |
 | POST | `/api/v1/me/keys/{keyCode}/unlock` | 登入後 | 使用一把鑰匙解鎖文物；只有 `UNIVERSAL` 可在 body 傳 `ArtifactId`，其他類型由伺服器抽選 |
 | POST | `/api/v1/me/keys/exchange` | 登入後 | 傳送 `RuleId` 與 `Units`，依資料庫規則交換鑰匙 |
