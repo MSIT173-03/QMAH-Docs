@@ -215,7 +215,7 @@ Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
 }
 ```
 
-前台判斷 `unlocked`，不比對訊息文字。成功解鎖才扣 `UserKeyBalances`、新增 `KeyTransactions` 與 `ArtifactUnlocks`；操作後重新讀取 `/api/v1/me/economy` 更新背包。
+前台判斷 `unlocked`，不比對訊息文字。成功解鎖才扣 `UserKeyBalances`、新增 `KeyTransactions` 與 `ArtifactUnlocks`；操作後重新讀取 `/api/v1/me/economy` 更新背包。解鎖歷史的 `unlockMethod` 是來源類型：鑰匙解鎖固定為 `KEY`，實際使用的 `keyCode` 要由 `keyTransactionId` 關聯 `KeyTransactions.KeyDefinitionId` 再查 `KeyDefinitions.Code`；系統解鎖流水使用固定 `Reason = ARTIFACT_UNLOCK`，不把鑰匙名稱寫入流水原因。
 
 #### 完成一次 Mini Game
 

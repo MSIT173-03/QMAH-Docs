@@ -55,9 +55,9 @@ POST /me/keys/{keyCode}/unlock
 
 ### 單一會員的保存方式
 
-- `catalog.ArtifactUnlocks` 是會員與文物的解鎖事實，一件文物對同一會員只能有一筆；保存 `UnlockMethod`、`UnlockedAt`、`KeyTransactionId` 與可選的 `GameRoundId`。
+- `catalog.ArtifactUnlocks` 是會員與文物的解鎖事實，一件文物對同一會員只能有一筆；保存 `UnlockMethod`、`UnlockedAt`、`KeyTransactionId` 與可選的 `GameRoundId`。`UnlockMethod` 只記錄來源 `KEY`、`GAME` 或 `ADMIN`；使用哪一種鑰匙要沿著 `KeyTransactionId` 查到 `KeyDefinitions.Code`，不能把每個鑰匙代碼直接寫進 `UnlockMethod`。
 - `catalog.UserKeyBalances` 是目前背包快照，依 `UserId + KeyDefinitionId` 保存餘額，供畫面快速顯示。
-- `catalog.KeyTransactions` 是鑰匙異動流水。解鎖成功會在同一筆資料庫交易內新增負數流水並回寫 `ArtifactUnlocks.KeyTransactionId`。
+- `catalog.KeyTransactions` 是鑰匙異動流水。解鎖成功會在同一筆資料庫交易內新增 `Amount = -1`、`Reason = ARTIFACT_UNLOCK` 的負數流水並回寫 `ArtifactUnlocks.KeyTransactionId`；管理員人工調整才填入 `CreatedByAdminUserId`。
 - `GET /api/v1/me/catalog/artifacts` 每次依登入會員即時標記狀態；`GET /api/v1/me/catalog/unlocks` 直接查該會員的歷史，因此前端不需要自行保存解鎖紀錄作為真相。
 
 ## 資料表與關聯
