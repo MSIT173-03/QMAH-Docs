@@ -68,7 +68,7 @@ QMAH 目前在 `Schema.sql` 定義 7 個 Schema、54 張資料表。`Shared` 是
 | `catalog.ArtifactCategories` | `Id` | — | 文物分類選項。`Code` 有唯一索引，新增或改名要同步篩選、匯入與展示資料。 |
 | `catalog.EraBuckets` | `Id` | — | 文物篩選與出題使用的年代區間。區間邏輯需與匯入資料和前台篩選保持一致。 |
 | `catalog.Artifacts` | `Id` | `CategoryId` → `ArtifactCategories.Id`；`EraBucketId` → `EraBuckets.Id` | 文物主資料、尺寸、來源、授權與邏輯媒體路徑。`ArtifactRef` 有唯一索引；關聯識別使用 `Id`，不以名稱、圖片檔名或顯示文字取代。 |
-| `catalog.ArtifactUnlocks` | `Id` | `ArtifactId` → `Artifacts.Id`；`KeyTransactionId` → `KeyTransactions.Id`；`GameRoundId` → `game.GameRounds.Id`；`UserId` → `user.AspNetUsers.Id` | 會員解鎖文物的結果與來源。`UserId`／`ArtifactId` 有唯一限制；屬於歷史資料，不因文物下架而刪除。 |
+| `catalog.ArtifactUnlocks` | `Id` | `ArtifactId` → `Artifacts.Id`；`KeyTransactionId` → `KeyTransactions.Id`；`GameRoundId` → `game.GameRounds.Id`；`UserId` → `user.AspNetUsers.Id` | 會員解鎖文物的結果與來源。`UserId`／`ArtifactId` 有唯一限制；`KEY` 沿 `KeyTransactionId` 查鑰匙，`GAME` 沿 `GameRoundId` 查回合，`ADMIN` 沿 `admin.AuditLogs` 查管理員操作；屬於歷史資料，不因文物下架而刪除。 |
 | `catalog.KeyDefinitions` | `Id` | `CategoryId` → `ArtifactCategories.Id`；`EraBucketId` → `EraBuckets.Id` | 鑰匙類型、作用範圍與規則。`ScopeType` 受 CHECK constraint 限制，不能當成任意文字。 |
 | `catalog.KeyExchangeRules` | `Id` | `SourceKeyDefinitionId`、`TargetKeyDefinitionId` → `KeyDefinitions.Id` | 鑰匙兌換規則。來源／目標組合有唯一索引，數量需符合正數限制。 |
 | `catalog.KeyTransactions` | `Id` | `KeyDefinitionId` → `KeyDefinitions.Id`；`UserId` → `user.AspNetUsers.Id`；`CreatedByAdminUserId` → `user.AspNetUsers.Id` | 會員鑰匙異動流水。發放、消耗、兌換或回復都會留下原因；管理員人工調整保存操作管理員 ID，系統流程留空。 |

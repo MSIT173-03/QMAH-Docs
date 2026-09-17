@@ -39,7 +39,7 @@ Game 負責遊戲房間、玩家、回合、選題、作答、投票、邀請與
 | `game.GameRoomInvitations` | 私人房間的邀請、接受與拒絕 | 連到房間、邀請人、受邀人，必要時連到獎勵活動與鑰匙定義 |
 | `game.GameModeDefinitions`、`game.GameEconomySettings` | Mini Game 模式與多人遊戲共用經濟設定 | 模式代碼唯一；門檻、獎勵與數值由資料庫限制和後台規則共同決定 |
 | `game.MiniGameAttempts` | Mini Game 開始、結算、成績與獎勵結果 | 連到會員、模式與可選文物；`STARTED`、`COMPLETED`、`EXPIRED` 是不同流程狀態 |
-| `catalog.ArtifactUnlocks` | 遊戲回合產生的文物解鎖結果 | 以 `GameRoundId` 保存來源；不可把解鎖結果回寫成回合狀態 |
+| `catalog.ArtifactUnlocks` | 遊戲回合產生的文物解鎖結果 | 領取主遊戲獎勵時以 `UnlockMethod = GAME`、`GameRoundId` 保存來源；已解鎖文物不覆蓋；不可把解鎖結果回寫成回合狀態 |
 
 ## 開發規則與跨系統界線
 

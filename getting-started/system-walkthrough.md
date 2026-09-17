@@ -76,8 +76,10 @@ Angular 是使用者前台的前端，`QMAH.Api` 是它呼叫的後端。`QMAH.W
 1. 管理後台建立或匯入文物，保存分類、年代、來源、授權與圖片路徑。
 2. 題庫、商品及貼文以 `ArtifactId` 引用文物，自己的題目、價格及貼文內容仍分開保存。
 3. 使用鑰匙時，`EconomyController` 呼叫 `UnlockArtifactAsync`。NORMAL 查所有合格文物、CATEGORY 依分類、ERA 依年代；共同條件是啟用且會員尚未解鎖。
-4. 前三種由伺服器抽選，UNIVERSAL 才接受指定文物。沒有候選就不扣鑰匙。
+4. NORMAL 由伺服器抽選；CATEGORY／ERA 可指定自身範圍內的文物，也可省略後由伺服器抽選；UNIVERSAL 可指定任一候選文物。沒有候選就不扣鑰匙。
 5. 成功時保存餘額、扣除流水與 `ArtifactUnlocks`；解鎖列的 `KeyTransactionId` 可回查這次消耗。
+
+管理員強制解鎖走 `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock`，來源固定為 `ADMIN`，不扣鑰匙；多人主遊戲領取結算獎勵時，服務會在同一交易把結算回合文物寫成 `GAME` 解鎖紀錄。
 
 前台成功後更新背包及收藏結果，失敗則顯示 API 原因。文物總數讀即時資料，不能寫死展示件數。詳細入口見[圖鑑](../quick-reference/catalog.md)。
 

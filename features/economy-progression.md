@@ -17,15 +17,19 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 | 代碼 | 用途 | 候選由誰決定 |
 | --- | --- | --- |
 | `NORMAL` | 從所有啟用且尚未解鎖的文物隨機解鎖一件 | 伺服器 |
-| `CATEGORY` | 從指定分類中尚未解鎖的文物隨機解鎖一件 | 伺服器 |
-| `ERA` | 從指定年代中尚未解鎖的文物隨機解鎖一件 | 伺服器 |
+| `CATEGORY` | 從指定分類中尚未解鎖的文物解鎖一件；可指定該分類內的目標，省略時隨機 | 會員指定或伺服器 |
+| `ERA` | 從指定年代中尚未解鎖的文物解鎖一件；可指定該年代內的目標，省略時隨機 | 會員指定或伺服器 |
 | `UNIVERSAL` | 從任一尚未解鎖文物中由會員選擇一件 | 會員選擇，伺服器驗證 |
 
-只有 `UNIVERSAL` 允許使用者前台送出 `artifactId`（文物識別碼）。其他三種鑰匙的候選清單與隨機結果都由伺服器產生。若目前沒有符合條件的文物，系統不扣鑰匙，也不建立 `ArtifactUnlock`（文物解鎖紀錄）。
+`NORMAL` 不允許使用者前台指定 `artifactId`（文物識別碼），避免一般鑰匙變成任意挑選；`CATEGORY`、`ERA` 與 `UNIVERSAL` 可以指定候選範圍內的文物，伺服器會再次驗證啟用狀態、會員是否已解鎖及鑰匙範圍。省略 `artifactId` 時，伺服器依鑰匙範圍抽選。若目前沒有符合條件的文物，系統不扣鑰匙，也不建立 `ArtifactUnlock`（文物解鎖紀錄）。
 
 圖鑑完成率、分類完成率、年代完成率與鑰匙的可解鎖數量，都以目前 `Active`（啟用中）的文物即時計算。增加文物、分類或年代資料時，不需要修改程式中的總數。
 
 會員圖鑑狀態由 `GET /api/v1/me/catalog/artifacts` 取得，回應每件啟用文物的 `isUnlocked` 與 `unlockedAt`；解鎖歷史由 `GET /api/v1/me/catalog/unlocks` 取得。這兩支 API 以登入 Cookie 決定會員，不接受前台傳入其他 `UserId`。前台應以 `GET /api/v1/me/economy` 的實際 `keyCode`、`scopeType`、`categoryId`、`eraBucketId` 與 `eligibleArtifactCount` 建立可用鑰匙選項，不要把鑰匙數量或候選範圍寫死在 Angular。
+
+管理員強制解鎖使用 `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock`，只允許 `Admin` role。它不扣會員鑰匙、不建立鑰匙流水，而是在同一交易新增 `UnlockMethod = ADMIN` 的 `ArtifactUnlock`；重複呼叫回傳既有來源且不建立第二筆，並留下 `admin.AuditLogs` 的操作人、目標會員與文物。
+
+多人主遊戲在會員呼叫 `POST /api/v1/game/rooms/{id}/reward` 成功結算時，會在同一交易替該會員解鎖尚未收藏的結算回合文物，新增 `UnlockMethod = GAME` 並以 `GameRoundId` 指向來源回合。已透過鑰匙或管理員取得的文物會跳過，不會覆蓋原本的來源。
 
 ## 每日登入與共用進程
 
@@ -207,7 +211,8 @@ EconomyService 驗證操作
 - `GET /api/v1/me/catalog/unlocks`：目前會員的解鎖歷史，可依文物搜尋、分類與年代篩選
 - `GET /api/v1/me/daily-activity`：依歷史資料取得每日登入日期、累積天數、目前／最高連續天數、登入率與今日登入狀態
 - `POST /api/v1/me/daily-activity/login`：由會員使用者前台明確記錄一次登入活動；同日重複呼叫不增加登入天數
-- `POST /api/v1/me/keys/{keyCode}/unlock`：使用鑰匙解鎖文物，只有 `UNIVERSAL` 送 `artifactId`
+- `POST /api/v1/me/keys/{keyCode}/unlock`：使用鑰匙解鎖文物；`CATEGORY`／`ERA` 可送自身範圍內的 `artifactId`，省略時由伺服器抽選；`NORMAL` 不送，`UNIVERSAL` 可送任一候選文物
+- `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock`：管理員替指定會員強制解鎖一件文物，來源為 `ADMIN`
 - `GET /api/v1/me/keys/exchange-rules`、`POST /api/v1/me/keys/exchange`：查詢與執行鑰匙兌換
 - `POST /api/v1/me/keys/{keyCode}/recycle`：回收已無可解鎖文物的鑰匙
 - `GET /api/v1/me/coupons/exchange-options`、`POST /api/v1/me/coupons/redeem`：查詢與兌換點數券

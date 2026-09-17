@@ -18,8 +18,8 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 
 ## 鑰匙如何解鎖文物
 
-1. 前台使用會員經濟 API 回傳的 `keyCode`。分類與年代範圍由該鑰匙定義的 `CategoryId`、`EraBucketId` 決定，請求不另傳範圍；只有 `UNIVERSAL` 可以指定 `ArtifactId`。
-2. 服務從啟用且會員尚未解鎖的文物建立候選。`NORMAL`、`CATEGORY` 與 `ERA` 的最終結果由伺服器抽選。
+1. 前台使用會員經濟 API 回傳的 `keyCode`。分類與年代範圍由該鑰匙定義的 `CategoryId`、`EraBucketId` 決定，請求不另傳範圍；`CATEGORY`／`ERA` 可指定自身範圍內的 `ArtifactId`，`UNIVERSAL` 可指定任一候選文物。
+2. 服務從啟用且會員尚未解鎖的文物建立候選。`NORMAL` 必須由伺服器抽選；其他可指定範圍的鑰匙省略目標時由伺服器在候選中抽選。
 3. 有候選時，服務在同一流程扣除鑰匙餘額、建立 `KeyTransaction` 並新增 `ArtifactUnlock`。
 4. 沒有候選時不扣鑰匙，也不建立解鎖紀錄。前台應顯示沒有可解鎖文物，而不是一般伺服器錯誤。
 
@@ -32,7 +32,8 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 | `GET` | `/api/v1/me/catalog/artifacts` | 取得啟用文物分頁，附 `isUnlocked`、`unlockedAt`、分類／年代識別與圖片網址 |
 | `GET` | `/api/v1/me/catalog/unlocks` | 取得目前會員的解鎖歷史，依 `unlockedAt` 最新優先 |
 | `GET` | `/api/v1/me/economy` | 取得鑰匙餘額與每種鑰匙的 `eligibleArtifactCount` |
-| `POST` | `/api/v1/me/keys/{keyCode}/unlock` | 使用一把鑰匙；只有 `UNIVERSAL` 可以傳 `artifactId` |
+| `POST` | `/api/v1/me/keys/{keyCode}/unlock` | 使用一把鑰匙；`CATEGORY`／`ERA` 可傳自身範圍內的 `artifactId`，`NORMAL` 不可傳，`UNIVERSAL` 可傳任一候選文物 |
+| `POST` | `/api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` | Admin 強制解鎖一件文物，來源為 `ADMIN`，重複呼叫冪等 |
 
 兩支清單 API 都支援 `q`、`categoryCode`、`eraCode`、`page` 與 `pageSize`。會員識別只來自登入 Cookie，不能由 query string 傳入 `userId`。圖片路徑已由 API 的媒體解析器轉成可交付網址，前台不應自行拼接磁碟路徑。
 
@@ -44,18 +45,21 @@ GET /me/catalog/artifacts + GET /me/economy
 依 keyCode、scopeType、categoryId、eraBucketId 顯示可用鑰匙
         ↓
 POST /me/keys/{keyCode}/unlock
+        ├─ CATEGORY／ERA：可送 { "artifactId": "<自身範圍內文物 GUID>" }
         ├─ UNIVERSAL：{ "artifactId": "<文物 GUID>" }
-        └─ 其他鑰匙：{ "artifactId": null }
+        └─ NORMAL：{ "artifactId": null }
         ↓
 若 unlocked=true，重新讀取圖鑑、經濟摘要與解鎖歷史
 若 unlocked=false，不扣鑰匙，顯示 message
 ```
 
-`NORMAL` 從全部未解鎖文物抽選，`CATEGORY` 與 `ERA` 由鑰匙定義的 `CategoryId` 或 `EraBucketId` 限定範圍，`UNIVERSAL` 才由會員指定單一文物。請求成功但 `unlocked=false` 不是錯誤，而是該範圍已沒有候選。
+`NORMAL` 從全部未解鎖文物抽選，`CATEGORY` 與 `ERA` 由鑰匙定義的 `CategoryId` 或 `EraBucketId` 限定範圍，可由會員選範圍內單一文物或交給伺服器抽選，`UNIVERSAL` 可指定任一單一文物。請求成功但 `unlocked=false` 不是錯誤，而是該範圍已沒有候選。
+
+多人主遊戲領獎成功時，結算回合的文物會自動寫入 `GAME` 解鎖紀錄；已存在的會員解鎖不會被覆蓋。管理員強制解鎖則寫入 `ADMIN`，並在 `admin.AuditLogs` 保存操作人與目標路徑。
 
 ### 單一會員的保存方式
 
-- `catalog.ArtifactUnlocks` 是會員與文物的解鎖事實，一件文物對同一會員只能有一筆；保存 `UnlockMethod`、`UnlockedAt`、`KeyTransactionId` 與可選的 `GameRoundId`。`UnlockMethod` 只記錄來源 `KEY`、`GAME` 或 `ADMIN`；使用哪一種鑰匙要沿著 `KeyTransactionId` 查到 `KeyDefinitions.Code`，不能把每個鑰匙代碼直接寫進 `UnlockMethod`。
+- `catalog.ArtifactUnlocks` 是會員與文物的解鎖事實，一件文物對同一會員只能有一筆；保存 `UnlockMethod`、`UnlockedAt`、`KeyTransactionId` 與可選的 `GameRoundId`。`UnlockMethod` 只記錄來源 `KEY`、`GAME` 或 `ADMIN`；使用哪一種鑰匙要沿著 `KeyTransactionId` 查到 `KeyDefinitions.Code`，不能把每個鑰匙代碼直接寫進 `UnlockMethod`。管理員操作者則沿著同一操作時間與 `admin.AuditLogs` 查詢。
 - `catalog.UserKeyBalances` 是目前背包快照，依 `UserId + KeyDefinitionId` 保存餘額，供畫面快速顯示。
 - `catalog.KeyTransactions` 是鑰匙異動流水。解鎖成功會在同一筆資料庫交易內新增 `Amount = -1`、`Reason = ARTIFACT_UNLOCK` 的負數流水並回寫 `ArtifactUnlocks.KeyTransactionId`；管理員人工調整才填入 `CreatedByAdminUserId`。
 - `GET /api/v1/me/catalog/artifacts` 每次依登入會員即時標記狀態；`GET /api/v1/me/catalog/unlocks` 直接查該會員的歷史，因此前端不需要自行保存解鎖紀錄作為真相。

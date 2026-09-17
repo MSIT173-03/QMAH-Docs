@@ -198,10 +198,12 @@ Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
 2. 以 `isUnlocked` 決定卡片是否顯示完整名稱與圖片；`unlockedAt` 可用於收藏卡或解鎖日期。清單支援 `q`、`categoryCode`、`eraCode`、`page`、`pageSize`。
 3. 若要顯示歷史或解鎖流水，呼叫 `GET /api/v1/me/catalog/unlocks`；回應只包含目前登入會員的紀錄，依 `unlockedAt` 最新優先排序。
 4. 呼叫 `GET /api/v1/me/economy` 顯示鑰匙餘額與每把鑰匙的 `eligibleArtifactCount`，把實際 `keyCode` 保存為後續操作識別。
-5. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。只有 `UNIVERSAL` 在 body 指定 `ArtifactId`，其他類型由伺服器選擇；成功後重新讀取會員圖鑑與經濟摘要。
+5. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。`CATEGORY`／`ERA` 可在 body 指定自身範圍內的 `ArtifactId`，省略時由伺服器選擇；`NORMAL` 不可指定，`UNIVERSAL` 可指定任一候選文物；成功後重新讀取會員圖鑑與經濟摘要。
 6. 回應沒有解鎖結果時，表示目前沒有候選且沒有扣鑰匙；前台不將它顯示成伺服器錯誤。
 
-使用一般、分類或年代鑰匙時，將經濟摘要回傳的實際 `keyCode` 放入路徑，使用 `POST` 並送出 `{}`。萬能鑰匙才送出 `{"artifactId":"<文物 GUID>"}`；分類與年代範圍由鑰匙定義決定。
+使用一般鑰匙時，將經濟摘要回傳的實際 `keyCode` 放入路徑，使用 `POST` 並送出 `{}`。分類／年代鑰匙可送出 `{"artifactId":"<自身範圍內文物 GUID>"}`，也可送 `{}`；萬能鑰匙可送出 `{"artifactId":"<文物 GUID>"}`，範圍由鑰匙定義決定。
+
+管理員可用 `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` 強制解鎖。該操作只新增 `ADMIN` 解鎖事實，不扣鑰匙；若已存在解鎖列，回傳 `200` 且 `created=false`，並以 `admin.AuditLogs` 保存管理員與目標資訊。
 
 沒有候選時，成功回應的資料形狀如下：
 
@@ -425,7 +427,8 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | GET | `/api/v1/me/catalog/artifacts` | 登入後 | 取得目前會員圖鑑清單，每件啟用文物附 `isUnlocked` 與 `unlockedAt`；可依搜尋、分類與年代分頁 |
 | GET | `/api/v1/me/catalog/unlocks` | 登入後 | 取得目前會員解鎖歷史，包含解鎖方式、文物、分類、年代、遊戲回合與鑰匙流水參照 |
 | GET | `/api/v1/me/keys/exchange-rules` | 登入後 | 取得目前仍有可解鎖文物的鑰匙兌換規則 |
-| POST | `/api/v1/me/keys/{keyCode}/unlock` | 登入後 | 使用一把鑰匙解鎖文物；只有 `UNIVERSAL` 可在 body 傳 `ArtifactId`，其他類型由伺服器抽選 |
+| POST | `/api/v1/me/keys/{keyCode}/unlock` | 登入後 | 使用一把鑰匙解鎖文物；`CATEGORY`／`ERA` 可傳自身範圍內 `ArtifactId`，`NORMAL` 不可傳，`UNIVERSAL` 可傳任一候選文物，省略時由伺服器抽選 |
+| POST | `/api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` | Admin | 替指定會員強制解鎖一件文物，來源為 `ADMIN`；冪等並保存稽核紀錄 |
 | POST | `/api/v1/me/keys/exchange` | 登入後 | 傳送 `RuleId` 與 `Units`，依資料庫規則交換鑰匙 |
 | POST | `/api/v1/me/keys/{keyCode}/recycle` | 登入後 | 傳送 `Amount`，只回收已沒有可解鎖文物的鑰匙並取得鑑定點數 |
 | GET | `/api/v1/me/coupons/exchange-options` | 登入後 | 取得點數兌換券的成本、折扣、最低消費、有效天數與使用期間 |
@@ -437,7 +440,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | GET | `/api/v1/game/modes` | 登入後 | 取得四種 Mini Game（小遊戲）模式、設定與評級門檻 |
 | POST | `/api/v1/game/attempts` | 登入後 | 傳送 `ModeCode` 開始一次嘗試；伺服器決定文物池、難度、Seed（結果重現用的隨機種子）與設定，成功回傳 `201` |
 | POST | `/api/v1/game/attempts/{id}/complete` | 登入後 | 傳送原始分數與結果資料；伺服器重新計算標準化分數、評級、點數與鑰匙進度 |
-| POST | `/api/v1/game/rooms/{id}/reward` | 登入後 | 結算多人主遊戲獎勵；同一會員同一房間不可重複領取 |
+| POST | `/api/v1/game/rooms/{id}/reward` | 登入後 | 結算多人主遊戲獎勵；同一會員同一房間不可重複領取，並自動寫入結算回合的 `GAME` 解鎖紀錄 |
 | GET | `/api/v1/social/events/{eventId}/reward-policy` | 公開 | 取得活動的每位參與者加碼、有效期間與目前發放狀態；沒有規則時回傳 `null` |
 | PUT | `/api/v1/social/events/{eventId}/reward-policy` | 活動發起人／Admin | 設定玩家活動或官方活動的點數、鑰匙加碼與有效期間 |
 | GET | `/api/v1/game/invitations` | 登入後 | 取得目前會員收到的私人房間邀請 |
