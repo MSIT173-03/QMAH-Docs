@@ -14,7 +14,7 @@ Catalog 負責文物主資料、分類、年代、來源與授權資訊，也提
 
 文物停用由具授權的 POST 表單執行，保留 antiforgery 驗證，僅將 `IsActive` 設為 false 並保存；既有題庫、解鎖及其他歷史參照保留。
 
-一般鑰匙以 `NORMAL` 為 canonical，`KEY-NORMAL` 保留 legacy 相容性。新增、編輯與切換啟用都限制同時最多一把一般鑰匙啟用；停用定義不刪除 `UserKeyBalances`、`KeyTransactions` 或其他參照。服務優先採用啟用中的 `NORMAL`，舊資料只有 `KEY-NORMAL` 時仍可使用。前台沿用 API 回傳的實際 keyCode（例如 `KEY-CATEGORY-JADE`、`KEY-ERA-MING`），不要自行把 scope type 拼成路徑值。
+目前資料庫快照使用 `KEY-NORMAL` 作為一般鑰匙代碼；服務同時相容 `NORMAL`，若兩者皆啟用則優先採用 `NORMAL`。新增、編輯與切換啟用都限制同時最多一把一般鑰匙啟用；停用定義不刪除 `UserKeyBalances`、`KeyTransactions` 或其他參照。前台沿用 API 回傳的實際 keyCode（例如 `KEY-NORMAL`、`KEY-CATEGORY-JADE`、`KEY-ERA-MING`），不要自行把 scope type 拼成路徑值。
 
 ## 鑰匙如何解鎖文物
 
