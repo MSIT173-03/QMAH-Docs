@@ -4,7 +4,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 ## 1. 取得共同資料
 
-目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.7.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.7.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.7.0/QMAH.sql) 可直接在 SSMS 執行。
+目前相容的完整 Snapshot 是 QMAH-Database 的 `db-v0.9.1`；Repository 內的 `QMAH.sql` 可直接在 SSMS 執行。正式交付以已驗證的 SQL／BAK 為準，不依賴網站啟動時補資料。
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只保留版本導覽，不再提供 SQL／BAK 資產。
 
@@ -15,13 +15,13 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 共同 Snapshot 包含：
 
 - SQL Server Schema、索引、外鍵與 CHECK constraint
-- 256 件文物、256 筆題庫設定與 256 件對應商城商品
+- 512 件文物、512 筆題庫設定與 512 件對應文物收藏卡商品
 - 各 Area 用於清單、詳情、關聯與狀態畫面的代表性測試資料
 - Identity 帳號、角色與會員資料；後台稽核與社群媒體資料表結構
 
 ## 2. Snapshot 內容
 
-下表數量以 QMAH-Database `db-v0.7.0` 的完整資料庫 Snapshot 為準。
+下表數量以 QMAH-Database `db-v0.9.1` 的完整資料庫 Snapshot 為準。這份基準先確保 Catalog／Game／Store 的 512 筆主資料契約；社群貼文、訂單等操作資料由實際流程或隔離展示工具產生，不應假設啟動時一定存在。
 
 逐表確認用途、主鍵或外鍵時，詳見[資料表參考](../architecture/database-reference.md)。本節保留 Snapshot 的資料量、狀態與展示情境；不在這裡重複維護完整資料字典。
 
@@ -35,10 +35,10 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 | --- | --- | --- |
 | `common` | 每日會員活動與登入歷史 | 依展示會員的每日登入／簽到資料累積；每位會員每天每種活動類型最多一列 |
 | `admin` | 後台稽核操作與批次資產活動 | 1 筆稽核紀錄、2 筆官方／會員加碼規則；批次資產活動目前尚未執行 |
-| `catalog` | 文物、分類、年代、鑰匙、解鎖 | 8 類、12 個年代桶、256 件文物、20 筆鑰匙兌換規則與相關流水 |
-| `game` | 題庫設定、房間、玩家、回合、作答、投票與 Mini Game 契約 | 256 筆題庫設定、9 個房間、19 筆玩家紀錄、20 個回合與 4 個 Mini Game 模式 |
-| `social` | 貼文（含官方公告類型）、留言、檢舉、活動、報名、通知、社群媒體 | 336 篇貼文、768 篇留言、3 筆檢舉、7 個活動與 7 筆報名；圖片依實際上傳累積 |
-| `store` | 商品、購物車、優惠券、訂單、付款、點數 | 256 件商品、208 組訂單／付款紀錄、17 張優惠券定義與 96 筆商品評價 |
+| `catalog` | 文物、分類、年代、鑰匙、解鎖 | 8 類、18 個年代桶、512 件文物、20 筆鑰匙兌換規則與相關流水 |
+| `game` | 題庫設定、房間、玩家、回合、作答、投票與 Mini Game 契約 | 512 筆題庫設定；房間、回合與作答由實際操作或展示工具產生 |
+| `social` | 貼文（含官方公告類型）、留言、檢舉、活動、報名、通知、社群媒體 | 基準 Snapshot 不預先建立貼文與留言；文物討論入口會由會員首次留言時建立 |
+| `store` | 商品、購物車、優惠券、訂單、付款、點數 | 512 件文物收藏卡商品；訂單、付款與評價由實際流程或展示工具產生 |
 | `user` | Identity、Profile、地址、成就 | 24 個帳號、2 個角色、24 筆 Profile 與會員情境 |
 
 ### 2.2 Catalog
@@ -46,8 +46,8 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 | 資料表 | 筆數 | 用途 |
 | --- | ---: | --- |
 | `ArtifactCategories` | 8 | 正式文物分類 |
-| `EraBuckets` | 12 | 篩選與出題使用的年代區間 |
-| `Artifacts` | 256 | 文物主資料、尺寸、圖片、來源與授權 |
+| `EraBuckets` | 18 | 篩選與出題使用的年代區間，包含 `JAPAN_EDO` |
+| `Artifacts` | 512 | 文物主資料、尺寸、圖片、來源與授權；正規化名稱唯一 |
 | `KeyDefinitions` | 23 | 鑰匙規則與作用範圍 |
 | `UserKeyBalances` | 49 | 會員鑰匙餘額情境 |
 | `KeyTransactions` | 51 | 鑰匙異動流水情境 |
@@ -60,7 +60,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 | 資料表 | 筆數 | 用途 |
 | --- | ---: | --- |
-| `ArtifactQuestionEntries` | 256 | 每件文物的題型、難度與啟用設定 |
+| `ArtifactQuestionEntries` | 512 | 每件文物的題型、難度與啟用設定 |
 | `GameRooms` | 9 | 3 筆 `WAITING`、2 筆 `PLAYING`、2 筆 `COMPLETED`、2 筆 `CANCELLED` |
 | `GamePlayers` | 19 | 10 位 `ONLINE`、1 位 `OFFLINE`、8 位 `LEFT`，可測試玩家與連線狀態清單 |
 | `GameRounds` | 20 | 1 個 `ANSWERING`、1 個 `VOTING`、18 個 `REVEALED` 回合 |
@@ -75,12 +75,12 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 | 資料表 | 筆數 | 用途 |
 | --- | ---: | --- |
-| `SocialPosts` | 336 | 320 筆 `PUBLISHED`、10 筆 `HIDDEN`、6 筆 `DELETED` |
-| `SocialComments` | 768 | 不同貼文的主留言與回覆，保留父子討論脈絡 |
-| `ContentReports` | 3 | 2 筆 `PENDING` 與 1 筆 `RESOLVED` 檢舉 |
+| `SocialPosts` | 0 | 沒有預先建立的貼文；文物討論由確認流程按需建立 |
+| `SocialComments` | 0 | 沒有預先建立的留言；建立文物討論時要求第一則留言 |
+| `ContentReports` | 0 | 功能啟用後由實際檢舉流程產生 |
 | `OfficialAnnouncements` | 0 | 新公告使用 `SocialPosts` 的公告貼文類型；舊表僅保留結構相容性 |
-| `Events` | 7 | 涵蓋待審核、已通過、未通過、草稿、已發布與已取消情境 |
-| `EventRegistrations` | 7 | 4 筆 `REGISTERED`、3 筆 `ATTENDED` 報名與出席情境 |
+| `Events` | 0 | 隔離展示資料或實際營運流程產生 |
+| `EventRegistrations` | 0 | 隔離展示資料或實際營運流程產生 |
 | `UserNotifications` | 0 | 尚未建立通知；功能啟用後由實際事件產生 |
 | `MediaAssets` | 0 起 | 社群上傳圖片的中繼資料；官方文物圖鑑圖片不列入此表 |
 
@@ -96,14 +96,14 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 | 資料表 | 筆數 | 用途 |
 | --- | ---: | --- |
-| `Products` | 256 | 與文物一對一的縮小複製品商品 |
-| `ProductReviews` | 96 | 88 筆 `PUBLISHED`、5 筆 `HIDDEN`、3 筆 `DELETED`；公開摘要只計入已發布評價 |
+| `Products` | 512 | 與文物一對一的文物收藏卡商品 |
+| `ProductReviews` | 0 | 由實際購買／展示流程產生；不把假評價混入資料翻新基準 |
 | `CartItems` | 0 | 尚未建立購物車內容；功能啟用後由會員操作產生 |
 | `CouponDefinitions` | 17 | 5 張常駐點數兌換券，以及 12 張管理員發放展示券 |
 | `UserCoupons` | 15 | 7 張可用、5 張已使用與 3 張已過期優惠券情境 |
-| `StoreOrders` | 208 | 涵蓋六種訂單狀態：30 筆取消、38 筆完成、35 筆備貨、39 筆已付款、31 筆待付款、35 筆已出貨 |
-| `OrderDetails` | 298 | 多商品訂單的成交品名、單價與數量快照 |
-| `Payments` | 208 | 31 筆 `PENDING`、147 筆 `PAID`、30 筆 `FAILED` |
+| `StoreOrders` | 0 | 由實際結帳流程或隔離展示工具產生 |
+| `OrderDetails` | 0 | 由實際結帳流程或隔離展示工具產生 |
+| `Payments` | 0 | 由實際付款流程或隔離展示工具產生 |
 | `PointBalances` | 5 | 會員點數餘額 |
 | `PointTransactions` | 20 | 點數異動流水 |
 
@@ -221,9 +221,9 @@ dotnet run --project .\tools\QmahDataTools\QmahDatabaseRelease\QmahDatabaseRelea
 - 7 篇由實際活動資料建立的活動貼文。
 - 32 篇官方公告。
 
-每篇貼文至少有兩筆留言，每三篇再增加一筆回覆，共 672 筆展示留言。另有 160 筆只使用文物縮小複製品的訂單與 96 筆商品評價。
+每篇貼文至少有兩筆留言，每三篇再增加一筆回覆，共 672 筆展示留言。另有 160 筆只使用文物收藏卡的訂單與 96 筆商品評價；這些數量屬於隔離展示工具的情境，不是 `db-v0.9.1` 基準資料。
 
-文物專題只取部分文物。遊戲貼文只有部分回合連到文物，不會把 256 件文物全部安排進討論。社群文章依固定順序取用獨立素材，不以亂數拼接句子或重複文章；文章、文物、活動、商品與會員關係仍由實際外鍵維持。
+文物專題只取部分文物。遊戲貼文只有部分回合連到文物，不會把 512 件文物全部安排進討論。社群文章依固定順序取用獨立素材，不以亂數拼接句子或重複文章；文章、文物、活動、商品與會員關係仍由實際外鍵維持。
 
 `--post-count`、`--order-count`、活動天數、三種資產流水筆數與 `--seed` 可在隔離資料庫調整。相同參數會更新同一批工具資料，不會產生重複資料。只需要補產生每日活動、點數、鑰匙、鑰匙進度與登入成就時，可改執行 `generate-showcase-ledger`，不會新增貼文或訂單。
 

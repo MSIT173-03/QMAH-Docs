@@ -22,7 +22,9 @@ catalog.Artifacts
 - 匯入不覆蓋商品人工價格、庫存與上架狀態，也不複製文物官方圖片。
 - 同一批資料重複匯入會辨識相同文物／商品，不重複建立資料列或圖片。
 
-目前正式基準為 8 個分類、每類 32 件，共 256 件文物、256 筆題庫與 256 件對應展示商品。
+目前正式基準為 8 個分類、共 512 件文物、512 筆題庫與 512 件對應展示商品；分類數量依實際資料品質分配，不再硬性要求每類相同。共 18 個年代桶，包含本次補上的日本江戶時代（`JAPAN_EDO`）。
+
+文物名稱會先以 Unicode FormKC、大小寫、空白、標點與符號正規化，再以正規化名稱去重；一般分類同名只留一件，錢幣因來源變體較多最多保留兩件。這是展示多樣性與題目多樣性的共同規則，不是資料表限制。
 
 這是參考資料量，不是資料表硬限制；實際匯入量以資料包與預檢結果為準。
 
@@ -75,6 +77,8 @@ dotnet run --project .\tools\QmahDataTools\NpmDataImporter\NpmDataImporter.cspro
 
 CLI 的預設行為是同步題庫與商城。因此未使用 `--skip-products` 時，必須同時提供 `--products`；文物每分類上限 32、商品上限 256。
 
+上述 CLI 預設仍保留小批次安全值，方便開發者先做局部預檢；本次正式 `db-v0.9.1` 512 筆基準使用明確的 `--artifact-per-category 0` 與 `--max-products 512`，不把展示資料量偷偷寫成工具硬上限。
+
 只驗證文物與題庫時，明確使用 `--skip-products`：
 
 ```powershell
@@ -104,6 +108,12 @@ CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--produc
 後台預設關閉商城同步。CLI 在提供商品檔且未使用 `--skip-products` 時才會同步商城。
 
 這是入口設定的差異；文物、題庫與商品的驗證和冪等規則仍由同一個 Infrastructure 匯入核心處理。兩個入口都預設同步題庫，只有後台取消勾選或 CLI 明確加入 `--no-question-bank` 才會關閉。
+
+## 佔位圖與媒體驗證
+
+故宮來源的 `ImageId=0` 會回傳「no image available」佔位圖。產生器在選取主圖與縮圖時都會排除這個來源值，避免錯誤圖片進入資料包；匯入後再用 `Validate-CatalogMedia.ps1` 檢查 512 件文物的 512 張 `display.jpg` 與 512 張 `thumbnail.jpg`。
+
+本次 `db-v0.9.1` 驗證結果為缺檔 0、解碼失敗 0、佔位圖 0、低尺寸 0、重複媒體群組 0。圖片仍使用穩定的 `/media/catalog/{categoryCode}/{artifactRef}/` 路徑，後續可由 `deploy/Prepare-CdnMedia.ps1` 產生扁平 CDN 交付目錄，不需改資料庫 URL。
 
 ## 失敗與重試
 

@@ -125,6 +125,21 @@ Token、SAS（共用存取簽章）與帳號密鑰不應放進版本庫或回傳
 
 ## 4. 未來導入 CDN 的共同準備
 
+### 4.1 512 件文物的可重現媒體包
+
+QMAH 主 Repository 已提供 `deploy/Prepare-CdnMedia.ps1`。它以 `artifacts.import.json` 的穩定 `artifactRef` 為索引，從現有 `QMAH.Web/wwwroot/media/catalog` 複製 `display.jpg` 與 `thumbnail.jpg` 到可直接同步至 R2、Blob 或其他 CDN 的扁平輸出目錄。
+
+本次基準是 512 件文物、共 1,024 個 JPEG，媒體 QA 已確認缺檔、解碼失敗、佔位圖、低尺寸與重複媒體群組皆為 0。`display.jpg` 長邊 600px，`thumbnail.jpg` 長邊 200px；列表只讀縮圖，商品詳情明信片才讀大圖，不能用一張大圖取代兩者的傳輸責任。
+
+```powershell
+.\deploy\Prepare-CdnMedia.ps1 `
+  -ArtifactsJson C:\path\to\artifacts.import.json `
+  -MediaRoot .\QMAH.Web\wwwroot\media `
+  -OutputDirectory C:\path\to\cdn-media
+```
+
+輸出仍維持 `catalog/{categoryCode}/{artifactRef}/display.jpg` 與 `thumbnail.jpg`，可直接對應資料庫的 `/media/catalog/...` 邏輯路徑；同步完成後才切換 `Media:DeliveryMode=Cdn`。這個步驟不需要 API key 或部署平台 secret。
+
 無論採用 Azure 或 Cloudflare，都要先完成以下共同條件：
 
 1. 保留資料庫中的 `/media/...` 與 `/uploads/...` 邏輯路徑，不做網域批次取代。
