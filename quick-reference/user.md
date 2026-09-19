@@ -1,10 +1,19 @@
 # User｜會員與 Identity
 
-本頁固定依「系統範圍 → 資料表與關聯 → 開發規則與跨系統界線 → 查詢入口 → 變更前檢查 → 建議查閱順序」排列。詳細欄位、狀態與操作規則以連結的正規文件為準。
+User 管理 Identity 帳號與角色、`UserProfiles`、地址、登入活動、`UserAchievements`、Equipped Title，以及點數、鑰匙和優惠券背包的會員視角；資產目前狀態在 Balance，異動在 Transaction，優惠券每次取得是獨立的 `UserCoupon`。每日登入活動只由使用者前台明確登記。
 
 ## 系統範圍
 
 User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email、密碼、鎖定、角色、Claim、外部登入與 Token 屬於 Identity；暱稱、簡介、地址、成就、稱號、通知與會員活動資料由 QMAH 資料模型保存。
+
+## 實際運作方式
+
+1. Identity 處理帳密、鎖定與登入驗證。Web 與 API 各自建立登入 Cookie，因此後台登入不等同 API 已登入。
+2. API 依登入身分取得 `UserId`，查詢 Profile、地址與資產。前台不透過表單切換其他會員的 `UserId`。
+3. 使用者前台明確呼叫每日登入 API，才記錄當日活動；後台登入不觸發。同會員、同日期、同類型最多一列，累積天數與登入率由每日資料計算。
+4. 登入活動服務檢查登入成就，稱號選擇則驗證會員已取得該成就。其他成就需要各自的功能觸發入口。
+
+查會員資產時，Balance 回答目前剩多少，Transaction 回答哪次操作增加或扣除。折價券以每張 `UserCoupon` 的狀態與發放、撤銷欄位查閱，不以一個餘額代表全部券。
 
 ## 資料表與關聯
 
@@ -43,7 +52,15 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
+
+## 前台接手建議
+
+- 先約定 Auth service 如何提供會員狀態、登入、登出與 `401` 結果；其他系統可依這個介面同步開發。
+- 登入成功並確認 `/me` 後才登記每日登入；重新整理或管理後台登入不應產生額外登入天數。
+- 個人資料、地址、通知、成就與稱號分成各自 service，不把所有會員功能塞進單一 component。
+- 地址座標可以完全留空或成對送出；稱號只能使用 API 回傳的已取得成就，不在前台自行判斷資格。
+- 平行分工與跨系統確認事項見[前台功能接手指南](../frontend/feature-development-guide.md)。
 
 ## 變更前檢查
 
@@ -51,14 +68,3 @@ User 負責 ASP.NET Core Identity 帳號與 QMAH 會員資料的連接。Email�
 - Email、密碼、角色、Profile、地址、通知、成就與資產是否由正確 API 或資料邊界處理。
 - 私人資料查詢是否以目前登入者的 `UserId` 限制；並行修改是否檢查 `RowVersion`。
 - API 的 Cookie／防偽設定、前台 `credentials`、OpenAPI security metadata、Identity 設定與文件是否同步。
-
-## 建議查閱順序
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 User 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [Identity 與登入](../features/identity-and-login.md)、[經濟與進程](../features/economy-progression.md)：依工作目標查身分與資產規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

@@ -1,8 +1,10 @@
 # 系統架構總覽
 
-本頁列出 QMAH 的三個執行面，以及資料庫、文件和資料工具的責任關係。開始實作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。
+`QMAH` 保存 `QMAH.Api`、`QMAH.Web`、`QMAH.Client`、`QMAH.Infrastructure` 與 `Schema.sql`；`QMAH-Database` 保存 `db-v0.9.0` 完整 Snapshot；`QMAH-Docs` 保存這些元件的操作、契約、架構與查閱路線。
 
-## 系統流向
+本頁說明 QMAH 的執行面，以及資料庫、文件和資料工具的責任關係。五個功能系統與營運中心可以平行開發；開始單一工作前，依需求閱讀 [Area 責任與資料界線](area-boundaries.md)、[資料表參考](database-reference.md)、[資料存取與 DB-first](data-access.md) 或 [Angular 使用者前台開發](../frontend/angular-development.md)。跨文件的名詞定義見[文件閱讀與名詞基準](../reference/terminology.md)。
+
+## 系統如何運作
 
 ![QMAH 執行面與文件交付架構](../diagrams/rendered/system-architecture.svg)
 
@@ -11,6 +13,10 @@
 [圖表 IR 原始檔](../diagrams/system-architecture.json) · [draw.io 編輯檔（QMAH-Docs 專案）](https://github.com/MSIT173-03/QMAH-Docs/blob/main/diagrams/system-architecture.drawio)
 
 前台只讀取 API 的 DTO 與狀態。管理後台在 `QMAH.Web` 以 Area、Controller、ViewModel 與 Razor View 組成；共用資料存取與 Identity 規則位於 `QMAH.Infrastructure`。
+
+Angular 使用 `Page / Component → Feature API Service → HttpClient → /api/v1/* → QMAH.Api`。Razor 普通操作使用 `form submit → QMAH.Web MVC Controller`；局部非同步操作使用瀏覽器原生 `fetch() → QMAH.Web MVC Controller`，POST 保留 `__RequestVerificationToken`。伺服器呼叫故宮 Open Data 等外部 API 則使用 `QMAH.Web → IHttpClientFactory / typed HttpClient → External API`，三種 HTTP 流程各有不同責任。
+
+Azure 部署時，`QMAH.Web → Infrastructure → Azure SQL` 與 `QMAH.Api → Infrastructure → Azure SQL` 各自存取同一資料庫。Web 不必成為 API 的 HTTP client；Angular production 優先維持相對 `/api/v1`，由部署入口轉送至 API。
 
 資料工具屬於 Snapshot 產製流程，不會由網站啟動流程建立結構或寫入展示資料。
 
@@ -35,6 +41,7 @@ SQL Server Schema 是共同契約。新增或修改資料表、欄位、索引�
 ## 依責任查閱文件
 
 - Area 內的資料表、狀態與跨區域規則： [Area 責任與資料界線](area-boundaries.md)
+- 從啟動、Controller 到共用 Service 與流水的流程： [應用程式啟動與共用服務](runtime-and-shared-services.md)
 - 逐表用途、主鍵、外鍵與 Schema 分區： [資料表參考](database-reference.md)
 - 查詢、交易、`RowVersion` 與服務判斷： [資料存取與 DB-first](data-access.md)
 - API 與前台欄位： [REST API 契約](../reference/rest-api.md)

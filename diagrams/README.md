@@ -1,5 +1,7 @@
 # 文件圖表來源與重建
 
+`.json` 保存 Diagram IR（圖表中介格式）、節點內容、座標與連線；`.drawio` 提供 draw.io Desktop 編輯；`rendered/*.svg` 是 VitePress 顯示用輸出。三者用途不同，真正需要保存的修改應回到來源檔。
+
 本目錄的每張圖有三個層次：
 
 - `.json`：Diagram IR（圖表中介格式），是內容、節點座標、連線方向與固定端點的來源。
@@ -7,6 +9,8 @@
 - `rendered/*.svg`：文件站引用的靜態輸出；不可直接把 SVG 當成下一次修改的來源。
 
 ## 圖表對照
+
+資產說明圖使用 Agents365-ai/drawio-skill 的 XML 與驗證規則。執行 `node diagrams/render-ledger.mjs` 產生 `asset-adjustment-flow.drawio`、`asset-ledger-map.drawio`；再用 draw.io Desktop 的 `-x -f svg -e --embed-svg-images` 匯出到同名 `rendered/*.svg`。原始資料與版面保存在腳本，可編輯檔保存在 `.drawio`。第一張表示操作順序，第二張表示查帳用途，均不是 SQL 外鍵圖。
 
 | IR 來源 | 可編輯檔 | 文件站輸出 | 用途 |
 | --- | --- | --- | --- |

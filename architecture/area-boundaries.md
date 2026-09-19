@@ -1,5 +1,7 @@
 # Area 責任與資料界線
 
+`Catalog` 負責文物與解鎖，`Game` 負責房間與結算，`Social` 負責內容與活動，`User` 負責會員與 Identity，`Store` 負責商品與訂單；跨 Area 以 `Id`、外鍵、目前登入身分或明確 Service 連接，Operations 只作統計與管理入口。
+
 `Catalog`、`Game`、`Social`、`User`、`Store` 共用以下開發檢查表。
 
 每個頁面或流程的範圍由三項資訊界定：
@@ -8,7 +10,7 @@
 2. 哪些人可以查看或修改
 3. 這筆資料之後是否仍要保留成歷史
 
-資料庫結構以 SQL Server 為準，程式以既有 Entity、`QmahDbContext` 與 Identity 對照。資料表、`QmahDbContext` 與 CRUD 細節仍以各自文件為準；本表只規定開發順序、資料責任與跨 Area 的修改界線。
+資料庫結構以 SQL Server 為準，程式以既有 Entity、`QmahDbContext` 與 Identity 對照。資料表、`QmahDbContext` 與 CRUD 細節仍以各自文件為準；本頁只規定資料責任、跨 Area 的修改界線與單一功能的檢查項目。
 
 ## 共用開發步驟
 

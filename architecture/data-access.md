@@ -1,5 +1,7 @@
 # 資料存取與 DB-first
 
+本頁說明 C# 如何讀寫現有資料庫。查詢資料、儲存修改、增加欄位或處理多表交易時，可依對應章節查看範例。QMAH 採 DB-first（先定義資料庫結構，再讓程式對應），因此修改 C# 類別不會自動新增資料庫欄位。
+
 `QmahDbContext` 是 QMAH 網站透過 EF Core 存取 SQL Server 的共同入口。
 
 資料表結構以 [`QMAH/database/Schema.sql`](https://github.com/MSIT173-03/QMAH/blob/main/database/Schema.sql) 與已審核的 SQL Server Schema 為準。

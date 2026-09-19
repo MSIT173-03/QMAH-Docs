@@ -2,17 +2,19 @@
 
 <!-- impeccable:product-schema 1 -->
 
+QMAH-Docs 維護 Markdown 與 VitePress 文件站，說明 `QMAH` 程式、`QMAH-Database` Snapshot、API、資料庫、前台、後台、五個功能系統與營運中心；程式功能、完整資料列和外部服務仍以各自 Repository 或實際設定為準。
+
 ## Platform
 
 web
 
 ## Users
 
-文件涵蓋開發環境、Angular 使用者前台、Razor 管理後台、五個功能系統與 SQL Server Snapshot。所有頁面使用中性說明，不預設讀者的身分或工具。
+文件涵蓋開發環境、Angular 使用者前台、Razor 管理後台、五個功能系統、營運中心與 SQL Server Snapshot。所有頁面使用中性說明，不預設讀者的身分或工具。
 
 ## Product Purpose
 
-QMAH-Docs 集中 QMAH 的環境、架構、API、前端、管理後台、功能與資料工具規則。文件提供依序閱讀的目錄，也提供一個 Shared 共用入口與五個功能系統入口；Snapshot 交付規則放在資料工具與開發資料文件中，逐表用途則集中在資料表參考。
+QMAH-Docs 集中 QMAH 的環境、架構、API、前端、管理後台、功能與資料工具規則。文件提供依任務查找的目錄、一個 Shared 共用入口、五個功能系統入口與營運中心入口；Snapshot 交付規則放在資料工具與開發資料文件中，逐表用途則集中在資料表參考。
 
 ## Positioning
 
@@ -39,7 +41,7 @@ QMAH 既有 logo 與 mark 位於產品 Repository 的 `QMAH.Web/wwwroot/images/b
 ## Evidence on Hand
 
 - QMAH 程式 Repository：`https://github.com/MSIT173-03/QMAH`
-- QMAH-Database Snapshot：`db-v0.7.0`、`QMAH.sql` 與 `manifest.json`
+- QMAH-Database Snapshot：`db-v0.9.0`、`QMAH.sql` 與 `manifest.json`
 - 現有 Markdown 文件、`Schema.sql`、資料工具與 launch 設定
 - 無已提供的客戶見證、商業數據或可新增的真實照片素材；不在文件站製造這些證據。
 

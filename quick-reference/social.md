@@ -1,6 +1,6 @@
 # Social｜社群與活動
 
-本頁固定依「系統範圍 → 資料表與關聯 → 開發規則與跨系統界線 → 查詢入口 → 變更前檢查 → 建議查閱順序」排列。詳細欄位、狀態與操作規則以連結的正規文件為準。
+Social 保存 `SocialPosts`、`SocialComments`、`ContentReports`、`Events`、`EventRegistrations`、`UserNotifications` 與媒體資料；地址文字和可選座標供顯示／選點，地圖服務不取代活動或貼文資料。私人房間邀請、活動加碼與點數／鑰匙結果分別連到 Game 或資產流水。
 
 ## 系統範圍
 
@@ -12,6 +12,14 @@ Social 負責貼文、公告貼文、留言與回覆、檢舉、活動、活動�
 
 TODO：請圖鑑與社群負責人後續自行確認是否需要貼文列表、主題分支、草稿預覽或更完整的討論引導；目前先保留一件文物一個 canonical 討論入口，避免重複建立貼文。
 
+## 實際運作方式
+
+1. 建立貼文或活動時，後端確認登入身分，保存內容、地址與媒體關聯。儲存成功不代表已公開；公開查詢還會檢查發布與審核狀態。
+2. 留言使用父留言識別形成回覆串。檢舉保存目標類型與識別，審核時重新確認目標存在及目前狀態。
+3. 活動報名獨立保存參與紀錄。若有加碼規則，獎勵服務再依官方活動或會員額度判斷可發放內容，實際點數與鑰匙變化寫入流水。
+
+例如，活動已建立但公開清單沒有顯示時，先查審核與發布狀態；報名成功卻沒有加碼時，改查獎勵有效期間、額度與發放紀錄。地址可以只有文字，座標留空時仍應顯示活動內容。
+
 ## 資料表與關聯
 
 | 資料表或資料群 | 在此入口的用途 | 主要關聯／限制 |
@@ -22,7 +30,7 @@ TODO：請圖鑑與社群負責人後續自行確認是否需要貼文列表、�
 | `social.Events`、`social.EventRegistrations` | 活動審核、發布、報名與出席 | 活動連建立者與審核者；報名連活動、會員與可選獎勵規則 |
 | `social.OfficialAnnouncements` | 舊公告資料的結構相容表 | 新公告使用 `SocialPosts` 的公告貼文類型；兩種模型不作為同一筆資料重複寫入 |
 | `social.UserNotifications` | 會員通知與已讀狀態 | 只更新目前會員可管理的通知；通知由事件流程產生 |
-| `social.MediaAssets` | 社群圖片中繼資料、替代文字與貼文關聯 | 連到貼文與擁有者；實際網址由媒體 Resolver 解析 |
+| `social.MediaAssets` | 社群圖片中繼資料、替代文字與貼文關聯 | 連到貼文與擁有者；受控媒體 API 檢查公開狀態或擁有者權限後回傳圖片 |
 | `catalog.Artifacts`、`user.AspNetUsers` | 貼文的文物與作者引用 | Social 只保存明確外鍵或識別，不擁有文物與 Identity 主資料 |
 
 ## 開發規則與跨系統界線
@@ -48,7 +56,15 @@ TODO：請圖鑑與社群負責人後續自行確認是否需要貼文列表、�
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
+
+## 前台接手建議
+
+- 貼文、活動、留言、報名與檢舉可分開實作；共用會員身分、內容 ID 與發布狀態。
+- 發文圖片先呼叫媒體上傳取得 ID，再把 ID 送進建立貼文 request；媒體上傳成功不等於貼文已發布。
+- 留言回覆以 `ParentCommentId` 建立關係，不從畫面縮排或文字內容推算父留言。
+- 活動報名後重新使用 API 結果更新名額與會員狀態；地點依座標或文字決定定位與搜尋行為。
+- 平行分工與跨系統確認事項見[前台功能接手指南](../frontend/feature-development-guide.md)。
 
 ## 變更前檢查
 
@@ -56,14 +72,3 @@ TODO：請圖鑑與社群負責人後續自行確認是否需要貼文列表、�
 - 活動審核、發布、開始結束、報名截止、人數上限、重複報名與出席狀態是否分開驗證。
 - 使用者輸入是否以純文字安全呈現；外部連結、新分頁、媒體替代文字與 `413` 回應是否同步。
 - API、資料庫限制、媒體 Resolver、管理後台、前台顯示與展示資料是否同步。
-
-## 建議查閱順序
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 Social 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [地點與地圖串接](../features/map-integration.md)、[資料與圖片使用](../features/data-and-media.md)：依工作目標查外部服務與內容規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

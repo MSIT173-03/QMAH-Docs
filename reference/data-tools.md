@@ -2,6 +2,12 @@
 
 資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需取得已驗證的 `QMAH-Database db-v0.9.2` `QMAH.sql` 或 `.bak`；不需開啟本目錄的工具，也不需手動執行增量 SQL。`.bak` 僅在交付包或 Release 提供，不提交到 Repository。
 
+| 工作 | 使用方式 | 原有資料 |
+| --- | --- | --- |
+| 建立全新本機環境 | 還原 `db-v0.9.2` 的 `.bak`，或執行完整 `QMAH.sql` | 依完整 Snapshot 建立，不保留舊 256 件展示資料 |
+| 製作下一份共同資料版本 | 使用 Snapshot pipeline 在隔離資料庫驗證後匯出 | 產出新的 `.sql`、`.bak`、manifest 與報告 |
+| 增加或更新文物資料 | 使用 Catalog 匯入的預覽與套用流程 | 只處理匯入包涵蓋的功能資料，不取代完整 Snapshot |
+
 ## db-v0.9.2 文物基準與媒體包
 
 本次正式資料翻新產出 512 件文物、512 筆題庫與 512 件文物明信片商品，分類分布為 `BRONZE 64`、`CERAMIC 64`、`JADE 64`、`ENAMEL 64`、`LACQUER 64`、`COIN 55`、`CARVING 68`、`PAINTING 69`；年代桶共 18 個，包含 `JAPAN_EDO` 31 件。正規化名稱唯一 512 組，題庫可出題筆數 512。

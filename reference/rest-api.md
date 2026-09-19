@@ -1,5 +1,7 @@
 # REST API 契約
 
+公開讀取 API 可在啟動 API 後直接測試；需要登入的功能則先取得防偽權杖並登入，再依下方例子呼叫。路由索引列出可用操作；完整欄位與型別可在啟動中的 `/scalar/v1` 查看。維護 API 文件的規則另列於頁面後方。
+
 QMAH API 位於獨立的 `QMAH.Api` 專案，所有版本化 Endpoint（API 可呼叫的路徑）以 `/api/v1` 開頭。
 
 API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.Infrastructure`、Identity（登入與會員驗證元件）與 SQL Server（資料庫服務）。API 不複製 Entity（資料庫對應模型），也不建立第二個資料庫。
@@ -10,11 +12,39 @@ API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.In
 
 Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。
 
+## 本頁閱讀分流 {#rest-api-reading-route}
+
+| 需要確認的內容 | 直接查看 |
+| --- | --- |
+| 先理解 API、request、response 與狀態碼 | [API 基本概念](#api-basics) |
+| 只需要開啟互動式文件並測試公開 API | [Scalar：從公開 API 開始](#scalar-public-api) |
+| 需要測試登入後或寫入 API | [Scalar：測試登入後 API](#scalar-auth-api)、[存取與驗證](#存取與驗證) |
+| 需要查某支 endpoint 的完整欄位 | [Endpoint 清單](#endpoint-清單)、啟動後的 `/scalar/v1` |
+| Angular 已送出 request 但結果不對 | [Browser DevTools](#browser-devtools)、[共通回應](#共通回應) |
+| 不使用瀏覽器，要用 PowerShell 驗證 | [PowerShell 驗證流程](#powershell-驗證流程) |
+
+## API 基本概念 {#api-basics}
+
+API 是前台向後端讀取資料或請後端執行工作的入口。每次 request（請求）都要看它要呼叫哪個 endpoint、要帶哪些資料，以及 response（回應）代表什麼結果。
+
+| 看到的內容 | 先怎麼讀 |
+| --- | --- |
+| `GET`、`POST`、`PUT`、`DELETE` | `GET` 通常讀取資料；其他 method 通常建立、修改或刪除資料，是否需要登入仍以 API 契約為準 |
+| `/api/v1/...` | endpoint 的 path（路徑）；`v1` 是 API 版本 |
+| `Parameters` | 放在網址上的 path／query 參數，例如 `/artifacts/{id}` 的 `id` 或 `?page=1` |
+| `Request body` | 送給後端的 JSON；常見於 `POST`、`PUT`，欄位要依 Schema 填寫 |
+| `Responses` | 後端可能回傳的狀態碼與資料格式；`200`、`204`、`400`、`401`、`403` 的意義不同 |
+| `Auth` | 這支 API 是否需要登入身分或特定權限 |
+
+例如 `GET /api/v1/catalog/categories` 是讀取分類清單，通常沒有 request body，成功會回傳 `200` 和一個 JSON 陣列；`POST /api/v1/account/login` 則會送出登入 JSON，成功回傳 `204` 並建立登入 Cookie。
+
 ## API 文件與測試頁面
 
 互動式 API 文件頁面使用 Scalar。Scalar 讀取 OpenAPI（API 的標準契約格式）契約，列出每個 Endpoint（API 可呼叫的路徑）的 request／response Schema（送入／回傳資料的欄位格式）。頁面也提供參數填寫與測試 request（測試請求）功能。
 
 `OpenAPI`（API 的標準契約格式）是描述 API 路徑、參數、請求、回應與驗證方式的機器可讀文件。
+
+`/openapi/v1.json` 是給工具讀取的原始契約；`/scalar/v1` 是把同一份契約做成可以閱讀和送 request 的頁面。有些文件會把這類頁面統稱為 Swagger，但 QMAH 實際使用的是 OpenAPI 加 Scalar，操作時開啟 Scalar 網址即可，不需要另外找 `/swagger`。
 
 QMAH 由 ASP.NET Core 依 Controller（處理 API 請求的程式類別）、DTO（API 對外傳輸的資料格式）、參數與 attributes（程式上的設定標記）產生 `/openapi/v1.json`。前端、測試工具與程式碼產生器都以這份 JSON（結構化資料格式）作為 API 定義。
 
@@ -25,9 +55,56 @@ API 啟動後可使用下列網址：
 | 原始 OpenAPI 契約 | `https://localhost:7249/openapi/v1.json` |
 | Scalar 互動式文件 | `https://localhost:7249/scalar/v1` |
 
-API 開發與測試流程如下：
+### Scalar：從公開 API 開始 {#scalar-public-api}
 
-1. 在專案根目錄執行 `dotnet run --project QMAH.Api`。
+以下以不需登入的分類 API 說明一次完整操作：
+
+1. 啟動 `QMAH.Api`，確認瀏覽器能開啟 `https://localhost:7249/scalar/v1`。
+2. 在 Scalar 左側展開 `Catalog`，找到 `GET /api/v1/catalog/categories`。
+3. 展開這支 endpoint，依序查看 `Parameters`、`Request body`、`Responses` 和 `Auth`。這支 API 沒有必填參數，也沒有 request body。
+4. 按頁面上的 `Test Request`，送出 request。
+5. 在回應區確認狀態是 `200`，再看 JSON 是否為分類陣列，欄位包含 `id`、`code`、`name`。此時已完成從文件查看契約到實際呼叫 API 的測試。
+
+在其他 endpoint 填寫資料時，路徑參數要填入實際的資源 Id；query 參數直接填在 `Parameters`；需要 JSON 的操作則依 `Request body` 顯示的 Schema 填寫。`Responses` 是用來查看可能的結果，不是送出的欄位；`Auth` 則用來確認是否需要登入或特定權限。
+
+Scalar 測試結果可先依下表判讀；完整狀態碼說明見[共通回應](#共通回應)。
+
+| 測試結果 | 判讀方式 |
+| --- | --- |
+| `200`、`201` 或 `202` | request 已依該 endpoint 的行為成功處理；是否有 JSON 本文以 `Responses` 為準 |
+| `204` | request 成功，但沒有 response body；不要再嘗試解析 JSON |
+| `400` | 參數、JSON 欄位或流程條件不符合；回到 `Parameters` 和 `Request body` 檢查 |
+| `401` | 尚未登入，或目前 session 的登入狀態已失效 |
+| `403` | 已登入，但目前帳號沒有該操作的權限 |
+| `404` | 路徑、資源 Id 或資源可見性不符合目前資料 |
+| `500` 或 `503` | API 或其依賴的服務發生錯誤；先保留 response body，再查啟動中的 API 輸出 |
+
+Scalar 顯示的 response body 可以和本頁的流程說明互相核對。
+
+### Scalar：測試登入後 API {#scalar-auth-api}
+
+需要登入的 API，請在同一個 Scalar 頁面使用同一個瀏覽器 session（工作階段）完成：
+
+1. 先執行 `GET /api/v1/account/antiforgery-token`，讓 API 寫入 `XSRF-TOKEN-API` Cookie。
+2. 找到 `POST /api/v1/account/login`，在 `Request body` 填入測試帳號的 Email、Password 和 `RememberMe`，再送出 request。
+3. 接著執行 `GET /api/v1/me`。收到 `200` 且看到會員資料，表示登入 Cookie 已隨同一個 session 帶上。
+4. 測試 `POST`、`PUT` 或 `DELETE` 時，除了 Cookie 還要送 `X-XSRF-TOKEN` Header。若 Scalar 沒有自動帶上，從瀏覽器開發者工具查看 `XSRF-TOKEN-API` 的值，放到該 request 的 Headers；登入身分改變後先重新取得一次防偽 Cookie。
+
+登入 Cookie 是 HttpOnly，不能用頁面 JavaScript 讀取；`.QMAH.Api.Auth` Cookie 不應放入 request body。Scalar 的測試結果只代表這個瀏覽器 session 的 API 呼叫；前台 Angular 是否串接完成，仍需回到 feature service 和瀏覽器 Network 確認。
+
+### Scalar 測試結果如何用於 Angular
+
+Scalar 用來確認 API 契約與手動測試，不能取代前台畫面。完成一支 endpoint 的測試後，將下列資訊帶回對應的 Domain service：
+
+1. 記下 HTTP method、完整 path、path／query 參數，以及是否需要登入。
+2. 依 `Request body` 的 Schema 建立 Angular 的 request model；不自行增加資料庫欄位或猜測欄位名稱。
+3. 依成功回應的 Schema 建立 response model，並確認 `200`、`201`、`202`、`204` 各自是否有 response body。
+4. 依 `Responses` 列出的 `400`、`401`、`403`、`404` 或 `409` 設計畫面的錯誤狀態。
+5. 在 Angular service 使用 `environment.apiBaseUrl` 組合相對路徑，再由 component 負責載入中、成功、空資料與錯誤的畫面狀態。實作位置與範例見 [Angular 使用者前台開發](../frontend/angular-development.md#angular-api-basics)。
+
+熟悉介面後，固定的 API 開發與驗證順序如下：
+
+1. 在專案根目錄執行 `dotnet run --project QMAH.Api --launch-profile https`。
 2. 開啟 `https://localhost:7249/scalar/v1`，查看 Endpoint（API 可呼叫的路徑）、參數、Schema（資料欄位格式）與回應狀態。
 3. 測試登入或其他寫入 API 前，先呼叫 `GET /api/v1/account/antiforgery-token`。
 4. 使用同一個 browser session（瀏覽器工作階段）呼叫登入，讓 Identity Cookie（登入狀態 Cookie）留在該 session。
@@ -49,6 +126,110 @@ Postman、Insomnia 或前端測試程式必須保留 cookies（瀏覽器保存�
 
 `/openapi/v1.json` 可交給前端產生 client（呼叫 API 的程式碼）、執行 contract test（契約測試）或檢查 breaking change（會讓既有呼叫失效的變更）。
 
+### Browser DevTools
+
+Angular 串接遇到問題時，可用 `F12 → Network → /api/` 篩選 request，查看 URL、Method、Status、Headers、Payload、Response 與 Cookies。登入或寫入問題可檢查 `XSRF-TOKEN-API`、`.QMAH.Api.Auth` 與 `X-XSRF-TOKEN`；登入後應重新取得 XSRF，並確認 request 走相對 `/api/v1` 與 development proxy。
+
+一般建議確認正常 request、route／method 與 response contract；若寫入資料，可再確認實際 DB／後台結果。視 endpoint 性質可驗證 `401`、`403`、`400 validation`、`404`、`409`、缺 XSRF 或 `429`，不要求每支 API 全部測試。
+
+### PowerShell 驗證流程
+
+API 使用 https profile 啟動且本機開發憑證已信任後，可執行下列流程。提示視窗的使用者名稱填現有測試帳號 Email；同一 session 保存防偽與登入 Cookie，不把 Cookie／token 放入 localStorage。
+
+```powershell
+$baseUrl = 'https://localhost:7249/api/v1'
+$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+$credential = Get-Credential -Message '輸入 QMAH 測試帳號 Email 與密碼'
+Invoke-RestMethod "$baseUrl/account/antiforgery-token" -WebSession $session
+$token = $session.Cookies.GetCookies([uri]$baseUrl)['XSRF-TOKEN-API'].Value
+$headers = @{ 'X-XSRF-TOKEN' = [uri]::UnescapeDataString($token) }
+$body = @{
+  email = $credential.UserName
+  password = $credential.GetNetworkCredential().Password
+  rememberMe = $false
+} | ConvertTo-Json
+Invoke-RestMethod "$baseUrl/account/login" -Method Post `
+  -WebSession $session -Headers $headers -ContentType 'application/json' -Body $body
+Invoke-RestMethod "$baseUrl/me" -WebSession $session
+# 登入身分改變後重新取得 XSRF，後續寫入沿用更新後的 headers。
+Invoke-RestMethod "$baseUrl/account/antiforgery-token" -WebSession $session
+$token = $session.Cookies.GetCookies([uri]$baseUrl)['XSRF-TOKEN-API'].Value
+$headers['X-XSRF-TOKEN'] = [uri]::UnescapeDataString($token)
+Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
+```
+
+登入成功回傳 `204` 並設定 `.QMAH.Api.Auth`，最後的會員資產查詢是需要登入的唯讀 endpoint。Scalar／OpenAPI 可查 Method、Route、DTO、Auth 並快速送 request；功能 Page 的 service 串接可搭配[可選測試頁](../frontend/feature-development-guide.md#可選的-api-串接測試頁)。
+
+### 文件各自負責什麼
+
+| 需要確認的內容 | 查閱位置 |
+| --- | --- |
+| 某項功能要依序呼叫哪些 API | 本頁的「常用串接流程」 |
+| Method、Path、權限與用途 | 本頁的「Endpoint 清單」 |
+| Request／Response 的完整欄位、型別、必填與可空規則 | 啟動中的 `/scalar/v1` 或 `/openapi/v1.json` |
+| DTO、驗證與實際狀態碼如何產生 | `QMAH.Api` Controller、DTO 與 OpenAPI operation catalog |
+
+本頁不另外複製所有 Schema 欄位，以免手寫範例和機器契約分成兩個版本。前台實作時先用本頁確認流程，再以同一次啟動產生的 OpenAPI 核對欄位。
+
+### 常用串接流程
+
+#### 登入後讀取會員資料
+
+1. 呼叫 `GET /api/v1/account/antiforgery-token`。成功回傳 `204`，沒有 JSON 本文；防偽權杖寫在可讀取的 `XSRF-TOKEN-API` Cookie。
+2. 呼叫登入 Endpoint，請求帶上同一組 Cookie 與 `X-XSRF-TOKEN`。
+3. 登入成功後呼叫 `GET /api/v1/me` 取得目前會員，再依需求呼叫 `/api/v1/me/*`。登入後重新取得防偽權杖，讓後續寫入使用登入身分對應的權杖。
+4. 收到 `401` 時回到登入流程；`403` 表示帳號已登入但沒有該資源或操作權限。
+
+登入請求使用 `POST /api/v1/account/login`，JSON 如下；值為示意，應替換為測試帳號資料：
+
+```json
+{
+  "email": "member@example.com",
+  "password": "<測試帳號密碼>",
+  "rememberMe": false
+}
+```
+
+登入成功為 `204`，不能呼叫 JSON 解析器讀取空本文。接著 `GET /api/v1/me` 成功回傳 `200` 與會員資料。防偽權杖從 `XSRF-TOKEN-API` Cookie 讀取，放入寫入請求的 `X-XSRF-TOKEN` 標頭；登入 Cookie 由瀏覽器隨請求攜帶。這些請求建立或讀取登入狀態，不會調整會員資產。
+
+#### 顯示圖鑑並使用鑰匙
+
+1. 讀取分類、年代與公開文物選項；需要顯示會員狀態時改呼叫 `GET /api/v1/me/catalog/artifacts`，不要自行讀取或猜測 `ArtifactUnlocks`。
+2. 以 `isUnlocked` 決定卡片是否顯示完整名稱與圖片；`unlockedAt` 可用於收藏卡或解鎖日期。清單支援 `q`、`categoryCode`、`eraCode`、`page`、`pageSize`。
+3. 若要顯示歷史或解鎖流水，呼叫 `GET /api/v1/me/catalog/unlocks`；回應只包含目前登入會員的紀錄，依 `unlockedAt` 最新優先排序。
+4. 呼叫 `GET /api/v1/me/economy` 顯示鑰匙餘額與每把鑰匙的 `eligibleArtifactCount`，把實際 `keyCode` 保存為後續操作識別。
+5. 使用鑰匙時呼叫 `/api/v1/me/keys/{keyCode}/unlock`。`CATEGORY`／`ERA` 可在 body 指定自身範圍內的 `ArtifactId`，省略時由伺服器選擇；`NORMAL` 不可指定，`UNIVERSAL` 可指定任一候選文物；成功後重新讀取會員圖鑑與經濟摘要。
+6. 回應沒有解鎖結果時，表示目前沒有候選且沒有扣鑰匙；前台不將它顯示成伺服器錯誤。
+
+使用一般鑰匙時，將經濟摘要回傳的實際 `keyCode`（例如 `KEY-NORMAL`）放入路徑，使用 `POST` 並送出 `{}`。分類／年代鑰匙可送出 `{"artifactId":"<自身範圍內文物 GUID>"}`，也可送 `{}`；萬能鑰匙可送出 `{"artifactId":"<文物 GUID>"}`，範圍由鑰匙定義決定。不要自行把 `NORMAL`、`CATEGORY` 或 `ERA` 當成路徑值。
+
+管理員可用 `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` 強制解鎖。該操作只新增 `ADMIN` 解鎖事實，不扣鑰匙；若已存在解鎖列，回傳 `200` 且 `created=false`，並以 `admin.AuditLogs` 保存管理員與目標資訊。
+
+沒有候選時，成功回應的資料形狀如下：
+
+```json
+{
+  "unlocked": false,
+  "artifactId": null,
+  "artifactName": null,
+  "remainingEligibleArtifactCount": 0,
+  "message": "目前沒有符合這把鑰匙的未解鎖文物，因此沒有扣除鑰匙。"
+}
+```
+
+前台判斷 `unlocked`，不比對訊息文字。成功解鎖才扣 `UserKeyBalances`、新增 `KeyTransactions` 與 `ArtifactUnlocks`；操作後重新讀取 `/api/v1/me/economy` 更新背包。解鎖歷史的 `unlockMethod` 是來源類型：鑰匙解鎖固定為 `KEY`，回應會直接附 `keyCode`／`keyName`，`keyTransactionId` 仍保留給查帳與關聯 `KeyTransactions.KeyDefinitionId` 使用；系統解鎖流水使用固定 `Reason = ARTIFACT_UNLOCK`，不把鑰匙名稱寫入流水原因。
+
+#### 完成一次 Mini Game
+
+1. 呼叫 `GET /api/v1/game/modes` 取得模式與目前設定。
+2. 呼叫 `POST /api/v1/game/attempts`，使用回傳的 Attempt、文物池、Seed 與 Config 建立玩法。
+3. 呼叫 `POST /api/v1/game/attempts/{id}/complete` 送出原始分數與結果資料。
+4. 前台顯示後端回傳的分數、Grade、點數與鑰匙進度。目前後端依送入分數和設定門檻計算評級，尚未根據四種玩法的操作紀錄驗證成績。
+
+`rawScore` 限 0～100；`rawResultJson` 選填，非空時須為最多 4,000 字元的 JSON 文字，解析後須為物件或陣列。格式錯誤回傳 `400`。有效請求重送已完成 Attempt 時回傳 `200`，`alreadyCompleted` 為 `true`，不再發獎；其他不可完成狀態才回傳 `409`。畫面不應看到成功回應就再次累加點數，應重新讀取背包。
+
+`rawResultJson` 的 DTO 使用 `StringLength(4000)`，OpenAPI 可表達相同長度上限；服務另檢查 JSON 格式。目前回應的 `normalizedScore` 等於 `rawScore`，並不表示伺服器已重播操作驗證成績。
+
 正式環境（正式使用的部署環境）預設不公開文件。部署時若需要公開 OpenAPI，須以設定檔明確啟用 `OpenApi:Enabled`；若也需要公開 Scalar，另須啟用 `OpenApi:ScalarEnabled`。
 
 測試用帳號與密碼不得寫入文件。
@@ -64,38 +245,6 @@ pwsh -File .\tools\Validate-OpenApi.ps1 -OpenApiUrl http://localhost:5147/openap
 它會檢查 operation（一次 API 呼叫）數量、唯一 `operationId`（穩定且唯一的 API 識別名稱）、`summary`（清單中的短摘要）、`description`（完整行為說明）、Cookie security metadata（登入驗證的文件資訊）與成功回應。
 
 腳本也會檢查 ProblemDetails（標準錯誤回應格式）、路徑／查詢參數、request body（請求本文，送出的 JSON 內容）欄位，以及圖片上傳的 `multipart/form-data`（表單檔案上傳格式）、`file` binary（原始檔案內容）、`altText`（圖片替代文字）與 `413` 定義。
-
-## API 文件的維護方式
-
-Controller 負責 HTTP 行為與授權。DTO（API 對外傳輸的資料格式）負責回應資料形狀；OpenAPI transformer（自動補充 API 文件的元件）負責補齊摘要、描述、成功狀態與錯誤狀態。
-
-新增或修改 Endpoint（API 可呼叫的路徑）時，先由 ASP.NET Core 產生參數與資料格式。
-
-再於 `QMAH.Api/Infrastructure/OpenApi/QmahOpenApiOperationCatalog.cs` 補上台灣繁中摘要與目前行為說明。
-
-需要登入的 Endpoint 由 `[Authorize]` 產生 Cookie 登入資訊。
-
-程式行為改變時，同步檢查 Controller 的回應狀態、OpenAPI transformer 的狀態碼與本文件的 Endpoint 說明。
-
-`summary` 用一句話說明用途；`description` 說明登入條件、送出欄位、成功結果與可能的流程錯誤。各 operation 的專業用語依 [API 名詞表](./api-glossary.md) 在條目內直接附括號，不依賴其他段落先行定義。
-
-## OpenAPI 文字規範
-
-欄位分工遵循 OpenAPI 的定義。`summary`（清單中的短摘要）用來快速辨識用途；`description`（完整行為說明）用來說明端點行為，必要時可使用 CommonMark（OpenAPI 文件通用的 Markdown 格式）。
-
-每個 operation（一次 API 呼叫）都有對應的 catalog（API 行為說明清單）項目。說明必須直接對應實際要呼叫的欄位與結果，不使用未替換的範例文字。
-
-| 欄位 | 文件標準 | QMAH 實作方式 |
-| --- | --- | --- |
-| `summary`（清單中的短摘要） | 一行短句，讓清單能直接看出用途；使用動詞＋資源或目的，不放狀態碼或段落 | 例如 `查詢文物清單`、`建立商城訂單`、`取得遊戲回合詳情` |
-| `description`（完整行為說明） | 說明登入條件、路徑／查詢／JSON 欄位、資料範圍、成功結果與流程錯誤；欄位名稱使用反引號 | 由 `QmahOpenApiOperationCatalog` 逐一維護，直接寫出實際欄位與允許值 |
-| `operationId`（穩定且唯一的 API 識別名稱） | 在整份文件中唯一且穩定，供 client generator（前端程式產生工具）與 contract test（契約測試）辨識 | 使用 `{Controller}_{Action}`，例如 `Catalog_GetArtifact` |
-| `tags`（功能分組標籤） | 依功能群組整理，讓 Scalar（互動式 API 文件頁面）清單容易瀏覽 | 沿用 ASP.NET Core Controller 的分組名稱 |
-| `responses`（回應定義） | 將成功、欄位錯誤、登入、權限、找不到資料、流程衝突與服務失敗分開列出 | transformer（自動補充 API 文件的元件）統一補入 `400`、`500`、登入端點的 `401`／`403`，並依實際 action 補入 `201`、`202`、`204`、`404`、`409`、`413` 或 `503` |
-
-摘要和描述的文字規範以 [OpenAPI 3.1 Operation Object](https://spec.openapis.org/oas/v3.1.0#operation-object) 為基準。
-
-HTTP 狀態碼的語意依 [RFC 9110 HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) 解讀。
 
 ## 共通回應
 
@@ -163,6 +312,8 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 
 ## Endpoint 清單
 
+本節是路由索引，不取代 OpenAPI Schema。每列說明權限與業務用途；實作 request body 或產生型別時，使用 `/scalar/v1` 或 `/openapi/v1.json` 的實際欄位。
+
 ### 帳號
 
 | Method | Path | 權限 | 用途 |
@@ -183,6 +334,8 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 | GET | `/api/v1/catalog/artifacts/{id}` | 文物詳情、來源授權、圖片與是否有題庫／商品 |
 | GET | `/api/v1/catalog/categories` | 圖鑑分類 |
 | GET | `/api/v1/catalog/eras` | 年代篩選 |
+| GET | `/api/v1/me/catalog/artifacts` | 登入後取得目前會員圖鑑清單；`q`、`categoryCode`、`eraCode`、`page`、`pageSize`；每筆附 `isUnlocked`、`unlockedAt` |
+| GET | `/api/v1/me/catalog/unlocks` | 登入後取得目前會員解鎖歷史；支援 `q`、`categoryCode`、`eraCode`、`page`、`pageSize`；依最新解鎖時間排序 |
 | GET | `/api/v1/store/products` | `q`、`categoryCode`、`artifactId`、`page`、`pageSize`；只回傳上架商品 |
 | GET | `/api/v1/store/products/{id}` | 商品詳情與對應文物 |
 | GET | `/api/v1/store/products/{productId}/reviews` | 公開評價分頁、平均星等與評價總數；只計入已發布內容 |
@@ -271,20 +424,26 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | Method | Path | 權限 | 用途與主要欄位 |
 | --- | --- | --- | --- |
 | GET | `/api/v1/me/economy` | 登入後 | 取得鑑定點數、鑰匙進度、各類鑰匙餘額、每把鑰匙的可解鎖文物數量與目前兌換規則 |
+| GET | `/api/v1/catalog/key-definitions` | 登入後 | 啟用鑰匙定義陣列，含範圍識別與名稱、回收點數及 canSelectArtifact；不含會員餘額 |
+| GET | `/api/v1/me/keys/{keyCode}/artifacts` | 登入後 | 該鑰匙對目前會員的候選文物分頁；q 搜尋名稱／編號，支援 page、pageSize；排除已解鎖／停用文物，不檢查餘額、不扣鑰匙 |
+| GET | `/api/v1/catalog/key-definitions/{keyCode}` | 登入後 | 依實際 code 查單一定義，不存在或停用回傳 404；使用鑰匙仍呼叫 `/me/keys/{keyCode}/unlock` |
+| GET | `/api/v1/me/catalog/artifacts` | 登入後 | 取得目前會員圖鑑清單，每件啟用文物附 `isUnlocked` 與 `unlockedAt`；可依搜尋、分類與年代分頁 |
+| GET | `/api/v1/me/catalog/unlocks` | 登入後 | 取得目前會員解鎖歷史，包含解鎖方式、文物、分類、年代、遊戲回合、鑰匙流水參照與實際 `keyCode`／`keyName` |
 | GET | `/api/v1/me/keys/exchange-rules` | 登入後 | 取得目前仍有可解鎖文物的鑰匙兌換規則 |
-| POST | `/api/v1/me/keys/{keyCode}/unlock` | 登入後 | 使用一把鑰匙解鎖文物；只有 `UNIVERSAL` 可在 body 傳 `ArtifactId`，其他類型由伺服器抽選 |
+| POST | `/api/v1/me/keys/{keyCode}/unlock` | 登入後 | 使用一把鑰匙解鎖文物；`CATEGORY`／`ERA` 可傳自身範圍內 `ArtifactId`，`NORMAL` 不可傳，`UNIVERSAL` 可傳任一候選文物，省略時由伺服器抽選 |
+| POST | `/api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` | Admin | 替指定會員強制解鎖一件文物，來源為 `ADMIN`；冪等並保存稽核紀錄 |
 | POST | `/api/v1/me/keys/exchange` | 登入後 | 傳送 `RuleId` 與 `Units`，依資料庫規則交換鑰匙 |
 | POST | `/api/v1/me/keys/{keyCode}/recycle` | 登入後 | 傳送 `Amount`，只回收已沒有可解鎖文物的鑰匙並取得鑑定點數 |
 | GET | `/api/v1/me/coupons/exchange-options` | 登入後 | 取得點數兌換券的成本、折扣、最低消費、有效天數與使用期間 |
 | POST | `/api/v1/me/coupons/redeem` | 登入後 | 傳送 `CouponDefinitionId`，扣除鑑定點數並建立一張獨立的會員優惠券 |
 | GET | `/api/v1/me/title` | 登入後 | 取得目前配戴的單一成就稱號，未配戴時回傳 `null` |
-| PUT | `/api/v1/me/title` | 登入後 | 傳送 `UserAchievementId` 設定稱號；傳送 `null` 清除配戴狀態 |
+| PUT | `/api/v1/me/title` | 登入後 | 傳送 `{"userAchievementId":"<取得紀錄 GUID>"}` 設定稱號；`{"userAchievementId":null}` 清除配戴，不能把整個 body 傳為 `null` |
 | GET | `/api/v1/me/daily-activity` | 登入後 | 依每日登入歷史即時計算最後登入日、累積天數、連續天數、最高連續天數與登入率 |
 | POST | `/api/v1/me/daily-activity/login` | 登入後 | 由會員前台明確記錄當日登入；同日重複呼叫只增加活動次數，不增加登入天數 |
 | GET | `/api/v1/game/modes` | 登入後 | 取得四種 Mini Game（小遊戲）模式、設定與評級門檻 |
 | POST | `/api/v1/game/attempts` | 登入後 | 傳送 `ModeCode` 開始一次嘗試；伺服器決定文物池、難度、Seed（結果重現用的隨機種子）與設定，成功回傳 `201` |
 | POST | `/api/v1/game/attempts/{id}/complete` | 登入後 | 傳送原始分數與結果資料；伺服器重新計算標準化分數、評級、點數與鑰匙進度 |
-| POST | `/api/v1/game/rooms/{id}/reward` | 登入後 | 結算多人主遊戲獎勵；同一會員同一房間不可重複領取 |
+| POST | `/api/v1/game/rooms/{id}/reward` | 登入後 | 結算多人主遊戲獎勵；同一會員同一房間不可重複領取，並自動寫入結算回合的 `GAME` 解鎖紀錄 |
 | GET | `/api/v1/social/events/{eventId}/reward-policy` | 公開 | 取得活動的每位參與者加碼、有效期間與目前發放狀態；沒有規則時回傳 `null` |
 | PUT | `/api/v1/social/events/{eventId}/reward-policy` | 活動發起人／Admin | 設定玩家活動或官方活動的點數、鑰匙加碼與有效期間 |
 | GET | `/api/v1/game/invitations` | 登入後 | 取得目前會員收到的私人房間邀請 |
@@ -299,7 +458,13 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 
 欄位錯誤或業務條件不符回傳 `400`；未登入回傳 `401`；不是資源擁有者或沒有角色權限回傳 `403`；找不到文物、規則、房間或邀請回傳 `404`。
 
-餘額不足、沒有候選文物、重複領取或目前狀態不允許時回傳 `409`。所有失敗均使用 `ProblemDetails`（標準錯誤回應格式）或 `ValidationProblemDetails`（欄位驗證錯誤格式）。
+餘額不足或目前狀態不允許時回傳 `409`。重複領取主遊戲獎勵回傳 `200` 與 `alreadyRewarded: true`；有效請求重送已完成的 Mini Game 回傳 `200` 與 `alreadyCompleted: true`，兩者均不再次發獎。使用鑰匙沒有候選文物時也回傳成功，以 `unlocked: false` 表示未解鎖且未扣鑰匙。業務錯誤使用 `ProblemDetails` 或 `ValidationProblemDetails`；前台仍應依 HTTP 狀態處理沒有 JSON 本文的回應。
+
+稱號使用的是會員取得紀錄 `UserAchievements.Id`，不是成就定義 `Achievements.Id`。服務同時核對這筆取得紀錄屬於目前會員，不能只從公開成就清單挑一個 ID 送出。
+
+查詢未配戴的稱號或成功清除稱號時，回傳 `200` 與 JSON `null`。這與登入成功的 `204` 空本文不同：稱號回應可以解析為 JSON，再依結果是否為 `null` 顯示未配戴狀態。
+
+延伸閱讀：[資料表與關聯](../architecture/database-reference.md)可核對持券、稱號及流水的識別；[經濟與進程](../features/economy-progression.md)說明資產規則；[API 名詞表](api-glossary.md)說明 DTO、防偽權杖及錯誤回應。
 
 鑑定點數、鑰匙與優惠券的異動資料是資產歷史的主要來源。`admin.AuditLogs` 不記錄每個 API 讀取或 request body（請求本文）。
 
@@ -322,3 +487,35 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 - 使用者輸入的貼文、留言與商品描述以純文字安全呈現，不使用未清理的 HTML。
 - 寫入操作依 `401`、`403`、`409` 與 `ValidationProblemDetails`（欄位驗證錯誤格式）呈現登入、授權、流程衝突與欄位驗證結果。
 - 日期使用 API 傳回的 ISO 8601（國際標準日期時間文字格式）值；顯示格式由前台統一處理，不改變原始時間。
+
+## API 文件的維護方式
+
+Controller 負責 HTTP 行為與授權。DTO（API 對外傳輸的資料格式）負責回應資料形狀；OpenAPI transformer（自動補充 API 文件的元件）負責補齊摘要、描述、成功狀態與錯誤狀態。
+
+新增或修改 Endpoint（API 可呼叫的路徑）時，先由 ASP.NET Core 產生參數與資料格式。
+
+再於 `QMAH.Api/Infrastructure/OpenApi/QmahOpenApiOperationCatalog.cs` 補上台灣繁中摘要與目前行為說明。
+
+需要登入的 Endpoint 由 `[Authorize]` 產生 Cookie 登入資訊。
+
+程式行為改變時，同步檢查 Controller 的回應狀態、OpenAPI transformer 的狀態碼與本文件的 Endpoint 說明。
+
+`summary` 用一句話說明用途；`description` 說明登入條件、送出欄位、成功結果與可能的流程錯誤。各 operation 的專業用語依 [API 名詞表](./api-glossary.md) 在條目內直接附括號，不依賴其他段落先行定義。
+
+## OpenAPI 文字規範
+
+欄位分工遵循 OpenAPI 的定義。`summary`（清單中的短摘要）用來快速辨識用途；`description`（完整行為說明）用來說明端點行為，必要時可使用 CommonMark（OpenAPI 文件通用的 Markdown 格式）。
+
+每個 operation（一次 API 呼叫）都有對應的 catalog（API 行為說明清單）項目。說明必須直接對應實際要呼叫的欄位與結果，不使用未替換的範例文字。
+
+| 欄位 | 文件標準 | QMAH 實作方式 |
+| --- | --- | --- |
+| `summary`（清單中的短摘要） | 一行短句，讓清單能直接看出用途；使用動詞＋資源或目的，不放狀態碼或段落 | 例如 `查詢文物清單`、`建立商城訂單`、`取得遊戲回合詳情` |
+| `description`（完整行為說明） | 說明登入條件、路徑／查詢／JSON 欄位、資料範圍、成功結果與流程錯誤；欄位名稱使用反引號 | 由 `QmahOpenApiOperationCatalog` 逐一維護，直接寫出實際欄位與允許值 |
+| `operationId`（穩定且唯一的 API 識別名稱） | 在整份文件中唯一且穩定，供 client generator（前端程式產生工具）與 contract test（契約測試）辨識 | 使用 `{Controller}_{Action}`，例如 `Catalog_GetArtifact` |
+| `tags`（功能分組標籤） | 依功能群組整理，讓 Scalar（互動式 API 文件頁面）清單容易瀏覽 | 沿用 ASP.NET Core Controller 的分組名稱 |
+| `responses`（回應定義） | 將成功、欄位錯誤、登入、權限、找不到資料、流程衝突與服務失敗分開列出 | transformer（自動補充 API 文件的元件）統一補入 `400`、`500`、登入端點的 `401`／`403`，並依實際 action 補入 `201`、`202`、`204`、`404`、`409`、`413` 或 `503` |
+
+摘要和描述的文字規範以 [OpenAPI 3.1 Operation Object](https://spec.openapis.org/oas/v3.1.0#operation-object) 為基準。
+
+HTTP 狀態碼的語意依 [RFC 9110 HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) 解讀。

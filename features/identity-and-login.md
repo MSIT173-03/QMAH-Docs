@@ -1,5 +1,7 @@
 # Identity 與登入
 
+`QMAH.Api` 和 `QMAH.Web` 共用 ASP.NET Core Identity 的使用者與角色資料，卻各自使用登入 Cookie；`Admin` 角色控制後台，API 以 `401`／`403` 回應未登入或無權限，連續登入失敗會套用 lockout。每日活動只由使用者前台明確登記，登入後台不會觸發。
+
 QMAH 的後台由五個 Area 組成，獨立 API 使用同一組 Identity 資料。Identity 負責登入身分與後台存取權限，也定義程式取得目前使用者的方式。
 
 ## 目前專題製作範圍

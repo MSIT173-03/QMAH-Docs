@@ -1,5 +1,7 @@
 # 經濟與進程基準
 
+Point Balance、Key Balance、Key Progress、Coupon、Achievement 和 Title 分開保存；遊戲獎勵、兌換比例、回收值、折價券門檻與有效天數由資料庫設定和 Service 決定。管理員只能用有 `Reason` 的增減或發放／撤銷流程，結果同時更新目前狀態與歷史流水。
+
 本頁列出目前開發階段的經濟與進程基準。點數獎勵、鑰匙兌換比例、折價券門檻與其他數值都是暫時設定。
 
 Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規模與商城價格調整。主要平衡參數放在管理後台設定，前端不應寫死數值。
@@ -15,13 +17,19 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 | 代碼 | 用途 | 候選由誰決定 |
 | --- | --- | --- |
 | `NORMAL` | 從所有啟用且尚未解鎖的文物隨機解鎖一件 | 伺服器 |
-| `CATEGORY` | 從指定分類中尚未解鎖的文物隨機解鎖一件 | 伺服器 |
-| `ERA` | 從指定年代中尚未解鎖的文物隨機解鎖一件 | 伺服器 |
+| `CATEGORY` | 從指定分類中尚未解鎖的文物解鎖一件；可指定該分類內的目標，省略時隨機 | 會員指定或伺服器 |
+| `ERA` | 從指定年代中尚未解鎖的文物解鎖一件；可指定該年代內的目標，省略時隨機 | 會員指定或伺服器 |
 | `UNIVERSAL` | 從任一尚未解鎖文物中由會員選擇一件 | 會員選擇，伺服器驗證 |
 
-只有 `UNIVERSAL` 允許使用者前台送出 `artifactId`（文物識別碼）。其他三種鑰匙的候選清單與隨機結果都由伺服器產生。若目前沒有符合條件的文物，系統不扣鑰匙，也不建立 `ArtifactUnlock`（文物解鎖紀錄）。
+`NORMAL` 不允許使用者前台指定 `artifactId`（文物識別碼），避免一般鑰匙變成任意挑選；`CATEGORY`、`ERA` 與 `UNIVERSAL` 可以指定候選範圍內的文物，伺服器會再次驗證啟用狀態、會員是否已解鎖及鑰匙範圍。省略 `artifactId` 時，伺服器依鑰匙範圍抽選。若目前沒有符合條件的文物，系統不扣鑰匙，也不建立 `ArtifactUnlock`（文物解鎖紀錄）。
 
 圖鑑完成率、分類完成率、年代完成率與鑰匙的可解鎖數量，都以目前 `Active`（啟用中）的文物即時計算。增加文物、分類或年代資料時，不需要修改程式中的總數。
+
+會員圖鑑狀態由 `GET /api/v1/me/catalog/artifacts` 取得，回應每件啟用文物的 `isUnlocked` 與 `unlockedAt`；解鎖歷史由 `GET /api/v1/me/catalog/unlocks` 取得。這兩支 API 以登入 Cookie 決定會員，不接受前台傳入其他 `UserId`。前台應以 `GET /api/v1/me/economy` 的實際 `keyCode`、`scopeType`、`categoryId`、`eraBucketId` 與 `eligibleArtifactCount` 建立可用鑰匙選項，不要把鑰匙數量或候選範圍寫死在 Angular。
+
+管理員強制解鎖使用 `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock`，只允許 `Admin` role。它不扣會員鑰匙、不建立鑰匙流水，而是在同一交易新增 `UnlockMethod = ADMIN` 的 `ArtifactUnlock`；重複呼叫回傳既有來源且不建立第二筆，並留下 `admin.AuditLogs` 的操作人、目標會員與文物。
+
+多人主遊戲在會員呼叫 `POST /api/v1/game/rooms/{id}/reward` 成功結算時，會在同一交易替該會員解鎖尚未收藏的結算回合文物，新增 `UnlockMethod = GAME` 並以 `GameRoundId` 指向來源回合。已透過鑰匙或管理員取得的文物會跳過，不會覆蓋原本的來源。
 
 ## 每日登入與共用進程
 
@@ -31,7 +39,7 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 
 `GET /api/v1/me/daily-activity` 每次都從每日登入歷史重新計算下列資料：最後登入日期、累積登入天數、目前與最高連續登入天數、今日是否已登入，以及 `LifetimeLoginRate`（會員建立日至目前日期的登入天數比例）。
 
-系統不另存逐月登入率或其他統計快照。營運中心的選定期間登入率，則以期間內不重複登入會員數除以期末會員數即時計算。
+系統不另存逐月登入率或其他統計快照。營運中心的選定期間登入率，以期間內至少有一筆登入紀錄的不重複會員數，除以查詢結束日以前已建立且目前未刪除的會員總數即時計算。每位會員在同一期間只計一次，結束日以後才建立的帳號不列入分母。
 
 每日歷史只保存每位會員每天一列，避免同日重複登入造成無限制成長，也保留任意月份重新計算的能力。
 
@@ -62,7 +70,7 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 
 這四種模式共用 `GameModeDefinitions`、`MiniGameAttempts` 與同一套開始、完成、評分、獎勵流程。遊戲素材由啟用中的 Artifact Image（文物圖片）產生，伺服器在開始時決定模式、文物或文物池、難度、Seed（結果重現用的隨機種子）與設定。
 
-完成時使用者前台只送原始結果，例如分數與必要的結果 JSON。伺服器重新驗證分數，依資料庫中的級距計算 `NormalizedScore`（標準化分數）、Grade（評級）、點數獎勵與鑰匙進度獎勵，使用者前台不得送 `S` 或任意點數取代計算結果。
+完成時前台送出原始分數與選填的結果 JSON 文字。伺服器檢查分數介於 0～100，目前 `NormalizedScore`（標準化分數）直接等於 `RawScore`（原始分數），尚未依各玩法操作紀錄重新計算成績。Grade（評級）、點數及鑰匙進度獎勵則依資料庫設定計算，前台不能指定 `S` 或獎勵數量。`rawResultJson` 最多 4,000 字元，非空時須能解析為 JSON 物件或陣列；DTO 與服務都保留長度檢查。
 
 目前的級距獎勵基準如下：
 
@@ -128,11 +136,61 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 
 ## 管理員調整與批次活動
 
-管理員不能直接把 `PointBalance` 或 `UserKeyBalance` 改成某個總數。逐人調整時必須填寫原因，系統以增加或扣除的數量建立交易流水，再更新餘額；點數與鑰匙都不允許變成負數。優惠券同樣使用 Grant（發放）與 Revoke（撤銷），撤銷改變狀態並留下管理員、時間與原因，不刪除原資料。
+資產資料分成「目前餘額」與「異動歷史」。餘額供畫面快速顯示，流水則回答資產為什麼改變、改了多少、由哪個流程或管理員執行。查帳時以流水為準，不直接修改餘額資料列，也不編輯或刪除已成立的歷史。
 
-各背包仍提供逐人調整。需要活動補發、客服補償或其他特殊作業時，營運中心的「資產活動」提供獨立批次入口。批次可以依會員關鍵字、角色、會員狀態、建立日期與點數範圍篩選對象，先預覽符合人數與樣本，再確認執行。批次主檔保存篩選條件、原因、管理員、目標數量與處理結果；每位會員的點數交易或優惠券紀錄再回指批次。
+### 點數與鑰匙的共同流程
 
-營運中心會把日常資產流水和批次活動分開統計。日常流水用於對帳，批次統計用於回答某次活動或特殊原因影響了多少會員、增加或扣除了多少資產。
+```text
+管理員選擇會員
+    ↓
+輸入增減量與原因
+    ↓
+後端從登入 Cookie 取得管理員 ID
+    ↓
+EconomyService 驗證操作
+    ↓
+同一筆資料庫交易：更新餘額 + 新增流水
+    ↓
+提交成功後重新顯示餘額與流水
+```
+
+表單填的是增減量，不是異動後的總數。`3` 代表增加 3 點或 3 把鑰匙，`-2` 代表扣除 2 點或 2 把。Controller（控制器，接收後台操作）不接受表單自行指定管理員，而是從目前登入身分取得管理員 ID，再交給 `EconomyService`（經濟服務）處理。
+
+服務會檢查原因、增減量與計算後餘額。點數和鑰匙都不能小於 0 或超過整數上限，鑰匙還必須是啟用中的定義。通過後，在同一個 Serializable Transaction（可序列化交易，可避免同時操作互相覆蓋）完成以下寫入：
+
+| 資產 | 目前餘額 | 異動歷史 | 人工調整保存內容 |
+| --- | --- | --- | --- |
+| 鑑定點數 | `PointBalances` | `PointTransactions` | `Amount`、`Reason`、`ReferenceType`、`CreatedAt`、`CreatedByAdminUserId` |
+| 鑰匙 | `UserKeyBalances` | `KeyTransactions` | `KeyDefinitionId`、`Amount`、`Reason`、`ReferenceType`、`CreatedAt`、`CreatedByAdminUserId` |
+
+餘額與流水會一起成功或一起取消，不會出現餘額已改、流水卻漏寫的狀況。若 SQL Server 發生暫時性連線錯誤，EF Core Execution Strategy（執行重試策略）會重跑整個交易。每次操作在重試前沿用同一個流水 ID，資料庫已完成提交時不會再次加扣。
+
+人工調整的 `ReferenceType` 固定為 `ADMIN_ADJUSTMENT`，`CreatedByAdminUserId` 一定有值。遊戲結算、兌換與回收等系統流程沒有操作管理員，因此這個欄位可以是 `NULL`。後台流水頁會把兩者分別顯示為管理員帳號與 ID，或「系統」。
+
+### 優惠券的發放與撤銷
+
+優惠券不使用餘額數字。`UserCoupons` 的每一列就是會員實際取得的一張券，同一種券取得兩次會建立兩列。券從發放到使用、過期或撤銷，都保留在同一列：
+
+```text
+發放：AVAILABLE + 發放者／發放時間／發放原因
+    ├─ 結帳使用 → USED + UsedAt
+    ├─ 到期       → EXPIRED，資料仍保留
+    └─ 管理員撤銷 → REVOKED + 撤銷者／撤銷時間／撤銷原因
+```
+
+管理員發放會寫入 `IssuedByAdminUserId`、`IssuedAt` 與 `IssueReason`。管理員撤銷只允許處理 `AVAILABLE`，並寫入 `RevokedByAdminUserId`、`RevokedAt` 與 `RevokeReason`，不刪除資料列。會員以點數兌換或其他系統流程取得的券沒有操作管理員，管理員欄位可以留空。優惠券流水頁會同時顯示發放與撤銷資訊。
+
+### 批次資產活動
+
+逐人調整從會員的背包進入。活動補發、客服補償或其他多人作業則從營運中心的「資產活動」進入：
+
+1. 依會員關鍵字、角色、會員狀態、建立日期或點數範圍設定條件。
+2. 預覽符合人數與樣本，不在預覽階段修改資產。
+3. 填寫異動內容與原因後確認執行。
+4. `EconomyAdjustmentBatches` 保存篩選條件、管理員、目標數量及成功或失敗結果。
+5. 每位會員仍建立自己的點數流水或優惠券資料，並以 Batch ID（批次識別碼）回指同一場活動。
+
+營運中心會把日常流水與批次活動分開統計。流水用於查單一會員的每次異動；批次主檔用於查某場活動影響多少會員、增加或扣除多少資產，以及由哪位管理員執行。
 
 ## 稽核紀錄的範圍
 
@@ -149,9 +207,12 @@ Angular 使用者前台完成後，再依遊玩時間、取得速度、圖鑑規
 使用者前台不需知道獎勵公式，依 API（應用程式介面）回應呈現結果：
 
 - `GET /api/v1/me/economy`：鑑定點數、鑰匙餘額、可解鎖數、鑰匙進度與兌換規則
+- `GET /api/v1/me/catalog/artifacts`：目前會員圖鑑清單，以及每件文物的解鎖狀態與日期
+- `GET /api/v1/me/catalog/unlocks`：目前會員的解鎖歷史，可依文物搜尋、分類與年代篩選
 - `GET /api/v1/me/daily-activity`：依歷史資料取得每日登入日期、累積天數、目前／最高連續天數、登入率與今日登入狀態
 - `POST /api/v1/me/daily-activity/login`：由會員使用者前台明確記錄一次登入活動；同日重複呼叫不增加登入天數
-- `POST /api/v1/me/keys/{keyCode}/unlock`：使用鑰匙解鎖文物，只有 `UNIVERSAL` 送 `artifactId`
+- `POST /api/v1/me/keys/{keyCode}/unlock`：使用鑰匙解鎖文物；`CATEGORY`／`ERA` 可送自身範圍內的 `artifactId`，省略時由伺服器抽選；`NORMAL` 不送，`UNIVERSAL` 可送任一候選文物
+- `POST /api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock`：管理員替指定會員強制解鎖一件文物，來源為 `ADMIN`
 - `GET /api/v1/me/keys/exchange-rules`、`POST /api/v1/me/keys/exchange`：查詢與執行鑰匙兌換
 - `POST /api/v1/me/keys/{keyCode}/recycle`：回收已無可解鎖文物的鑰匙
 - `GET /api/v1/me/coupons/exchange-options`、`POST /api/v1/me/coupons/redeem`：查詢與兌換點數券

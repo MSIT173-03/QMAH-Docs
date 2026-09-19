@@ -1,10 +1,19 @@
 # Store｜商城與訂單
 
-本頁固定依「系統範圍 → 資料表與關聯 → 開發規則與跨系統界線 → 查詢入口 → 變更前檢查 → 建議查閱順序」排列。詳細欄位、狀態與操作規則以連結的正規文件為準。
+Store 分開保存 `Products`、`CartItems`、`StoreOrders`、`OrderDetails`、`Payments`、`CouponDefinitions`、`UserCoupons`、庫存與點數流水；`CouponDefinition` 是券的規格，`UserCoupon` 是會員取得的一張券，發放、使用、過期和撤銷都保留生命週期。
 
 ## 系統範圍
 
 Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫存、商品評價與點數。商品可以對應 Catalog 文物，但商品展示欄位獨立保存；訂單明細保存成交當下的品名、單價與數量快照。
+
+## 實際運作方式
+
+1. 前台查詢上架商品及圖片網址，將商品與數量加入會員購物車。購物車尚未形成成交價格。
+2. 建立訂單時，後端重新驗證價格、庫存與可用折價券，將成交品名、單價及數量保存至訂單明細。付款與履約各有自己的狀態。
+3. 點數兌券由服務扣除點數、寫入點數流水，再建立一張獨立的 `UserCoupon`。重複取得同種券會建立不同持券列。
+4. 管理員發放與撤銷保存原因及管理員 ID，批次操作另連到批次主檔。券到期改成 `EXPIRED`，歷史仍保留。
+
+例如，購物車顯示的價格與建立訂單結果不同時，應呈現後端確認的成交金額。查某張券為何不能使用時，依序確認會員歸屬、狀態、期限與消費門檻，不只查看券定義是否啟用。
 
 ## 資料表與關聯
 
@@ -43,7 +52,15 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 | 查來源、媒體與外部服務 | [資料與圖片使用](../features/data-and-media.md)、[媒體交付設定](../frontend/media-delivery.md)、[地點與地圖串接](../features/map-integration.md) | 來源、授權、邏輯媒體路徑與外部服務界線 |
 | 查本機資料與展示狀態 | [開發資料與本機展示](../getting-started/development-data.md) | Snapshot 已提供什麼，隔離資料如何建立 |
 | 查資料工具與 Snapshot | [資料工具](../reference/data-tools.md) | Seed、展示資料、匯出、版本與檔案位置 |
-| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付順序 |
+| 查交付與協作規則 | [Git 與 GitHub 協作](../reference/git-workflow.md) | 分支、提交、共用檔案、Review 與交付檢查 |
+
+## 前台接手建議
+
+- 商品、評價、購物車與訂單可分開實作；串接時確認地址 ID、實際持券 ID 及訂單金額。
+- 前台只送商品、數量、地址與選用優惠券；成交單價、折扣、庫存與總額由後端重新計算。
+- 建立訂單前顯示的是預估內容，成功後應以訂單 response 的快照金額更新確認頁。
+- 優惠券畫面要區分可用、已使用、過期與撤銷；常駐兌換券的點數成本和有效期限由 API 取得。
+- 平行分工與跨系統確認事項見[前台功能接手指南](../frontend/feature-development-guide.md)。
 
 ## 變更前檢查
 
@@ -51,14 +68,3 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 - 訂單明細是否仍顯示成交時的品名、單價與數量，而不跟隨商品現值改寫。
 - 權限、目前會員、金額、折扣、庫存與點數是否由伺服器重新計算；目前沒有正式金流供應商 callback Endpoint。
 - API、資料庫限制、展示資料、管理後台、前台錯誤狀態與未來金流 callback 契約是否同步。
-
-## 建議查閱順序
-
-1. [Shared｜共用基礎](shared.md)：先讀共同規則與跨系統入口。
-2. [開發環境與啟動](../getting-started/development-environment.md)：確認工具、服務與連線基線。
-3. [開發資料與本機展示](../getting-started/development-data.md)：確認 Snapshot、資料量與展示狀態。
-4. [系統架構總覽](../architecture/system-overview.md)、[Area 責任與資料界線](../architecture/area-boundaries.md)：確認 Store 的責任與引用界線。
-5. [資料表參考](../architecture/database-reference.md)、[資料存取與 DB-first](../architecture/data-access.md)：確認資料表、欄位與讀寫方式。
-6. [經濟與進程](../features/economy-progression.md)、[資料與圖片使用](../features/data-and-media.md)：依工作目標查資產與展示規則。
-7. [REST API 契約](../reference/rest-api.md)、[Angular 使用者前台開發](../frontend/angular-development.md)、[管理後台開發起點](../admin/backend-development.md)：確認對外與畫面串接。
-8. [資料工具](../reference/data-tools.md)、[Git 與 GitHub 協作](../reference/git-workflow.md)：完成資料驗證與交付。

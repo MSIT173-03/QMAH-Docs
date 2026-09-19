@@ -1,5 +1,7 @@
 # 文物資料匯入
 
+後台上傳和 `NpmDataImporter` 都使用 `QMAH.Infrastructure/Infrastructure/CatalogImport` 的解析、驗證、同步和冪等規則；流程固定為產生／預檢、確認、套用。預檢會檢查格式、必要欄位、來源、圖片、分類／年代與關聯，套用才在交易中更新資料庫。
+
 QMAH 的文物匯入流程分成「產生／預檢 → 確認 → 套用」三步。
 
 `QMAH.Web` 的 Catalog → 文物資料匯入接受資料包上傳；批次或 CI 使用 `NpmDataImporter`。兩個入口共用 `QMAH.Infrastructure/Infrastructure/CatalogImport` 的解析、驗證、同步與冪等規則。

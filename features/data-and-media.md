@@ -1,5 +1,7 @@
 # 資料與圖片使用說明
 
+`catalog.Artifacts` 保存文物主資料與邏輯媒體路徑，`game.ArtifactQuestionEntries` 和 `store.Products` 以 `ArtifactId` 建立關聯；來源與授權欄位留在文物資料，商品定價／庫存和媒體實體檔案各自管理。應用程式依媒體設定把邏輯路徑解析成本機或 CDN 網址。
+
 QMAH 的資料分為文物圖鑑與商城商品。兩者都使用共同基準資料，但來源、授權與更新方式不同，不能混用。
 
 目前資料表筆數與狀態分布見[開發資料與參考資料庫](../getting-started/development-data.md)。

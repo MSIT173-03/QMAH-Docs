@@ -1,5 +1,7 @@
 # Git 與 GitHub 協作手冊
 
+`QMAH` 管產品程式與 `Schema.sql`，`QMAH-Docs` 管 Markdown／VitePress 文件站，`QMAH-Database` 管完整資料 Snapshot；五個功能系統與營運中心可在各自 feature branch 平行開發，整合共同分支時仍要核對資料與文件。
+
 QMAH 使用單一 Public Repository。五個 Area 各使用固定 feature branch，完成可驗證階段後整合至 `develop`；展示或發布版本由 `develop` 合併至 `main`。
 
 Repository：<https://github.com/MSIT173-03/QMAH>

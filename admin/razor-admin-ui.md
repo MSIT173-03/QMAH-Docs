@@ -1,5 +1,7 @@
 # Razor 與 Tabler 管理後台介面
 
+`/Views/Shared/Admin/_AdminLayout.cshtml` 提供外框，`_ViewStart.cshtml` 將 Area 頁面接到這個 Layout；Sidebar、Navbar、提示訊息、頁尾與 Tabler 資源由共用檔案處理，個別 View 只提供放入 `@RenderBody()` 的功能內容。
+
 本頁說明 QMAH 後台共用介面的使用方式，適用於 Catalog、Game、Social、Store 與 User 頁面。
 
 ## 新頁面的套用方式
@@ -53,7 +55,7 @@
 使用共用後台 Layout 後，頁面會自動擁有：
 
 - QMAH Logo
-- 總覽與五大系統導覽
+- 總覽、五個功能系統與營運中心導覽
 - 目前 Area 的選單標示
 - 頁面標題與說明
 - 頁首右上方操作按鈕區
@@ -129,7 +131,7 @@ Layout 設定完成後，即可加入該頁面的實際內容：
 QMAH.Web/Areas/User/Views/_ViewStart.cshtml
 ```
 
-目前 Catalog、Game、Social、Store、User 都已經有這份 Area 專用檔案，不需要重複建立。若未來新增第六個後台 Area，建立方式如下：
+目前 Catalog、Game、Social、Store、User 都已經有這份 Area 專用檔案，不需要重複建立。營運中心位於根目錄 Controller，不以第六個 Area 表示；若未來新增其他後台 Area，建立方式如下：
 
 1. 在 Solution Explorer 對 `Areas/<Area>/Views` 資料夾按右鍵。
 2. 選 **Add** → **New Item...**。

@@ -4,7 +4,7 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 ## 1. 取得共同資料
 
-目前相容的完整 Snapshot 是 QMAH-Database 的 `db-v0.9.1`；Repository 內的 `QMAH.sql` 可直接在 SSMS 執行。正式交付以已驗證的 SQL／BAK 為準，不依賴網站啟動時補資料。
+目前相容的完整 Snapshot 是 QMAH-Database 的 `db-v0.9.2`；Repository 內的 `QMAH.sql` 可直接在 SSMS 執行。正式交付以已驗證的 SQL／BAK 為準，不依賴網站啟動時補資料。
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只保留版本導覽，不再提供 SQL／BAK 資產。
 
@@ -21,7 +21,9 @@ QMAH 使用一套共同資料庫設計。每個本機環境還原一份 `QMAH` �
 
 ## 2. Snapshot 內容
 
-下表數量以 QMAH-Database `db-v0.9.1` 的完整資料庫 Snapshot 為準。這份基準先確保 Catalog／Game／Store 的 512 筆主資料契約；社群貼文、訂單等操作資料由實際流程或隔離展示工具產生，不應假設啟動時一定存在。
+下表數量以 QMAH-Database `db-v0.9.2` 的完整資料庫 Snapshot 為準。這份基準先確保 Catalog／Game／Store 的 512 筆主資料契約；社群貼文、訂單等操作資料由實際流程或隔離展示工具產生，不應假設啟動時一定存在。
+
+本版刻意替換舊的 256 件展示文物與商品；既有環境請以完整 SQL／BAK 還原，不使用會保留舊資料的增量腳本。
 
 逐表確認用途、主鍵或外鍵時，詳見[資料表參考](../architecture/database-reference.md)。本節保留 Snapshot 的資料量、狀態與展示情境；不在這裡重複維護完整資料字典。
 

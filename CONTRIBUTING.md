@@ -1,5 +1,7 @@
 # QMAH-Docs 協作規則
 
+`getting-started` 放上手流程，`features` 放功能規則，`architecture` 放責任與資料流，`frontend` 和 `admin` 放畫面開發，`reference` 放 API、資料工具、名詞與協作規則；同一主題只保留一頁完整定義，其他頁面連回去。
+
 [QMAH 專案](https://github.com/MSIT173-03/QMAH) ｜ [QMAH-Docs 專案](https://github.com/MSIT173-03/QMAH-Docs) ｜ [QMAH-Database 專案](https://github.com/MSIT173-03/QMAH-Database) ｜ [QMAH-Docs 文件站](https://msit173-03.github.io/QMAH-Docs/)
 
 文件以 Markdown 維護，網站由 VitePress 建置。新增或修改文件時，依內容屬於教學、操作、參考或設計說明，放入既有的六組目錄。

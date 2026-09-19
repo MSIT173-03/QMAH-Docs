@@ -1,5 +1,7 @@
 # 官方參考索引
 
+本頁把 .NET、ASP.NET Core、EF Core、Angular、SQL Server、OpenAPI、HTTP、VitePress、GitHub Pages、資料來源與授權的官方文件，對應到 QMAH 的正規文件和程式來源。每個連結旁都說明它能確認哪一種通用行為。
+
 本頁列出 QMAH 文件引用的官方技術與資料來源。官方文件只用來確認框架、工具、協定與授權的通用語意；QMAH 的路由、資料表、版本、連線解析順序與業務規則，仍以產品 Repository 的程式、`Schema.sql`、API 契約與 QMAH-Database Snapshot 為準。
 
 ## 何時查哪一份

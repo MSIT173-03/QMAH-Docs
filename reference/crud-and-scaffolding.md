@@ -1,5 +1,7 @@
 # CRUD 與 Scaffold
 
+`ArtifactCategory` 範例從清單、詳細資料到 Create／Edit／Delete，包含查詢投影、輸入驗證、不存在的 Id、外鍵限制和未被使用資料才能刪除的條件；它是教學範例，不代表所有現有後台路由都採同一套細節。
+
 這份教學以 Schema 中現有的 `catalog.ArtifactCategories` 示範後台開發。範例完成並加入對應 Controller 與 View 後，可在 `/Catalog/ArtifactCategory` 查看分類清單、搜尋、詳細資料、新增、編輯與刪除未被使用的測試分類。
 
 `ArtifactCategory` 只有 `Id`、`Code`、`Name`，適合示範完整流程。現有 8 個正式分類已被文物或鑰匙使用，不能刪除；刪除測試資料時，需先新增一筆沒有關聯的測試分類。
