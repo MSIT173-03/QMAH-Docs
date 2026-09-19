@@ -10,9 +10,9 @@
 
 ## db-v0.9.3 文物基準與媒體包
 
-本次正式資料翻新產出 512 件文物、512 筆題庫與 512 件文物明信片商品，分類分布為 `BRONZE 64`、`CERAMIC 64`、`JADE 64`、`ENAMEL 64`、`LACQUER 64`、`COIN 55`、`CARVING 68`、`PAINTING 69`；年代桶共 18 個，包含 `JAPAN_EDO` 31 件。正規化名稱唯一 512 組，題庫可出題筆數 512。
+本次正式資料翻新產出 512 件文物、512 筆題庫與 512 件文物明信片商品，分類分布為 `BRONZE 64`、`CERAMIC 64`、`JADE 64`、`ENAMEL 64`、`LACQUER 64`、`COIN 55`、`CARVING 68`、`PAINTING 69`；年代桶共 18 個，包含 `JAPAN_EDO` 31 件。`JAPAN_EDO` 同步有 `KEY-ERA-JAPAN_EDO` 年代鑰匙，並有對應的會員餘額與展示流水。正規化名稱唯一 512 組，題庫可出題筆數 512。
 
-本版是完整展示資料 Snapshot；舊的 256 件文物與商品已刻意移除，並同步修正既有訂單明細的商品名稱快照，不以增量腳本保留。既有環境應直接還原 `db-v0.9.3` 的完整 SQL 或 `.bak`。
+本版是完整展示資料 Snapshot；舊的 256 件文物與商品已刻意移除，並同步修正既有訂單明細的商品名稱快照，不以增量腳本保留。`catalog.ArtifactUnlocks` 已包含 13 筆由年代鑰匙扣除流水可追溯的展示解鎖紀錄；`admin.EconomyAdjustmentBatches`、`game.MiniGameAttempts`、`social.MediaAssets`、`social.OfficialAnnouncements`、`social.UserNotifications`、`store.CartItems` 與 `user.EquippedTitles` 各有最小業務 fixture，方便跨模組驗證。Identity claims、外部登入與 token 表刻意維持空白，因為沒有真實認證上下文時填入假資料會污染部署與安全判斷。既有環境應直接還原 `db-v0.9.3` 的完整 SQL 或 `.bak`。
 
 媒體包有 512 張 600px 長邊 `display.jpg` 與 512 張 200px 長邊 `thumbnail.jpg`，本次媒體 QA 的缺檔、解碼失敗、佔位圖、低尺寸與重複媒體群組皆為 0。列表只取縮圖，詳情明信片才取大圖；縮圖約 3.23 MB，保留它能明顯降低列表與手機傳輸量。
 
@@ -79,7 +79,7 @@ generate-showcase-data --connection <connection> [--post-count <1-512>] [--order
 generate-showcase-ledger --connection <connection> [--activity-days <0-3650>] [--point-transaction-count <0-10000>] [--key-transaction-count <0-10000>] [--key-progress-transaction-count <0-10000>] [--seed <number>]
 ```
 
-`seed-showcase-users` 會建立隔離展示用會員；`generate-showcase-data` 會以穩定識別碼產生彼此有關聯的貼文、留言、訂單、付款紀錄、商品評價、每日登入／簽到、點數流水、鑰匙流水、鑰匙進度流水與符合登入條件的成就。`generate-showcase-ledger` 只產生後四類活動／資產資料，不建立社群與商城資料。命令只更新工具管理的資料，不刪除其他資料。完成後仍要透過 Snapshot pipeline 輸出可直接還原的完整 SQL，啟動環境不需額外執行工具。
+`seed-showcase-users` 會建立隔離展示用會員；`generate-showcase-data` 會以穩定識別碼產生彼此有關聯的貼文、留言、訂單、付款紀錄、商品評價、每日登入／簽到、點數流水、鑰匙流水、鑰匙進度流水、年代鑰匙解鎖與符合登入條件的成就。`generate-showcase-ledger` 只產生後四類活動／資產資料，不建立社群與商城資料。Snapshot 另外保留最小的跨模組業務 fixture；需要真實 OAuth／Identity claims／token 的表不填假資料。命令只更新工具管理的資料，不刪除其他資料。完成後仍要透過 Snapshot pipeline 輸出可直接還原的完整 SQL，啟動環境不需額外執行工具。
 
 ## 文物來源數量與取樣
 
