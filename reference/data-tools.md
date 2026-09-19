@@ -1,18 +1,18 @@
 # QMAH 資料工具參考
 
-資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需取得已驗證的 `QMAH-Database db-v0.9.2` `QMAH.sql` 或 `.bak`；不需開啟本目錄的工具，也不需手動執行增量 SQL。`.bak` 僅在交付包或 Release 提供，不提交到 Repository。
+資料工具處理資料匯入、隔離展示資料與完整 Snapshot 交付。一般啟動只需取得已驗證的 `QMAH-Database db-v0.9.3` `QMAH.sql` 或 `.bak`；不需開啟本目錄的工具，也不需手動執行增量 SQL。`.bak` 僅在交付包或 Release 提供，不提交到 Repository。
 
 | 工作 | 使用方式 | 原有資料 |
 | --- | --- | --- |
-| 建立全新本機環境 | 還原 `db-v0.9.2` 的 `.bak`，或執行完整 `QMAH.sql` | 依完整 Snapshot 建立，不保留舊 256 件展示資料 |
+| 建立全新本機環境 | 還原 `db-v0.9.3` 的 `.bak`，或執行完整 `QMAH.sql` | 依完整 Snapshot 建立，不保留舊 256 件展示資料 |
 | 製作下一份共同資料版本 | 使用 Snapshot pipeline 在隔離資料庫驗證後匯出 | 產出新的 `.sql`、`.bak`、manifest 與報告 |
 | 增加或更新文物資料 | 使用 Catalog 匯入的預覽與套用流程 | 只處理匯入包涵蓋的功能資料，不取代完整 Snapshot |
 
-## db-v0.9.2 文物基準與媒體包
+## db-v0.9.3 文物基準與媒體包
 
 本次正式資料翻新產出 512 件文物、512 筆題庫與 512 件文物明信片商品，分類分布為 `BRONZE 64`、`CERAMIC 64`、`JADE 64`、`ENAMEL 64`、`LACQUER 64`、`COIN 55`、`CARVING 68`、`PAINTING 69`；年代桶共 18 個，包含 `JAPAN_EDO` 31 件。正規化名稱唯一 512 組，題庫可出題筆數 512。
 
-本版是完整展示資料 Snapshot；舊的 256 件文物與商品已刻意移除，不以增量腳本保留。既有環境應直接還原 `db-v0.9.2` 的完整 SQL 或 `.bak`。
+本版是完整展示資料 Snapshot；舊的 256 件文物與商品已刻意移除，並同步修正既有訂單明細的商品名稱快照，不以增量腳本保留。既有環境應直接還原 `db-v0.9.3` 的完整 SQL 或 `.bak`。
 
 媒體包有 512 張 600px 長邊 `display.jpg` 與 512 張 200px 長邊 `thumbnail.jpg`，本次媒體 QA 的缺檔、解碼失敗、佔位圖、低尺寸與重複媒體群組皆為 0。列表只取縮圖，詳情明信片才取大圖；縮圖約 3.23 MB，保留它能明顯降低列表與手機傳輸量。
 
@@ -44,7 +44,7 @@
 2. 在 QMAH-Database Repository 根目錄執行：
 
    ```powershell
-   .\tools\QmahDataTools\Export-ReferenceDatabase.ps1 -Version 0.9.2
+   .\tools\QmahDataTools\Export-ReferenceDatabase.ps1 -Version 0.9.3
    ```
 
 3. Pipeline 會建立暫時 LocalDB、還原並驗證資料、檢查 Web 啟動與資料 parity，再輸出交付用 `.bak`、`.sql`、checksum 與報告。
@@ -62,7 +62,7 @@ exporter 預設寫入 sibling Repository 的 `QMAH-Database/QMAH.sql`。目標 R
 
 ```powershell
 .\tools\QmahDataTools\Export-ReferenceDatabase.ps1 `
-  -Version 0.9.2 `
+  -Version 0.9.3 `
   -RepositorySqlPath 'D:\qmah-snapshots\QMAH.sql'
 ```
 
