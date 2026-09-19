@@ -113,6 +113,8 @@ CLI 也接受相容別名，例如 `--qmah-root`、`--artifact-file`、`--produc
 
 故宮來源的 `ImageId=0` 會回傳「no image available」佔位圖。產生器在選取主圖與縮圖時都會排除這個來源值，避免錯誤圖片進入資料包；匯入後再用 `Validate-CatalogMedia.ps1` 檢查 512 件文物的 512 張 `display.jpg` 與 512 張 `thumbnail.jpg`。
 
+商城商品由 `ArtifactProductGenerator` 依同一批合格文物產生，名稱統一為「文物名稱－文物明信片」。`Products.SizeText` 固定為 A6 明信片（148 × 105 mm），原作文物尺寸保留在關聯文物與商品詳情的獨立欄位；主圖自然寬高則決定商品展示標示為橫式或直式。明信片可留作收藏，也可書寫寄送，實際投遞仍依當地郵務規定辦理。
+
 本次 `db-v0.9.1` 驗證結果為缺檔 0、解碼失敗 0、佔位圖 0、低尺寸 0、重複媒體群組 0。圖片仍使用穩定的 `/media/catalog/{categoryCode}/{artifactRef}/` 路徑，後續可由 `deploy/Prepare-CdnMedia.ps1` 產生扁平 CDN 交付目錄，不需改資料庫 URL。
 
 ## 失敗與重試

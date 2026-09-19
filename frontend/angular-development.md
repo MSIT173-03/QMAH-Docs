@@ -70,6 +70,8 @@ API 與 Angular 可以透過下列方式啟動：
 
 `app.config.ts` 的目前設定具體包含 `provideRouter(routes, withComponentInputBinding())`、針對 `/api/v1` request 設定 `withCredentials: true`，以及以 `XSRF-TOKEN-API` Cookie 讀取 request token、送出 `X-XSRF-TOKEN` Header 的 XSRF 設定。API 的 `GET /api/v1/account/antiforgery-token` 會建立這個可讀取的 request token；API 內部的 HttpOnly Cookie 仍由 ASP.NET Core 保護。
 
+商城的 `src/app/store/api/mock` 僅供 `.spec.ts` 的 `provideMockApi()` 測試使用，正式 `app.config.ts` 不註冊 `mockApiInterceptor`。正式商城商品與優惠活動分別讀取真實的 `/api/v1/store` API；其中 `/api/v1/store/promotions` 直接回傳官方商城公告的標題、本文與發布日期，畫面可依版位選擇呈現層級。
+
 ## 登入後的第一條資料流程
 
 使用者前台可依下列順序建立登入後的應用程式資料流：
@@ -213,5 +215,9 @@ npm test -- --watch=false
 ```
 
 Angular 21 的版本選擇維持在同一個 major version。套件版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準，不在各分支升降版本。
+
+### 社群貼文基本排版
+
+社群貼文仍保存純文字，編輯器提供小標、項目、引用與分段四種低風險排版。可使用 `【小標】`、`• 項目`、`「引用」` 與空行；`SocialPostContentComponent` 只辨識這些固定標記並以 Angular template 呈現，不使用 `[innerHTML]`，也不把 HTML 或 Markdown 直接存進 `SocialPosts.Content`。官方編輯器的快速插入另外提供商城優惠、展覽、文物導讀、參觀提醒與鑑定遊戲模板，商城優惠只從有效 `CouponDefinitions` 產生。
 
 編譯成功後仍要用瀏覽器檢查 API、登入、錯誤畫面、鍵盤操作與窄螢幕版面。
