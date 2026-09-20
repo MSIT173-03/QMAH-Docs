@@ -107,6 +107,7 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '前端',
         items: [
           { text: 'Angular 使用者前台開發', link: '/frontend/angular-development' },
+          { text: '前台整合狀態與五系統待辦', link: '/frontend/integration-status' },
           { text: 'Tailwind CSS｜排版與響應式', link: '/frontend/tailwind-guide' },
           { text: 'daisyUI｜按鈕、卡片與表單', link: '/frontend/daisyui-guide' },
           { text: 'HyperUI｜複製排版到 Angular', link: '/frontend/hyperui-guide' },

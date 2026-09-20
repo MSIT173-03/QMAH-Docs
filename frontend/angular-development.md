@@ -1,6 +1,6 @@
 # Angular 使用者前台開發
 
-`QMAH.Client` 使用 Angular 21.2.22，已有 Router、HttpClient、Cookie／XSRF 與 proxy 設定；API 契約由 `QMAH.Api` 的 `/api/v1` 提供，`app.routes.ts` 目前保留為前台功能接手入口，尚未放入功能路由。
+`QMAH.Client` 使用 Angular 21.2.22，已有 Router、HttpClient、Cookie／XSRF、共用 App Shell 與 proxy 設定；API 契約由 `QMAH.Api` 的 `/api/v1` 提供。User、Catalog、Game、Social、Store 已接入主要前台入口；目前整合狀態與待辦見[前台整合狀態](integration-status.md)。
 
 前端、後端、前台與後台的固定用法見[文件閱讀與名詞基準](../reference/terminology.md)。
 
@@ -130,7 +130,7 @@ Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、
 
 ## 開發入口
 
-本機資料庫使用 [QMAH-Database db-v0.9.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.9.0) 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.9.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
+本機資料庫使用 [QMAH-Database db-v0.10.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.10.0) 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.10.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
 
 QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。前端第一次開發時，在 `QMAH.Client` 執行：
 
@@ -142,7 +142,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 | 方式 | 操作 |
 | --- | --- |
-| Visual Studio | 使用 `QMAH 後端主機與管理後台（API＋Razor）` 檢查後端 API 與資料庫，或使用 `QMAH API` 單獨啟動後端 API |
+| Visual Studio | 使用 `QMAH 全站（API＋前台＋管理後台）` 同時啟動三個服務；或使用 `QMAH API＋Angular 前台`、`QMAH API` 進行局部檢查 |
 | Visual Studio Code（2026 年目前穩定版） | 使用 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動，或分別使用 `QMAH API（https）` 與 `QMAH Angular 前端使用者前台` |
 | 命令列 | API 執行 `dotnet run --project .\QMAH.Api\QMAH.Api.csproj --launch-profile https`，另一個終端機在 `QMAH.Client` 執行 `npm start` |
 
@@ -152,18 +152,18 @@ API 與 Angular 可以透過下列方式啟動：
 
 ## 目前前台基線
 
-`QMAH.Client` 目前是前台骨架，尚未放入圖鑑、社群、遊戲、會員或商城的正式畫面：
+`QMAH.Client` 目前已是可操作的使用者前台；共用 App Shell、主題狀態與主要功能入口已接入。各系統仍需以真實資料庫完成部分端對端驗證：
 
 | 檔案 | 目前內容 | 新增功能時的責任 |
 | --- | --- | --- |
-| `src/app/app.ts` | 根元件只載入 `RouterOutlet` | 保持根元件只負責應用程式外框與路由出口 |
-| `src/app/app.html` | 只有 `<router-outlet />` | 不在此檔案堆放功能畫面 |
-| `src/app/app.routes.ts` | `export const routes: Routes = [];`，目前沒有功能路由 | 以 lazy loading 集中註冊功能入口 |
+| `src/app/app.ts` | 根元件提供共用 App Shell 與路由出口 | 保持根元件只負責全站外框、主題與路由出口 |
+| `src/app/app.html` | 渲染共用 layout、頁面出口與 footer | 不在此檔案堆放 Domain 功能畫面 |
+| `src/app/app.routes.ts` | 已註冊 Auth、User、Catalog、Game、Social、Store 與 Admin 相關入口 | 新增入口仍以 lazy loading 集中註冊 |
 | `src/app/app.config.ts` | 註冊 Router、HttpClient、API Cookie 與 XSRF 設定 | 維持全站 HTTP 基線；功能服務不各自重複設定 |
 | `src/environments/environment*.ts` | `apiBaseUrl` 都是 `/api/v1` | 依環境設定 API 根路徑，不在 component 寫死連接埠 |
 | `proxy.conf.json` | 將 `/api`、`/openapi`、`/scalar` 轉送至 `https://localhost:7249` | 只供 Angular 開發伺服器使用，不帶入正式建置設定 |
 
-五個 Domain（catalog、game、social、store、user）是開發分工慣例，目前尚無功能程式，不預建空目錄。開始實作時直接在 `src/app/<domain>/` 建立功能；既有 API 是後端契約，不代表前台畫面已完成。
+五個 Domain（catalog、game、social、store、user）是目前的開發分工；各自的頁面、service 與互動留在 `src/app/<domain>` 附近。API 已接入不代表所有真實資料庫流程都已完成驗證，請以[前台整合狀態](integration-status.md)的待辦為準。
 
 `app.config.ts` 的目前設定具體包含 `provideRouter(routes, withComponentInputBinding())`、針對 `/api/v1` request 設定 `withCredentials: true`，以及以 `XSRF-TOKEN-API` Cookie 讀取 request token、送出 `X-XSRF-TOKEN` Header 的 XSRF 設定。API 的 `GET /api/v1/account/antiforgery-token` 會建立這個可讀取的 request token；API 內部的 HttpOnly Cookie 仍由 ASP.NET Core 保護。
 
@@ -323,7 +323,7 @@ export class CatalogApi {
 5. 圖片使用 API 回傳的解析後 URL；選項與狀態標籤使用 `/api/v1/metadata`，不在元件內複製資料庫代碼。
 6. 建議以 Scalar／OpenAPI 確認 request／response；遇到問題時用瀏覽器 Network 檢查 Cookie、XSRF Header、狀態碼與 payload，視功能範圍執行建置與測試。
 
-前台目前沒有 feature component 或 route，因此上述順序是實作邊界，不是對現有頁面狀態的描述。後端契約變更時，DTO、OpenAPI 文字、Angular 型別與受影響頁面應在同一項變更中核對。
+既有前台已有 feature component 與 route；上述順序是新增或修改功能時的實作邊界。後端契約變更時，DTO、OpenAPI 文字、Angular 型別與受影響頁面應在同一項變更中核對。
 
 ## 建議的串接檢查
 

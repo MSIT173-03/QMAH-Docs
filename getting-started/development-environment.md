@@ -6,7 +6,7 @@
 
 完成資料庫還原後，可直接用 Visual Studio 開啟方案並按 `F5`，不需要先執行命令列。
 
-本機共用資料請從 [QMAH-Database db-v0.9.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.9.0) 取得 `QMAH.sql` 或 `.bak`；QMAH 主 Repository 的 Release 只保留版本導覽，不提供資料庫附件。
+本機共用資料請從 [QMAH-Database db-v0.10.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.10.0) 取得 `QMAH.sql` 或 `.bak`；QMAH 主 Repository 的 Release 只保留版本導覽，不提供資料庫附件。
 
 ## 共同版本
 
@@ -54,7 +54,7 @@ Server=.;Database=QMAH
 
 ### 參考資料庫
 
-目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.9.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.9.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.9.0/QMAH.sql) 可直接在 SSMS 執行。
+目前相容的完整 Snapshot 可從 [QMAH-Database db-v0.10.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.10.0) 取得；其中的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.10.0/QMAH.sql) 可直接在 SSMS 執行。
 
 若另有同一版本且已驗證的 `.bak`，也可以用 SSMS 還原。QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。
 
@@ -71,7 +71,7 @@ Server=.;Database=QMAH
 
 ## 啟動網站與 API
 
-QMAH 把 Razor 前端管理後台與 REST API 分成兩個可獨立啟動的 ASP.NET Core 後端主機。
+QMAH 把 Angular 使用者前台、Razor 管理後台與 REST API 分成三個可獨立啟動的應用程式；Angular 前台透過 proxy 呼叫 API。
 
 兩者共用 `QMAH.Infrastructure`、Identity 與 SQL Server，不需要複製 Entity 或建立第二套資料庫。
 
@@ -80,9 +80,9 @@ QMAH 把 Razor 前端管理後台與 REST API 分成兩個可獨立啟動的 ASP
 | `QMAH.Web` 的 `https`／`http` | Razor 前端管理後台與五個 Area | `https://localhost:7039`／`http://localhost:5183` |
 | `QMAH.Api` 的 `https`／`http` | `/api/v1/*`、OpenAPI 與 Scalar | `https://localhost:7249`／`http://localhost:5147` |
 
-Visual Studio 2026 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 後端主機與管理後台（API＋Razor）`，一次啟動後端 API 與 Razor 前端管理後台。
+Visual Studio 2026 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 全站（API＋前台＋管理後台）`，一次啟動 API、Angular 使用者前台與 Razor 管理後台。啟動後可分別從 `https://localhost:7249`、`http://localhost:4200/` 與 `https://localhost:7039` 開啟。
 
-若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定；若 IDE 未顯示該設定，仍可分別以兩個專案的 `https` 設定啟動。
+若只要 API 與 Angular 前台，選 `QMAH API＋Angular 前台`；若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定；若 IDE 未顯示該設定，仍可分別以專案的 `https` 設定啟動。
 
 使用 2026 年目前穩定版的 Visual Studio Code 開啟 Repository 根目錄後，在 **Run and Debug** 選 `QMAH 使用者前台開發（API 後端＋Angular 前端）`。
 

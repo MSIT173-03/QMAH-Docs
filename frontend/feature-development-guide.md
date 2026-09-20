@@ -136,7 +136,7 @@ API 回應中的日期保留原始 ISO 8601 值，由共用格式化工具轉成
 
 ## 從空資料夾到正式頁面
 
-先依 [Angular 開發入口](angular-development.md#開發入口)還原本機 DB、啟動 API 與 Angular。瀏覽器使用 `http://localhost:4200/`；API 契約在 `https://localhost:7249/scalar/v1`。app.routes 仍為空，尚無功能頁是預期狀態；選定 Domain 後才建立實際功能目錄。
+先依 [Angular 開發入口](angular-development.md#開發入口)還原本機 DB、啟動 API 與 Angular。瀏覽器使用 `http://localhost:4200/`；API 契約在 `https://localhost:7249/scalar/v1`。既有前台已包含主要 Domain route；開始新功能前先查閱[前台整合狀態](integration-status.md)，再由整合者把新增入口接入既有 App Shell。
 
 建議一次完成一條可操作流程，而不是先把五個 Domain 的所有畫面或 service 寫完：
 
@@ -218,7 +218,7 @@ service 測試可使用 Angular 的 `provideHttpClient()`，再註冊 `provideHt
 
 | 現象 | 先看哪裡 |
 | --- | --- |
-| Angular 首頁空白 | app.routes 是否有已實作的 page；目前骨架尚無功能路由 |
+| Angular 首頁空白 | 確認 dev server、API／proxy 與目前 route 是否正常載入，再查看瀏覽器 console 與 Network；目前前台不是空骨架 |
 | `/api` 回傳 HTML | URL 或 proxy 是否正確，是否被 SPA fallback 接走 |
 | API 連不到 | API 是否以 https profile 啟動、7249 是否一致、proxy 設定及本機開發憑證 |
 | `401` | `.QMAH.Api.Auth` 是否存在且 request 有帶 Cookie；帳號 session 是否有效 |

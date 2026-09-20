@@ -114,7 +114,7 @@ Scalar 用來確認 API 契約與手動測試，不能取代前台畫面。完�
 GUI 啟動方式如下：
 
 - Visual Studio 開啟 `QMAH.sln` 後，使用啟動設定選擇 `QMAH API`，即可單獨啟動 API。
-- Visual Studio 選擇 `QMAH 後端主機與管理後台（API＋Razor）`，即可同時啟動 `QMAH.Api` 與 `QMAH.Web`。
+- Visual Studio 選擇 `QMAH 全站（API＋前台＋管理後台）`，即可同時啟動 `QMAH.Api`、Angular 使用者前台與 `QMAH.Web`。
 - Visual Studio 的 API 啟動設定使用 `https` profile（啟動設定檔），網址為 `https://localhost:7249`；HTTP profile（啟動設定檔）的網址為 `http://localhost:5147`。
 - VS Code 開啟 Run and Debug（執行與除錯介面）面板後，可選擇 `QMAH API（https）` 單獨啟動後端 API、選擇 `QMAH Angular 前端使用者前台` 單獨啟動 Angular 前端，或選擇 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動兩者。
 

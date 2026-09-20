@@ -13,7 +13,7 @@ List、Controller、ViewModel、Razor 表單與完整 CRUD 的最小範例見[�
 ## 開始前
 
 1. 從 QMAH-Database 取得相容的 `QMAH.sql`，或使用同版本且已驗證的 `.bak`。
-2. 開啟 `QMAH.sln`，確認 `QMAH.Web` 與 `QMAH.Api` 至少各自可以啟動；Visual Studio 也可以選 `QMAH 後端主機與管理後台（API＋Razor）` 一次啟動兩者。
+2. 開啟 `QMAH.sln`，確認 `QMAH.Web` 與 `QMAH.Api` 至少各自可以啟動；若要連同使用者前台一起檢查，可選 `QMAH 全站（API＋前台＋管理後台）` 一次啟動三個服務。
 3. 開發分支使用對應的 `feature/*` 分支，並在開始前同步遠端變更。
 4. 先閱讀 `QMAH.Infrastructure/Data/QmahDbContext.cs` 中本 Area 的 DbSet 與 mapping。全新環境使用最新版完整 Snapshot；需要保留既有資料時，只使用 Release 明確提供且起訖版本相符的升級 SQL。文物資料匯入是功能資料更新，不等同資料庫 Schema 升級。
 5. SSMS Diagram 用於核對主鍵、外鍵、唯一索引、可否為 `NULL` 與 `rowversion`。
