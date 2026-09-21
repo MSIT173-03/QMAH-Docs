@@ -90,7 +90,7 @@ Mini Game 完成與批次操作各保留公開重試入口及私有單次交易�
 
 ## 圖片與部署設定
 
-API 預設媒體根目錄為 `../QMAH.Web/wwwroot/media`，適用於 Web／API 並置的本機開發。兩個主機分開部署時不能假設共享 filesystem；Azure 正式部署需 shared media storage，並依部署方式設定儲存與交付路徑。
+API 預設媒體根目錄為 `../QMAH.Web/wwwroot/media`，適用於 Web／API 並置的本機開發；目前 API 直接交付公開的 `media/catalog` 與 `media/store`，只啟動 API 與 Angular 即可顯示這些圖片。兩個主機分開部署時不能假設共享 filesystem；Azure 正式部署需 shared media storage，並依部署方式設定儲存與交付路徑。
 
 Resolver 只轉換公開網址，不會搬檔案。改用 CDN 還需上傳素材、設定來源與存取權限；受保護的媒體不能直接公開。完整步驟見[媒體交付設定](../frontend/media-delivery.md)。
 

@@ -61,7 +61,7 @@ CDN 暫時無法連線時，解析器也不會逐張圖片發出健康檢查。�
 }
 ```
 
-API 專案的共用設定使用 `../QMAH.Web/wwwroot/media`，讓 API 的受控上傳與本機 Web 媒體目錄保持一致。Web 專案使用 `wwwroot/media`。
+API 專案的共用設定使用 `../QMAH.Web/wwwroot/media`，讓 API 的受控上傳與本機 Web 媒體目錄保持一致。Web 專案使用 `wwwroot/media`。目前 API 會直接公開 `media/catalog` 與 `media/store`，因此只啟動 API 與 Angular 也能交付圖鑑及商城公開圖片；`uploads`、頭像等私人媒體仍依 QMAH.Web 的設定處理。
 
 Development 設定明確寫出 `Local`，方便檢查啟動環境的實際預設值。
 

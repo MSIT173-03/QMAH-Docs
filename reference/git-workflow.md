@@ -20,7 +20,7 @@ Repository：<https://github.com/MSIT173-03/QMAH>
 
 Repository 採 Public，以使用 GitHub Free 組織的 Branch Protection。保護只套用共同分支，不影響 feature branch 的日常 Push。
 
-目前遠端設定（2026-09-02 查核）：
+目前遠端設定（2026-09-21 查核）：
 
 | 分支 | Required status checks | force push | 刪除 |
 | --- | --- | --- | --- |
