@@ -275,6 +275,17 @@ body {
   max-width: 700px;
 }
 
+.qmah-index-note {
+  background: var(--qmah-paper-deep);
+  border-left: 2px solid var(--qmah-cinnabar);
+  color: var(--qmah-ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 1.25rem 0 0;
+  max-width: 700px;
+  padding: 0.75rem 1rem;
+}
+
 .qmah-index-meta {
   align-items: center;
   color: var(--qmah-cinnabar);
