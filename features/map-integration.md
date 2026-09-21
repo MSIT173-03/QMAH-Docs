@@ -15,7 +15,7 @@ QMAH 目前只產生地圖連結。後台保存地點文字與選填座標，管
 | 地圖服務 | OpenStreetMap 網站連結，不需要 API Key |
 | 資料來源 | `social.Events`、`social.SocialPosts`、`user.UserAddresses`；商城若保存地址也沿用相同欄位規則 |
 | 座標型別 | SQL Server `decimal(9,6)`，緯度與經度都可為 null |
-| 前端使用者前台起點 | Angular 21.2.22 透過 `HttpClient` 讀取 `/api/v1/*` |
+| 前端使用者前台起點 | Angular 21.2.23 透過 `HttpClient` 讀取 `/api/v1/*` |
 
 展示資料中的兩個實體場館地址已依官方公開資訊整理：
 

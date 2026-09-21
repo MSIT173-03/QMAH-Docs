@@ -91,7 +91,7 @@ Angular 是使用者前台的前端，`QMAH.Api` 是它呼叫的後端。`QMAH.W
 4. Mini Game start 建立 Attempt（一次遊玩紀錄），保存素材池、設定及 Seed（種子）。complete 才處理分數與獎勵。
 5. 點數直接入帳，鑰匙進度先累積。假設門檻 100、原有 96、這次加 10，就轉 1 把一般鑰匙並留下 6 進度。實際數字讀後台設定。
 
-目前 complete 檢查 `rawScore` 範圍及 `rawResultJson` 格式，直接把 `rawScore` 當成 `NormalizedScore`；逐玩法驗證拼圖、翻牌或操作結果尚未完成。新增玩法還需要實作這部分，不能只加模式資料就當成可正式遊玩。每日獎勵限制目前使用 UTC 日期。
+目前 complete 檢查 `rawScore` 範圍、`rawResultJson` 格式及模式盤面結果：館藏拼圖驗證 5×5 共 25 塊，長卷復位驗證 3×5 共 15 段，館藏翻牌驗證素材池內最多 8 組配對。新增玩法仍需要新增對應的結果驗證，不能只加模式資料就當成可正式遊玩。每日獎勵限制目前使用 UTC 日期。
 
 多個結算方法仍直接開 transaction，串接前需驗證與 Program 的 SQL 重試設定是否相容。本文件描述目前程式流程，不代表這些路徑已完成整合測試。詳細入口見[遊戲](../quick-reference/game.md)。
 

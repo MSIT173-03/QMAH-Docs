@@ -51,6 +51,7 @@ Markdown 可在 Repository 內檢視、版本追蹤與離線閱讀；VitePress �
 - [Angular 使用者前台開發](frontend/angular-development.md)
 - [前台功能接手指南](frontend/feature-development-guide.md)
 - [Angular 前台整合狀態與五系統待辦](frontend/integration-status.md)
+- [前台色彩與視覺素材基準](frontend/ui-color-system.md)
 - [媒體交付設定](frontend/media-delivery.md)
 
 ### 管理後台

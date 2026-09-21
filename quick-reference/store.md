@@ -15,6 +15,17 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 
 例如，購物車顯示的價格與建立訂單結果不同時，應呈現後端確認的成交金額。查某張券為何不能使用時，依序確認會員歸屬、狀態、期限與消費門檻，不只查看券定義是否啟用。
 
+## 前台 API 對照
+
+目前 Angular 前台使用的正式路徑如下：
+
+| 前台用途 | API 路徑 |
+| --- | --- |
+| 商品分類、活動、商品與評價 | `/api/v1/store/categories`、`/api/v1/store/promotions`、`/api/v1/store/products`、`/api/v1/store/products/{id}`、`/api/v1/store/products/{id}/reviews` |
+| 會員資料與資產 | `/api/v1/me`、`/api/v1/me/coupons`、`/api/v1/me/cart` |
+
+首頁版位、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未有正式後端路徑。前台對這些版位使用本地 fallback 或既有商品型錄排序，不應自行新增不存在的 `/home/*`、`/rankings`、`/recommendations`、`/search/*` 或 `/site/config` 請求。測試用 `store/api/mock` 只供測試 interceptor 使用，不代表正式 API 已存在。
+
 ## 資料表與關聯
 
 | 資料表或資料群 | 在此入口的用途 | 主要關聯／限制 |

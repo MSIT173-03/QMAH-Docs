@@ -40,7 +40,7 @@
 
 ## Angular 與前端
 
-- [Angular Version Compatibility](https://angular.dev/reference/versions)：確認 Angular major／minor 與 Node.js、TypeScript、RxJS 的相容範圍。課程要求 Angular 21；QMAH 固定 `21.2.22`，版本選擇理由見[前端文件](../frontend/angular-development.md)。
+- [Angular Version Compatibility](https://angular.dev/reference/versions)：確認 Angular major／minor 與 Node.js、TypeScript、RxJS 的相容範圍。課程要求 Angular 21；QMAH 核心套件固定 `21.2.23`，CLI／Build 固定 `21.2.24`，版本選擇理由見[前端文件](../frontend/angular-development.md)。
 - [Angular HTTP Client](https://angular.dev/guide/http)：說明 `HttpClient`、請求設定與資料取得。QMAH 前台透過 `/api/v1` DTO 契約，不直接連 SQL Server。
 - [Angular Routing](https://angular.dev/guide/routing)：說明 Router、路由組態與導覽。實際前台路由以 `QMAH.Client/src/app` 為準。
 

@@ -20,6 +20,7 @@
 | --- | --- |
 | 排版、間距、手機版面 | [Tailwind CSS 用法](frontend/tailwind-guide.md) |
 | 按鈕、卡片、表單與共用色彩 | [daisyUI 用法](frontend/daisyui-guide.md) |
+| 五大系統的色彩語意與 UI／照片素材邊界 | [前台色彩與視覺素材基準](frontend/ui-color-system.md) |
 | 找現成區塊，搬進 Angular | [HyperUI 用法](frontend/hyperui-guide.md) |
 
 要啟動專案、確認整合狀態或接上功能，再看下面的入口：
@@ -120,6 +121,7 @@
 
 - [Angular 使用者前台開發](frontend/angular-development.md)
 - [前台功能接手指南](frontend/feature-development-guide.md)
+- [前台色彩與視覺素材基準](frontend/ui-color-system.md)
 - [媒體交付設定](frontend/media-delivery.md)
 
 ### 管理後台

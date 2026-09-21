@@ -1,6 +1,6 @@
 # Angular 使用者前台開發
 
-`QMAH.Client` 使用 Angular 21.2.22，已有 Router、HttpClient、Cookie／XSRF、共用 App Shell 與 proxy 設定；API 契約由 `QMAH.Api` 的 `/api/v1` 提供。User、Catalog、Game、Social、Store 已接入主要前台入口；目前整合狀態與待辦見[前台整合狀態](integration-status.md)。
+`QMAH.Client` 使用 Angular 核心套件 21.2.23、CLI／Build 21.2.24，已有 Router、HttpClient、Cookie／XSRF、共用 App Shell 與 proxy 設定；API 契約由 `QMAH.Api` 的 `/api/v1` 提供。User、Catalog、Game、Social、Store 已接入主要前台入口；目前整合狀態與待辦見[前台整合狀態](integration-status.md)，共用色彩與視覺素材界線見[前台色彩與視覺素材基準](ui-color-system.md)。
 
 前端、後端、前台與後台的固定用法見[文件閱讀與名詞基準](../reference/terminology.md)。
 
@@ -105,11 +105,11 @@ QMAH 前台的一條基本資料流程如下：
 
 可以把這條路徑記成：`route → component → service → HttpClient → API → JSON → component`。網址、畫面呈現和 API 呼叫各有自己的位置；新增功能時，依責任分開放置，不把所有工作集中在同一個 component。
 
-## Angular 21.2.22 的版本選擇
+## Angular 21.2.23 的版本選擇
 
 課程要求使用 Angular 21，因此版本線維持在 Angular 21，不升到 Angular 22。
 
-Repository 固定使用 Angular 21 版本線內的 `21.2.22`，沿用 standalone、Router、HttpClient 與環境設定；UI baseline 為 Tailwind CSS 4 與 daisyUI 5。
+Repository 固定使用 Angular 21 版本線內的核心套件 `21.2.23`，CLI／Build 使用 `21.2.24`，沿用 standalone、Router、HttpClient 與環境設定；UI baseline 為 Tailwind CSS 4 與 daisyUI 5。
 
 Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、TypeScript 與 RxJS 相容範圍內。實際版本以 `QMAH.Client/package.json` 與 `package-lock.json` 為準。
 
@@ -146,7 +146,7 @@ API 與 Angular 可以透過下列方式啟動：
 | Visual Studio Code（2026 年目前穩定版） | 使用 `QMAH 使用者前台開發（API 後端＋Angular 前端）` 同時啟動，或分別使用 `QMAH API（https）` 與 `QMAH Angular 前端使用者前台` |
 | 命令列 | API 執行 `dotnet run --project .\QMAH.Api\QMAH.Api.csproj --launch-profile https`，另一個終端機在 `QMAH.Client` 執行 `npm start` |
 
-瀏覽器開啟 `http://localhost:4200/`。Angular 前端使用 `/api/v1` 相對路徑，開發伺服器由 `QMAH.Client/proxy.conf.json` 將 `/api`、`/openapi` 與 `/scalar` 轉送到後端 API。Catalog 與商城的公開圖片由 QMAH.Web 提供；若只啟動 API 與 Angular，圖片路徑仍需依本機 Web／proxy 配置處理，圖片 404 不代表 API DTO 錯誤。
+瀏覽器開啟 `http://localhost:4200/`。Angular 前端使用 `/api/v1` 相對路徑，開發伺服器由 `QMAH.Client/proxy.conf.json` 或 `proxy.http.conf.json` 將 `/api`、`/openapi`、`/scalar` 與公開 `/media` 轉送到後端 API。`npm start` 會先探測 `https://localhost:7249`，未偵測到時改用 `http://localhost:5147`；需要固定協定時可執行 `npm run start:https` 或 `npm run start:http`。API 直接提供公開 Catalog／Store media，因此只啟動 API 與 Angular 即可顯示公開圖片；`/uploads` 與頭像仍依 QMAH.Web 的私人媒體設定處理。
 
 因此 component（畫面元件）不保存固定 API 連接埠。建置與測試命令見本頁後方的[固定版本與本機工作流](#固定版本與本機工作流)。
 
@@ -161,13 +161,13 @@ API 與 Angular 可以透過下列方式啟動：
 | `src/app/app.routes.ts` | 已註冊 Auth、User、Catalog、Game、Social、Store 與 Admin 相關入口 | 新增入口仍以 lazy loading 集中註冊 |
 | `src/app/app.config.ts` | 註冊 Router、HttpClient、API Cookie 與 XSRF 設定 | 維持全站 HTTP 基線；功能服務不各自重複設定 |
 | `src/environments/environment*.ts` | `apiBaseUrl` 都是 `/api/v1` | 依環境設定 API 根路徑，不在 component 寫死連接埠 |
-| `proxy.conf.json` | 將 `/api`、`/openapi`、`/scalar` 轉送至 `https://localhost:7249` | 只供 Angular 開發伺服器使用，不帶入正式建置設定 |
+| `proxy.conf.json`／`proxy.http.conf.json` | 將 `/api`、`/openapi`、`/scalar`、`/media` 分別轉送至 API 的 HTTPS 7249 或 HTTP 5147 | 只供 Angular 開發伺服器使用；`npm start` 會依可用端點自動選擇，proxy 設定不帶入正式建置 |
 
 五個 Domain（catalog、game、social、store、user）是目前的開發分工；各自的頁面、service 與互動留在 `src/app/<domain>` 附近。API 已接入不代表所有真實資料庫流程都已完成驗證，請以[前台整合狀態](integration-status.md)的待辦為準。
 
 `app.config.ts` 的目前設定具體包含 `provideRouter(routes, withComponentInputBinding())`、針對 `/api/v1` request 設定 `withCredentials: true`，以及以 `XSRF-TOKEN-API` Cookie 讀取 request token、送出 `X-XSRF-TOKEN` Header 的 XSRF 設定。API 的 `GET /api/v1/account/antiforgery-token` 會建立這個可讀取的 request token；API 內部的 HttpOnly Cookie 仍由 ASP.NET Core 保護。
 
-商城的 `src/app/store/api/mock` 僅供 `.spec.ts` 的 `provideMockApi()` 測試使用，正式 `app.config.ts` 不註冊 `mockApiInterceptor`。正式商城商品與優惠活動分別讀取真實的 `/api/v1/store` API；其中 `/api/v1/store/promotions` 直接回傳官方商城公告的標題、本文與發布日期，畫面可依版位選擇呈現層級。
+商城的 `src/app/store/api/mock` 僅供 `.spec.ts` 的 `provideMockApi()` 測試使用，正式 `app.config.ts` 不註冊 `mockApiInterceptor`。正式商城商品、活動與會員資產分別讀取 `/api/v1/store/categories`、`/api/v1/store/promotions`、`/api/v1/store/products`、`/api/v1/me`、`/api/v1/me/coupons` 與 `/api/v1/me/cart`。首頁版位、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未有正式契約，前台使用現有型錄排序或本地 fallback，不能把 mock handler 當成已存在的正式路徑。
 
 ## 登入後的第一條資料流程
 
@@ -339,7 +339,8 @@ export class CatalogApi {
 
 | 工具 | 版本／範圍 |
 | --- | --- |
-| Angular、Angular CLI、Angular Build | `21.2.22` |
+| Angular 核心套件／編譯器 | `21.2.23` |
+| Angular CLI／Build | `21.2.24` |
 | Node.js | 20.19.0 以上的 20.x、22.12.0 以上的 22.x，或 24.0.0 以上 |
 | npm | `11.16.0` |
 | TypeScript | `5.9.3` |

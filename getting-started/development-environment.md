@@ -22,7 +22,8 @@
 | jQuery                         |    3.7.1 | 既有 Razor 表單與簡單互動                |
 | jQuery Validation              |   1.22.1 | 使用者端欄位驗證                         |
 | jQuery Validation Unobtrusive  |    4.0.0 | ASP.NET Core Model Validation 的前端橋接 |
-| Angular、Angular CLI、Angular Build | 21.2.22 | Angular 前端開發骨架與建置                       |
+| Angular 核心套件／編譯器 | 21.2.23 | Angular 前端開發骨架與編譯 |
+| Angular CLI／Build | 21.2.24 | Angular 前端指令與建置 |
 | Node.js                        | 見 `QMAH.Client/package.json` | Angular CLI 執行環境；支援 20.19.0 以上的 20.x、22.12.0 以上的 22.x，或 24.0.0 以上 |
 | npm                            |   11.16.0 | Angular 依賴安裝；`packageManager` 固定此版本 |
 | TypeScript                     |    5.9.3 | Angular 前端型別檢查                     |
@@ -82,7 +83,7 @@ QMAH 把 Angular 使用者前台、Razor 管理後台與 REST API 分成三個�
 
 Visual Studio 2026 開啟 `QMAH.sln` 後，可在啟動設定選擇 `QMAH 全站（API＋前台＋管理後台）`，一次啟動 API、Angular 使用者前台與 Razor 管理後台。啟動後可分別從 `https://localhost:7249`、`http://localhost:4200/` 與 `https://localhost:7039` 開啟。
 
-若只要 API 與 Angular 前台，選 `QMAH API＋Angular 前台`；若只要檢查 API，選 `QMAH API`。`.slnLaunch` 是便利設定；若 IDE 未顯示該設定，仍可分別以專案的 `https` 設定啟動。
+若只要 API 與 Angular 前台，選 `QMAH API＋Angular 前台`；若只要檢查 API，選 `QMAH API`。只啟動 API 與 Angular 時，API 已直接提供公開 Catalog／Store media，不需要為了公開圖片另外啟動 `QMAH.Web`。`.slnLaunch` 是便利設定；若 IDE 未顯示該設定，仍可分別以專案的 `https` 或 `http` 設定啟動。
 
 使用 2026 年目前穩定版的 Visual Studio Code 開啟 Repository 根目錄後，在 **Run and Debug** 選 `QMAH 使用者前台開發（API 後端＋Angular 前端）`。
 
@@ -334,7 +335,7 @@ Visual Studio 主要使用 `.slnLaunch` 與 Hot Reload；VS Code 使用根目錄
 - SSMS 已還原 `QMAH`，六個 schema 都存在。
 - `QMAH.Web`、`QMAH.Api` 的 `https` 或 `http` 至少各有一種可以啟動。
 - 後端 API 能以明確 CORS 來源接受 Angular 前端使用者前台請求。
-- `QMAH.Client` 已以 `npm ci` 還原 Angular 21.2.22，且 `npm audit --audit-level=high` 沒有高風險漏洞。
+- `QMAH.Client` 已以 `npm ci` 還原 Angular 21.2.23／CLI、Build 21.2.24，且 `npm audit --audit-level=high` 沒有高風險漏洞。
 - 五個 Area 首頁可以開啟。
 - NuGet 沒有未還原警告。
 - 個人連線只寫在 `appsettings.Local.json` 或 User Secrets。

@@ -6,11 +6,11 @@ QMAH API 位於獨立的 `QMAH.Api` 專案，所有版本化 Endpoint（API 可�
 
 API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.Infrastructure`、Identity（登入與會員驗證元件）與 SQL Server（資料庫服務）。API 不複製 Entity（資料庫對應模型），也不建立第二個資料庫。
 
-開發環境 API 位於 `https://localhost:7249`。Development（開發環境）預設提供 `/openapi/v1.json` 與 `/scalar/v1`。
+開發環境 API 的 HTTPS profile 位於 `https://localhost:7249`，HTTP profile 位於 `http://localhost:5147`。Development（開發環境）預設提供 `/openapi/v1.json` 與 `/scalar/v1`；Angular 前台的 `npm start` 會優先使用 HTTPS，找不到時改用 HTTP。
 
 非 Development 環境只有在 `OpenApi:Enabled=true` 時提供 OpenAPI。若也要提供 Scalar（互動式 API 文件頁面），另外啟用 `OpenApi:ScalarEnabled=true`。
 
-Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。
+Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。API 也直接提供公開 `/media/catalog` 與 `/media/store`，只有 `/uploads` 與頭像等私人媒體仍依 QMAH.Web 的設定處理。
 
 ## 本頁閱讀分流 {#rest-api-reading-route}
 
@@ -336,12 +336,16 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 | GET | `/api/v1/catalog/eras` | 年代篩選 |
 | GET | `/api/v1/me/catalog/artifacts` | 登入後取得目前會員圖鑑清單；`q`、`categoryCode`、`eraCode`、`page`、`pageSize`；每筆附 `isUnlocked`、`unlockedAt` |
 | GET | `/api/v1/me/catalog/unlocks` | 登入後取得目前會員解鎖歷史；支援 `q`、`categoryCode`、`eraCode`、`page`、`pageSize`；依最新解鎖時間排序 |
+| GET | `/api/v1/store/categories` | 商城器類與目前上架商品數 |
+| GET | `/api/v1/store/promotions` | 與社群共用的官方商城活動公告 |
 | GET | `/api/v1/store/products` | `q`、`categoryCode`、`artifactId`、`page`、`pageSize`；只回傳上架商品 |
 | GET | `/api/v1/store/products/{id}` | 商品詳情與對應文物 |
 | GET | `/api/v1/store/products/{productId}/reviews` | 公開評價分頁、平均星等與評價總數；只計入已發布內容 |
 | GET | `/api/v1/store/products/{productId}/reviews/me` | 登入後取得目前會員對該商品的評價 |
 | PUT | `/api/v1/store/products/{productId}/reviews/me` | 登入後新增或修改目前會員的 1 至 5 星評價與短文 |
 | DELETE | `/api/v1/store/products/{productId}/reviews/me` | 登入後刪除目前會員所屬的評價；採軟刪除，不影響其他會員的內容 |
+
+商城首頁的主視覺、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 目前不是後端 API 契約。前台使用既有商品型錄或本地 fallback，不應把這些未存在的 `/home/*`、`/rankings`、`/recommendations`、`/search/*`、`/site/config` 路徑當成可呼叫端點。
 
 Code（系統代碼）是資料契約，不是直接給使用者看的文案；前台應以 metadata（供前端使用的選項資料）的 Label（畫面顯示文字）呈現。文物圖片與商品圖片使用既有 `/media/catalog/` 路徑及其來源授權資料，媒體網址切換規則見[媒體交付設定](../frontend/media-delivery.md)。
 
