@@ -12,6 +12,8 @@ API 與 Razor（ASP.NET Core 的伺服器端頁面技術）後台共用 `QMAH.In
 
 Angular 前端使用者前台平常透過 proxy（前端開發伺服器的轉送設定）使用相對路徑 `/api/v1`。API 也直接提供公開 `/media/catalog` 與 `/media/store`，只有 `/uploads` 與頭像等私人媒體仍依 QMAH.Web 的設定處理。
 
+本頁的 Endpoint 清單於 2026-09-21 依 `QMAH.Api/Controllers/V1` 重新核對，目前列出 119 條 Controller 路由。OpenAPI 與 Scalar 啟動後的結果仍是欄位、可空值、驗證規則與回應狀態的唯一正規來源；本頁負責提供可快速搜尋的路由索引與前台串接邊界。
+
 ## 本頁閱讀分流 {#rest-api-reading-route}
 
 | 需要確認的內容 | 直接查看 |
@@ -224,11 +226,11 @@ Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
 1. 呼叫 `GET /api/v1/game/modes` 取得模式與目前設定。
 2. 呼叫 `POST /api/v1/game/attempts`，使用回傳的 Attempt、文物池、Seed 與 Config 建立玩法。
 3. 呼叫 `POST /api/v1/game/attempts/{id}/complete` 送出原始分數與結果資料。
-4. 前台顯示後端回傳的分數、Grade、點數與鑰匙進度。目前後端依送入分數和設定門檻計算評級，尚未根據四種玩法的操作紀錄驗證成績。
+4. 前台顯示後端回傳的分數、Grade、點數與鑰匙進度。後端會依 Attempt、模式、素材池與 `rawResultJson` 的最終盤面重算分數；目前不記錄或重播完整操作序列。
 
 `rawScore` 限 0～100；`rawResultJson` 選填，非空時須為最多 4,000 字元的 JSON 文字，解析後須為物件或陣列。格式錯誤回傳 `400`。有效請求重送已完成 Attempt 時回傳 `200`，`alreadyCompleted` 為 `true`，不再發獎；其他不可完成狀態才回傳 `409`。畫面不應看到成功回應就再次累加點數，應重新讀取背包。
 
-`rawResultJson` 的 DTO 使用 `StringLength(4000)`，OpenAPI 可表達相同長度上限；服務另檢查 JSON 格式。目前回應的 `normalizedScore` 等於 `rawScore`，並不表示伺服器已重播操作驗證成績。
+`rawResultJson` 的 DTO 使用 `StringLength(4000)`，OpenAPI 可表達相同長度上限；服務另檢查 JSON 格式與模式專用盤面。成功回應的 `normalizedScore` 等於已驗證的 `rawScore`，但不表示伺服器記錄或重播完整操作序列。
 
 正式環境（正式使用的部署環境）預設不公開文件。部署時若需要公開 OpenAPI，須以設定檔明確啟用 `OpenApi:Enabled`；若也需要公開 Scalar，另須啟用 `OpenApi:ScalarEnabled`。
 
@@ -319,11 +321,15 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 | Method | Path | 權限 | 用途 |
 | --- | --- | --- | --- |
 | GET | `/api/v1/account/antiforgery-token` | 公開 | 設定瀏覽器 Anti-forgery Cookie |
+| GET | `/api/v1/account/capabilities` | 公開 | 回傳目前可用的帳號能力，例如是否已設定 Google 登入；不回傳 secret 或 Client ID |
+| GET | `/api/v1/account/me` | 登入後 | 取得精簡的登入 session 摘要；完整會員資料使用 `/api/v1/me` |
 | POST | `/api/v1/account/login` | 公開 | Email／密碼登入，成功 204 |
 | POST | `/api/v1/account/logout` | 登入後 | 登出並清除登入 Cookie |
 | POST | `/api/v1/account/register` | 公開 | 建立會員與 Profile（會員資料） |
 | POST | `/api/v1/account/forgot-password` | 公開 | 寄送或模擬寄送密碼重設指示；不透露 Email 是否存在 |
 | POST | `/api/v1/account/reset-password` | 公開 | 使用重設 Token（密碼重設驗證字串）更新密碼 |
+| GET | `/api/v1/account/google-login` | 公開 | Google OAuth（外部登入）入口；未設定 Google 憑證時回傳 503 |
+| GET | `/api/v1/account/google-callback` | 公開 | Google OAuth 回呼；成功後依 `Frontend:ClientUrl` 回到前台 |
 
 ### metadata、圖鑑與商城
 
@@ -347,6 +353,8 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 
 商城首頁的主視覺、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 目前不是後端 API 契約。前台使用既有商品型錄或本地 fallback，不應把這些未存在的 `/home/*`、`/rankings`、`/recommendations`、`/search/*`、`/site/config` 路徑當成可呼叫端點。
 
+目前也沒有 `/api/v1/store/checkout/options` 或 `/api/v1/store/checkout/quote`；結帳頁的 `CheckoutApi.getQuote()` 是待完成的前台契約缺口，不應視為正式可用 API。建立訂單的 `POST /api/v1/store/orders` 已存在，但配送、付款、報價與付款回呼尚未形成完整契約。另有舊的 `CatalogService` 保留文物寫入方法，但 `CatalogController` 目前只有讀取路由，這些方法不屬於目前正式 API。
+
 Code（系統代碼）是資料契約，不是直接給使用者看的文案；前台應以 metadata（供前端使用的選項資料）的 Label（畫面顯示文字）呈現。文物圖片與商品圖片使用既有 `/media/catalog/` 路徑及其來源授權資料，媒體網址切換規則見[媒體交付設定](../frontend/media-delivery.md)。
 
 ### 社群、公告與活動
@@ -354,6 +362,7 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | Method | Path | 參數／用途 |
 | --- | --- | --- |
 | GET | `/api/v1/social/posts` | `q`、`boardCode`、`postType`、`artifactId`、`page`、`pageSize`；公開貼文清單 |
+| GET | `/api/v1/social/boards` | 公開看板代碼；會合併標準看板與已存在的公開資料看板 |
 | GET | `/api/v1/social/posts/{id}` | 貼文全文、公開留言與可用社群圖片 |
 | GET | `/api/v1/social/announcements` | 公告貼文清單；公告是貼文類型，不是另一個編輯資料源 |
 | GET | `/api/v1/social/events` | 已核准且已發布活動清單與報名人數 |
@@ -362,7 +371,12 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | POST | `/api/v1/social/events/{id}/registration` | 登入後報名活動 |
 | DELETE | `/api/v1/social/events/{id}/registration` | 取消目前帳號的活動報名 |
 | POST | `/api/v1/social/posts` | 登入後建立一般貼文或公告貼文，可關聯文物、座標與社群圖片 |
+| PUT | `/api/v1/social/posts/{id}` | 登入後且為貼文作者；更新自己的已發布一般貼文，活動入口貼文不可直接修改 |
+| DELETE | `/api/v1/social/posts/{id}` | 登入後且為貼文作者；軟刪除自己的貼文，活動入口貼文不可直接刪除 |
+| POST | `/api/v1/social/artifacts/{artifactId}/discussion` | 登入後；以第一則留言建立或取得該文物唯一的 canonical 討論入口 |
 | POST | `/api/v1/social/posts/{postId}/comments` | 登入後新增留言或回覆 |
+| PUT | `/api/v1/social/comments/{id}` | 登入後且為留言作者；更新自己的已發布留言 |
+| DELETE | `/api/v1/social/comments/{id}` | 登入後且為留言作者；軟刪除自己的留言 |
 | POST | `/api/v1/social/reports` | 登入後檢舉公開貼文／留言 |
 
 活動是獨立資料，活動通過審核與發布後會有對應的活動貼文；一般公告則是 `SocialPosts` 的公告貼文類型。地址／地點可只填文字，也可同時提供成對的 `latitude` 與 `longitude`；地圖不是前台的必要元件。
@@ -385,6 +399,10 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | GET | `/api/v1/game/rooms/{id}` | 公開／參與中的房間詳情 |
 | POST | `/api/v1/game/rooms` | 登入後建立房間 |
 | POST | `/api/v1/game/rooms/{id}/join` | 登入後加入房間 |
+| POST | `/api/v1/game/rooms/{id}/ready` | 登入後；更新目前會員在房間中的準備狀態 |
+| POST | `/api/v1/game/rooms/{id}/start` | 登入後；房主在條件符合時開始房間 |
+| POST | `/api/v1/game/rooms/{id}/leave` | 登入後；離開尚未結束或目前可離開的房間 |
+| POST | `/api/v1/game/rooms/{id}/heartbeat` | 登入後；更新目前會員在房間中的存活／連線狀態 |
 | POST | `/api/v1/game/rounds/{id}/answers` | 回答中的回合送出答案 |
 | POST | `/api/v1/game/rounds/{id}/votes` | 投票中的回合送出投票 |
 | GET | `/api/v1/game/rounds/{id}` | 登入後取得回合與答案詳情 |
@@ -481,6 +499,27 @@ Code（系統代碼）是資料契約，不是直接給使用者看的文案；�
 | Method | Path | 權限 | 用途 |
 | --- | --- | --- | --- |
 | GET | `/api/v1/admin/dashboard` | Admin | 目前會員、文物、題庫、社群、活動、訂單、營收與熱門商品摘要 |
+
+### 管理操作
+
+管理 API 只供 `Admin` 角色使用；前台一般會員頁不應直接顯示或呼叫這些路由。
+
+| Method | Path | 權限 | 用途 |
+| --- | --- | --- | --- |
+| POST | `/api/v1/admin/catalog/members/{userId}/artifacts/{artifactId}/unlock` | Admin | 替指定會員強制解鎖一件文物，不扣鑰匙，操作具冪等性 |
+| PUT | `/api/v1/admin/catalog/products/{id}/discount-rate` | Admin | 更新單一商品折扣率 |
+| POST | `/api/v1/admin/catalog/products/discount-rate/batch` | Admin | 批次更新商品折扣率 |
+| PUT | `/api/v1/admin/catalog/products/{id}/sale-price` | Admin | 更新單一商品售價 |
+| POST | `/api/v1/admin/catalog/products/sale-price/batch` | Admin | 批次更新商品售價 |
+| GET | `/api/v1/admin/events` | Admin | 查詢活動審核與發布狀態 |
+| PUT | `/api/v1/admin/events/{id}/review` | Admin | 審核或退回活動 |
+| PUT | `/api/v1/admin/events/{id}/publish-status` | Admin | 發布或下架已審核活動 |
+| GET | `/api/v1/admin/posts` | Admin | 查詢貼文及其審核／發布狀態 |
+| PUT | `/api/v1/admin/posts/{id}/status` | Admin | 更新貼文管理狀態 |
+| GET | `/api/v1/admin/comments` | Admin | 查詢留言及其管理狀態 |
+| PUT | `/api/v1/admin/comments/{id}/status` | Admin | 更新留言管理狀態 |
+| GET | `/api/v1/admin/reports` | Admin | 查詢內容檢舉 |
+| PUT | `/api/v1/admin/reports/{id}` | Admin | 審核內容檢舉並更新處理狀態 |
 
 逐日／逐月營運檢視由 Razor（ASP.NET Core 的伺服器端頁面技術）後台的「營運中心」提供，統計查詢維持單一資料邊界；其他管理端需求沿用相同的管理摘要資料契約。
 

@@ -89,7 +89,9 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         items: [
           { text: '5＋1 系統：快速查閱與操作流程', link: '/getting-started/system-walkthrough' },
           { text: '開發環境與啟動', link: '/getting-started/development-environment' },
-          { text: '開發資料與本機展示', link: '/getting-started/development-data' }
+          { text: '開發資料與本機展示', link: '/getting-started/development-data' },
+          { text: '前台整合狀態與潛在 TODO', link: '/frontend/integration-status' },
+          { text: 'REST API 契約', link: '/reference/rest-api' }
         ]
       },
       {
@@ -107,7 +109,6 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '前端',
         items: [
           { text: 'Angular 使用者前台開發', link: '/frontend/angular-development' },
-          { text: '前台整合狀態與五系統待辦', link: '/frontend/integration-status' },
           { text: '前台色彩與視覺素材基準', link: '/frontend/ui-color-system' },
           { text: 'Tailwind CSS｜排版與響應式', link: '/frontend/tailwind-guide' },
           { text: 'daisyUI｜按鈕、卡片與表單', link: '/frontend/daisyui-guide' },
@@ -138,7 +139,6 @@ FINISH: The build is checked for content order, internal links, narrow-screen re
         text: '參考',
         items: [
           { text: '文件閱讀與名詞基準', link: '/reference/terminology' },
-          { text: 'REST API 契約', link: '/reference/rest-api' },
           { text: 'API 名詞表', link: '/reference/api-glossary' },
           { text: 'CRUD 與 Scaffold', link: '/reference/crud-and-scaffolding' },
           { text: 'QMAH 資料工具參考', link: '/reference/data-tools' },

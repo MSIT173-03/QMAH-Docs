@@ -26,7 +26,7 @@
 要啟動專案、確認整合狀態或接上功能，再看下面的入口：
 
 1. [Angular 使用者前台開發](frontend/angular-development.md)：先啟動 API 與 Angular，了解 standalone、`/api/v1`、HttpClient、Cookie／XSRF 與開發 proxy。
-2. [前台整合狀態與五系統待辦](frontend/integration-status.md)：先確認目前已接入的入口、共用基線與仍需端對端驗證的工作。
+2. [目前前台整合狀態與潛在 TODO](frontend/integration-status.md)：先確認實際已註冊的路由、正式 API 邊界與仍需端對端驗證的工作。
 3. [前台功能接手指南](frontend/feature-development-guide.md)：選定 Catalog、Game、Social、Store 或 User，依功能建立頁面、API service、路由和可選測試頁。
 4. [REST API 契約](reference/rest-api.md)：確認實際 endpoint、DTO、權限、成功回應與需要驗證的錯誤狀態。
 

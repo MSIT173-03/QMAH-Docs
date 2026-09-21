@@ -3,7 +3,7 @@
 > 更新日期：2026-09-21
 > 本頁是目前前台整合的工作基準與待辦摘要，不取代 API 契約、資料庫文件或各系統的功能說明。
 
-`QMAH.Client` 已有可操作的 Angular 使用者前台與共用 App Shell。User、Catalog、Game、Social、Store 五個系統都已接入主要入口；目前的主要缺口不是「還沒有畫面」，而是部分流程仍需要在可用的本機資料庫與三個服務同時啟動時完成端對端驗證。
+`QMAH.Client` 已有可操作的 Angular 使用者前台與共用 App Shell。User、Catalog、Game、Social、Store 五個系統都已接入主要入口；一般使用者前台的公開頁與 API＋Angular 流程不需要啟動 `QMAH.Web`，只有管理後台、私人 uploads／頭像或需要 Razor 的流程才需要第三個服務。主要缺口是部分流程仍需在可用的本機資料庫與正確啟動組合下完成端對端驗證。
 
 視覺整合以 Game 區域作為參考之一，但不是其他系統的版型規格。共用層負責導覽、主題狀態、字體階層、色彩角色、間距、圓角、表單與回饋基線；各系統仍依自己的任務保留資訊架構與操作節奏。
 
@@ -20,6 +20,23 @@
 - 圖鑑篩選器已改用 intrinsic grid、完整換行與 checked state；已解鎖篩選按鈕會在「僅顯示已解鎖／顯示全部」之間切換。
 - 真首頁、登入頁、圖鑑列表、商城首頁、社群列表、遊戲大廳與會員中心已可作為目前前台代表畫面。
 - Angular production build 與既有前端測試可作為整合變更的基本檢查；需要資料的流程仍須另做 runtime smoke。
+
+## 目前實際前台路由
+
+下表依 `QMAH.Client/src/app/app.routes.ts` 目前內容整理。路由已註冊不等於每條流程都已完成真實資料庫端到端驗證；「目前狀態」只描述程式入口與正式 API 邊界。
+
+| 路由範圍 | 目前入口 | 目前狀態 | 主要未完成事項 |
+| --- | --- | --- | --- |
+| 帳號 | `/login`、`/register`、`/forgot-password`、`/reset-password` | UI 與帳號 API 已接入；登入鏈為 antiforgery → login → `/me` | 以代表帳號完成瀏覽器登入、登出、停權與 Google capability smoke |
+| 首頁與法律 | `/home`、`/privacy-policy`、`/terms` | 頁面已存在；首頁行銷版位仍使用型錄排序或本地 editorial fallback | 若需要正式主視覺、限時特賣、搜尋建議或 site config，先建立後端契約 |
+| User／會員 | `/member`、`/member/profile`、`/member/economy`、`/member/achievements`、`/member/daily-activity`、`/member/addresses`、`/member/coupons`、`/member/notifications` | 主要會員頁與 `/api/v1/me/*` 已接入，使用 `authGuard` | 真實資料庫驗證載入失敗、空資料、寫入失敗、登出後回復狀態 |
+| Catalog／圖鑑 | `/artifact-list`、`/key-list` | 圖鑑查詢、分類／年代、解鎖與鑰匙 API 已接入；已解鎖篩選是前台狀態切換 | 真實圖片、解鎖扣除／不扣除、交換規則、刷新與錯誤回饋的 E2E smoke |
+| Game／遊戲 | `/game`、`/game/rooms`、`/game/room/:roomId`、`/game/account`、`/game/training`、`/game/minigames`、`/game/how-to` | 房間、ready/start/leave/heartbeat、回合、作答、投票、Mini Game API 均有 service 與頁面入口 | 真實房間生命週期、逾時、重新整理、邀請、獎勵冪等與多人結果驗證 |
+| Social／社群 | `/social/posts`、`/social/posts/:id`、`/social/events`、`/social/events/:id`、`/social/announcements` | 貼文、看板、留言、檢舉、活動、報名、媒體及作者編輯 API 已接入 | 真實檔案上傳限制、審核／發布、權限與通知流程驗證 |
+| Admin／管理前台 | `/admin/events`、`/admin/reports`、`/admin/posts`、`/admin/comments` | 已註冊 `adminGuard` 與對應 Admin API | Admin 角色登入、列表空狀態、狀態異動與跨頁刷新驗證 |
+| Store／商城 | `/store`、`/store/products`、`/store/product/:id`、`/store/cart`、`/store/checkout` | 商品、活動、評價、會員購物車、地址與建立訂單 API 已存在；圖片走正式 Catalog／Store media | 結帳報價 API 尚不存在；付款、配送、庫存、優惠券套用與取消／退款尚未形成完整契約 |
+
+根路徑 `/` 與未知路徑目前都導向 `/home`。`/game/demo` 只在 development mode 註冊，`/game/test` 與 `/admin/*` 受管理員 guard 保護。
 
 ## 五個系統待辦
 
@@ -79,12 +96,17 @@
 - 在真實資料庫驗證商品、購物車、優惠券、點數、庫存與訂單狀態。
 - 確認付款 callback、已付款取消／退款與失敗回復，不以單純前端 disabled 取代後端規則。
 
+目前另有兩個需要優先清理的前台契約缺口：
+
+- `CheckoutApi.getQuote()` 仍保留 `/api/v1/store/checkout/quote` 呼叫，但 API 目前沒有這支路由；在正式報價契約完成前，結帳頁不能宣稱已可完成報價。
+- `CatalogService` 仍保留文物 `POST`、`PUT`、`PATCH`、`DELETE` 方法，但目前 `CatalogController` 沒有對應寫入路由；現行前台頁面未使用這些方法，後續應移除或改放到明確的管理 API，避免誤用。
+
 ## 共同驗證與邊界
 
 - 目前整合完成不等於所有需要資料庫的流程都已完成端對端驗證。
-- 最小驗證順序：先啟動 API、Angular 前台與 Razor 管理後台，再用代表帳號逐系統走一條主流程，最後檢查跨系統導覽與登出。
+- 一般前台最小驗證順序：先啟動 API 與 Angular，以代表帳號逐系統走一條主流程，檢查登入、圖片、資料與登出；管理後台或私人媒體流程再加啟動 `QMAH.Web`。
 - 後端 authorization、交易一致性、庫存與付款狀態仍是安全與正確性的邊界；Angular guard 只負責前端導引與體驗。
-- 詳細跨系統工作項目與已知限制，請參考主 Repository 的 `INTEGRATION_TODO.md`。
+- 詳細跨系統工作項目與已知限制以本頁「目前實際前台路由」及各系統「下一步／目前未完成事項」為準；目前沒有另外存在的 `INTEGRATION_TODO.md`。
 
 ## 啟動與交接
 
