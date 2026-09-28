@@ -228,7 +228,7 @@ Invoke-RestMethod "$baseUrl/me/economy" -WebSession $session
 3. 呼叫 `POST /api/v1/game/attempts/{id}/complete` 送出原始分數與結果資料。
 4. 前台顯示後端回傳的分數、Grade、點數與鑰匙進度。後端會依 Attempt、模式、素材池與 `rawResultJson` 的最終盤面重算分數；目前不記錄或重播完整操作序列。
 
-`rawScore` 限 0～100；`rawResultJson` 選填，非空時須為最多 4,000 字元的 JSON 文字，解析後須為物件或陣列。格式錯誤回傳 `400`。有效請求重送已完成 Attempt 時回傳 `200`，`alreadyCompleted` 為 `true`，不再發獎；其他不可完成狀態才回傳 `409`。畫面不應看到成功回應就再次累加點數，應重新讀取背包。
+`rawScore` 限 0～100；`rawResultJson` 完成 Attempt 時必須提供，且須為最多 4,000 字元、可解析為 JSON 物件的文字。格式錯誤回傳 `400`。有效請求重送已完成 Attempt 時回傳 `200`，`alreadyCompleted` 為 `true`，不再發獎；其他不可完成狀態才回傳 `409`。畫面不應看到成功回應就再次累加點數，應重新讀取背包。
 
 `rawResultJson` 的 DTO 使用 `StringLength(4000)`，OpenAPI 可表達相同長度上限；服務另檢查 JSON 格式與模式專用盤面。成功回應的 `normalizedScore` 等於已驗證的 `rawScore`，但不表示伺服器記錄或重播完整操作序列。
 
@@ -348,12 +348,15 @@ Angular request（前端發出的 HTTP 請求）保留 credentials（是否攜�
 | GET | `/api/v1/store/products/{id}` | 商品詳情與對應文物 |
 | GET | `/api/v1/store/products/{productId}/reviews` | 公開評價分頁、平均星等與評價總數；只計入已發布內容 |
 | GET | `/api/v1/store/products/{productId}/reviews/me` | 登入後取得目前會員對該商品的評價 |
+| GET | `/api/v1/store/checkout/options` | 登入後取得配送與付款選項、免運門檻與點數回饋比例 |
+| POST | `/api/v1/store/checkout/quote` | 登入後試算購物車、優惠券、點數與運費；只讀，不成立訂單 |
+| POST | `/api/v1/store/orders` | 登入後建立訂單；伺服器重新檢查商品、庫存、折抵與運費 |
 | PUT | `/api/v1/store/products/{productId}/reviews/me` | 登入後新增或修改目前會員的 1 至 5 星評價與短文 |
 | DELETE | `/api/v1/store/products/{productId}/reviews/me` | 登入後刪除目前會員所屬的評價；採軟刪除，不影響其他會員的內容 |
 
 商城首頁的主視覺、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 目前不是後端 API 契約。前台使用既有商品型錄或本地 fallback，不應把這些未存在的 `/home/*`、`/rankings`、`/recommendations`、`/search/*`、`/site/config` 路徑當成可呼叫端點。
 
-目前也沒有 `/api/v1/store/checkout/options` 或 `/api/v1/store/checkout/quote`；結帳頁的 `CheckoutApi.getQuote()` 是待完成的前台契約缺口，不應視為正式可用 API。建立訂單的 `POST /api/v1/store/orders` 已存在，但配送、付款、報價與付款回呼尚未形成完整契約。另有舊的 `CatalogService` 保留文物寫入方法，但 `CatalogController` 目前只有讀取路由，這些方法不屬於目前正式 API。
+已提供 `GET /api/v1/store/checkout/options` 與 `POST /api/v1/store/checkout/quote`（需登入；報價只讀、不成立訂單），成立訂單使用 `POST /api/v1/store/orders`。配送為 `STANDARD`／`CVS`，小計達 1,500 元免運；後端重新計算運費與應付額。付款選項為 `COD`／`CREDIT_CARD`；信用卡訂單回應可含 `ecpayCheckout` 測試表單，但目前沒有可信的付款回呼驗證，不能據此判定訂單已付款。另有舊的 `CatalogService` 保留文物寫入方法，但 `CatalogController` 目前只有讀取路由，這些方法不屬於目前正式 API。
 
 Code（系統代碼）是資料契約，不是直接給使用者看的文案；前台應以 metadata（供前端使用的選項資料）的 Label（畫面顯示文字）呈現。文物圖片與商品圖片使用既有 `/media/catalog/` 路徑及其來源授權資料，媒體網址切換規則見[媒體交付設定](../frontend/media-delivery.md)。
 

@@ -130,7 +130,7 @@ Angular 官方版本相容表將 21.0、21.1 與 21.2 放在相同的 Node.js、
 
 ## 開發入口
 
-本機資料庫使用 [QMAH-Database db-v0.10.0 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.10.0) 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.10.0/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
+本機資料庫使用 [QMAH-Database db-v0.10.3 Release](https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.10.3) 的 [`QMAH.sql`](https://github.com/MSIT173-03/QMAH-Database/blob/db-v0.10.3/QMAH.sql)，或使用同一版本且已驗證的 `.bak`。完成其中一種還原即可。
 
 QMAH 主 Repository 的 Release 目前只作版本導覽，不再提供 SQL／BAK 資產。前端第一次開發時，在 `QMAH.Client` 執行：
 
@@ -167,7 +167,7 @@ API 與 Angular 可以透過下列方式啟動：
 
 `app.config.ts` 的目前設定具體包含 `provideRouter(routes, withComponentInputBinding())`、針對 `/api/v1` request 設定 `withCredentials: true`，以及以 `XSRF-TOKEN-API` Cookie 讀取 request token、送出 `X-XSRF-TOKEN` Header 的 XSRF 設定。API 的 `GET /api/v1/account/antiforgery-token` 會建立這個可讀取的 request token；API 內部的 HttpOnly Cookie 仍由 ASP.NET Core 保護。
 
-商城的 `src/app/store/api/mock` 僅供 `.spec.ts` 的 `provideMockApi()` 測試使用，正式 `app.config.ts` 不註冊 `mockApiInterceptor`。正式商城商品、活動與會員資產分別讀取 `/api/v1/store/categories`、`/api/v1/store/promotions`、`/api/v1/store/products`、`/api/v1/me`、`/api/v1/me/coupons` 與 `/api/v1/me/cart`。首頁版位、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未有正式契約，前台使用現有型錄排序或本地 fallback，不能把 mock handler 當成已存在的正式路徑。
+商城舊 `src/app/store/api/mock` 已移除。正式商城商品、活動與會員資產分別讀取 `/api/v1/store/categories`、`/api/v1/store/promotions`、`/api/v1/store/products`、`/api/v1/me`、`/api/v1/me/coupons` 與 `/api/v1/me/cart`；結帳選項與報價則讀取 `/api/v1/store/checkout/options`、`/api/v1/store/checkout/quote`。首頁版位、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未有正式契約，前台使用現有型錄排序或本地 fallback。
 
 ## 登入後的第一條資料流程
 

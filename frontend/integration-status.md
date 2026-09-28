@@ -34,7 +34,7 @@
 | Game／遊戲 | `/game`、`/game/rooms`、`/game/room/:roomId`、`/game/account`、`/game/training`、`/game/minigames`、`/game/how-to` | 房間、ready/start/leave/heartbeat、回合、作答、投票、Mini Game API 均有 service 與頁面入口 | 真實房間生命週期、逾時、重新整理、邀請、獎勵冪等與多人結果驗證 |
 | Social／社群 | `/social/posts`、`/social/posts/:id`、`/social/events`、`/social/events/:id`、`/social/announcements` | 貼文、看板、留言、檢舉、活動、報名、媒體及作者編輯 API 已接入 | 真實檔案上傳限制、審核／發布、權限與通知流程驗證 |
 | Admin／管理前台 | `/admin/events`、`/admin/reports`、`/admin/posts`、`/admin/comments` | 已註冊 `adminGuard` 與對應 Admin API | Admin 角色登入、列表空狀態、狀態異動與跨頁刷新驗證 |
-| Store／商城 | `/store`、`/store/products`、`/store/product/:id`、`/store/cart`、`/store/checkout` | 商品、活動、評價、會員購物車、地址與建立訂單 API 已存在；圖片走正式 Catalog／Store media | 結帳報價 API 尚不存在；付款、配送、庫存、優惠券套用與取消／退款尚未形成完整契約 |
+| Store／商城 | `/store`、`/store/products`、`/store/product/:id`、`/store/cart`、`/store/checkout` | 商品、活動、評價、會員購物車、結帳選項、報價與建立訂單 API 已存在；圖片走正式 Catalog／Store media；付款選項含 COD 與綠界信用卡測試入口 | 信用卡回呼與退款尚未完成，測試操作不代表已完成收款，仍需真實資料流程驗證 |
 
 根路徑 `/` 與未知路徑目前都導向 `/home`。`/game/demo` 只在 development mode 註冊，`/game/test` 與 `/admin/*` 受管理員 guard 保護。
 
@@ -88,17 +88,18 @@
 
 - 商品型錄：`/api/v1/store/categories`、`/api/v1/store/promotions`、`/api/v1/store/products`、`/api/v1/store/products/{id}`、`/api/v1/store/products/{id}/reviews`
 - 會員資料：`/api/v1/me`、`/api/v1/me/coupons`、`/api/v1/me/cart`
+- 結帳：`GET /api/v1/store/checkout/options`、`POST /api/v1/store/checkout/quote`、`POST /api/v1/store/orders`；後端以小計、折價券、點數與運費重算應付額。
 - 首頁主視覺、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未是後端契約。前台改用現有商品型錄排序或本地 editorial fallback，不再請求不存在的路徑。
 
 下一步：
 
-- 補齊正式 checkout options、報價、配送、付款 DTO 與狀態機的前後端契約，並讓前台接上實際流程。
+- 以代表帳號驗證現有 checkout options、報價、下單、庫存與優惠券／點數異動的一致性。
 - 在真實資料庫驗證商品、購物車、優惠券、點數、庫存與訂單狀態。
 - 確認付款 callback、已付款取消／退款與失敗回復，不以單純前端 disabled 取代後端規則。
 
 目前另有兩個需要優先清理的前台契約缺口：
 
-- `CheckoutApi.getQuote()` 仍保留 `/api/v1/store/checkout/quote` 呼叫，但 API 目前沒有這支路由；在正式報價契約完成前，結帳頁不能宣稱已可完成報價。
+- 信用卡付款回呼與驗證尚未完成；API 提供 `COD` 與 `CREDIT_CARD` 測試選項，信用卡訂單可取得綠界測試付款表單，但不得把展示資料的已付款狀態當作已完成真實金流。
 - `CatalogService` 仍保留文物 `POST`、`PUT`、`PATCH`、`DELETE` 方法，但目前 `CatalogController` 沒有對應寫入路由；現行前台頁面未使用這些方法，後續應移除或改放到明確的管理 API，避免誤用。
 
 ## 共同驗證與邊界

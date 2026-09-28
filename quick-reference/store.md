@@ -23,8 +23,11 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 | --- | --- |
 | 商品分類、活動、商品與評價 | `/api/v1/store/categories`、`/api/v1/store/promotions`、`/api/v1/store/products`、`/api/v1/store/products/{id}`、`/api/v1/store/products/{id}/reviews` |
 | 會員資料與資產 | `/api/v1/me`、`/api/v1/me/coupons`、`/api/v1/me/cart` |
+| 結帳選項、報價、成立訂單 | `GET /api/v1/store/checkout/options`、`POST /api/v1/store/checkout/quote`、`POST /api/v1/store/orders` |
 
-首頁版位、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未有正式後端路徑。前台對這些版位使用本地 fallback 或既有商品型錄排序，不應自行新增不存在的 `/home/*`、`/rankings`、`/recommendations`、`/search/*` 或 `/site/config` 請求。測試用 `store/api/mock` 只供測試 interceptor 使用，不代表正式 API 已存在。
+首頁版位、限時特賣、排行、推薦、可領折價券、熱門搜尋與 Store site config 尚未有正式後端路徑。前台對這些版位使用本地 fallback 或既有商品型錄排序，不應自行新增不存在的 `/home/*`、`/rankings`、`/recommendations`、`/search/*` 或 `/site/config` 請求。舊 `store/api/mock` 已移除，正式資料以 API 為準。
+
+配送方式目前為宅配到府 `STANDARD`（80 元）及超商取貨 `CVS`（60 元），商品小計達 1,500 元免運；實際運費與應付額由後端報價及下單時重新計算。付款選項有貨到付款 `COD` 與信用卡測試 `CREDIT_CARD`。信用卡訂單會取得綠界測試表單，並可由瀏覽器前往測試付款頁；目前沒有可公開接收與驗證的付款回呼，測試頁操作及展示付款紀錄不能視為真實收款。
 
 ## 資料表與關聯
 
@@ -32,8 +35,8 @@ Store 負責文物衍生商品、購物車、折價券、訂單、付款、庫�
 | --- | --- | --- |
 | `store.Products` | 商品內容、價格、庫存、上下架狀態與文物對應 | `ArtifactId` 可為空且有唯一限制；商品名稱、說明、尺寸、售價與狀態獨立保存 |
 | `store.CartItems` | 會員購物車項目 | 連到會員與商品；同一會員與商品不可重複建列 |
-| `store.StoreOrders`、`store.OrderDetails` | 訂單主檔與成交明細 | 明細連到訂單與商品，保存成交品名、單價、數量與金額快照 |
-| `store.Payments` | 訂單付款結果與交易資訊 | `OrderId` 唯一，一張訂單目前對應一筆付款紀錄 |
+| `store.StoreOrders`、`store.OrderDetails` | 訂單主檔與成交明細 | 保存配送方式、運費、成交品名、單價、數量與金額快照；後台可查看配送及運費，待付款 COD 訂單可調整配送並同步重算金額 |
+| `store.Payments` | 訂單付款結果與交易資訊 | `OrderId` 唯一，一張訂單目前對應一筆付款紀錄；後台詳情顯示付款方式、狀態與已有的綠界欄位，不手動將測試交易標記為已收款 |
 | `store.CouponDefinitions`、`store.UserCoupons` | 折價券定義與會員持券狀態 | 定義、取得方式、有效期間、使用與撤銷狀態分開保存 |
 | `store.PointBalances`、`store.PointTransactions` | 會員點數餘額與異動流水 | 會員餘額與流水分表；查帳以流水核對，不直接把畫面數字當成交易 |
 | `store.ProductReviews` | 商品評價、公開狀態與會員關聯 | 連到商品與會員；`PUBLISHED`、`HIDDEN`、`DELETED` 不互相替代 |
