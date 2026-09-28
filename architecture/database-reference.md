@@ -2,7 +2,7 @@
 
 本頁是 QMAH 資料表的文字字典，補充 [SSMS Diagram 建立參考](database-diagram.md) 不適合放進圖表的用途、主鍵、外鍵和開發注意事項。資料庫結構以 `QMAH/database/Schema.sql` 為準，Entity 與關聯映射以 `QMAH.Infrastructure/Data/QmahDbContext.cs` 為準；完整資料列則以 [QMAH-Database 的 Snapshot](https://github.com/MSIT173-03/QMAH-Database) 為準。
 
-目前對照的共同資料版本是 `db-v0.10.0`。本頁不嵌入大型 `QMAH.sql`，也不把某一次程式提交當成資料庫版本。
+目前對照的共同資料版本是 `db-v0.11.0`。本頁不嵌入大型 `QMAH.sql`，也不把某一次程式提交當成資料庫版本。
 
 ## 資料查詢層次
 
@@ -12,7 +12,7 @@
 | LINQ 能否導覽、如何載入與儲存 | `QmahDbContext` 與 Entity | EF Core 的型別、Navigation、追蹤與關聯映射 |
 | API 回傳哪些欄位 | [REST API 契約](../reference/rest-api.md) 與 DTO | 對外可見的資料形狀，不等於整張資料表 |
 | 管理後台如何編輯 | [Area 責任與資料界線](area-boundaries.md) 與 ViewModel | 操作權限、輸入欄位、狀態與流程邊界 |
-| 本機目前有多少資料 | [開發資料與本機展示](../getting-started/development-data.md) | `db-v0.10.0` Snapshot 的展示情境與資料量 |
+| 本機目前有多少資料 | [開發資料與本機展示](../getting-started/development-data.md) | `db-v0.11.0` Snapshot 的展示情境與資料量 |
 | 如何重建或輸出共同資料 | [資料工具](../reference/data-tools.md) | 隔離資料庫、展示資料、Snapshot 與檔案交付 |
 
 ## Schema 分區
@@ -106,7 +106,7 @@ QMAH 目前在 `Schema.sql` 定義 7 個 Schema、54 張資料表。`Shared` 是
 | --- | --- | --- | --- |
 | `store.Products` | `Id` | `ArtifactId` → `catalog.Artifacts.Id` | 商品內容、價格、庫存與上下架狀態。文物對應可為空但有唯一限制；商品欄位獨立保存。 |
 | `store.CartItems` | `Id` | `ProductId` → `Products.Id`；`UserId` → `user.AspNetUsers.Id` | 會員購物車項目。同一會員與商品不可重複建列，結帳時要重新確認商品現況。 |
-| `store.StoreOrders` | `Id` | `UserCouponId` → `UserCoupons.Id`；`UserId` → `user.AspNetUsers.Id` | 訂單主檔與流程狀態。訂單狀態、付款狀態、商品上下架狀態分開保存。 |
+| `store.StoreOrders` | `Id` | `UserCouponId` → `UserCoupons.Id`；`UserId` → `user.AspNetUsers.Id` | 訂單主檔含配送方式、運費與總額。訂單狀態、付款狀態、商品上下架狀態分開保存。 |
 | `store.OrderDetails` | `Id` | `OrderId` → `StoreOrders.Id`；`ProductId` → `Products.Id` | 成交明細。品名、單價、數量與金額是成交快照，不跟隨商品現值改寫。 |
 | `store.Payments` | `Id` | `OrderId` → `StoreOrders.Id` | 付款處理結果與交易資訊。`OrderId` 有唯一限制，目前一張訂單對應一筆付款紀錄。 |
 | `store.CouponDefinitions` | `Id` | — | 折價券定義、折扣方式、取得方式與有效期間。`PERCENT`／`FIXED` 等代碼受資料庫與流程規則限制。 |

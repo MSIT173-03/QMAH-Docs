@@ -5,6 +5,7 @@
     <h1 id="qmah-home-title">QMAH 開發文件</h1>
     <p class="qmah-index-lead">查啟動方式、串接 API、理解功能流程或排查資料問題，都可以從下方工作入口開始。各系統頁說明功能如何運作，詳細文件提供操作步驟、程式位置與資料規則。</p>
     <p class="qmah-index-note">目前內容已依現行程式、API 路由與資料版本快速核對；專案仍會持續變動，文件可能還有遺漏，若後續發現需要補充或修正的內容，會再持續更新。</p>
+    <p class="qmah-index-usage">目前版本：<a href="https://github.com/MSIT173-03/QMAH/releases/tag/v0.11.0">QMAH v0.11.0</a> · <a href="https://github.com/MSIT173-03/QMAH-Database/releases/tag/db-v0.11.0">資料庫 db-v0.11.0（SQL／BAK）</a>。新環境直接使用新版完整 Snapshot，不需另執行訂單升級腳本。</p>
     <div class="qmah-index-meta" aria-label="文件站資訊">
       <span>QMAH / DOCUMENTATION</span>
       <span>Markdown source · VitePress build</span>
